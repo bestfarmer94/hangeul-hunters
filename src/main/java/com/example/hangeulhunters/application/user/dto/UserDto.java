@@ -1,5 +1,6 @@
 package com.example.hangeulhunters.application.user.dto;
 
+import com.example.hangeulhunters.domain.common.constant.Gender;
 import com.example.hangeulhunters.domain.user.constant.AuthProvider;
 import com.example.hangeulhunters.domain.user.constant.KoreanLevel;
 import com.example.hangeulhunters.domain.user.constant.UserRole;
@@ -12,7 +13,6 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.util.List;
-
 
 @Getter
 @NoArgsConstructor
@@ -28,19 +28,22 @@ public class UserDto {
     
     @Schema(description = "닉네임", required = true)
     private String nickname;
-    
-    @Schema(description = "한국어 능력 레벨", nullable = true)
-    private KoreanLevel koreanLevel;
+
+    @Schema(description = "성별", required = true)
+    private Gender gender;
+
+    @Schema(description = "생년월일", format = "date", required = true)
+    private LocalDate birthDate;
     
     @Schema(description = "사용자 역할", required = true)
     private UserRole role;
     
     @Schema(description = "인증 제공자 (소셜 로그인 등)", nullable = true)
     private AuthProvider provider;
-    
-    @Schema(description = "생년월일", format = "date", required = true)
-    private LocalDate birthDate;
-    
+
+    @Schema(description = "한국어 능력 레벨", nullable = true)
+    private KoreanLevel koreanLevel;
+
     @Schema(description = "프로필 이미지 URL", nullable = true)
     private String profileImageUrl;
     
@@ -52,10 +55,11 @@ public class UserDto {
                 .id(user.getId())
                 .email(user.getEmail())
                 .nickname(user.getNickname())
-                .koreanLevel(user.getKoreanLevel())
+                .gender(user.getGender())
+                .birthDate(user.getBirthDate())
                 .role(user.getRole())
                 .provider(user.getProvider())
-                .birthDate(user.getBirthDate())
+                .koreanLevel(user.getKoreanLevel())
                 .profileImageUrl(user.getProfileImageUrl())
                 .interests(interests)
                 .build();

@@ -1,5 +1,6 @@
 package com.example.hangeulhunters.infrastructure.exception;
 
+import lombok.Getter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -67,34 +68,24 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    @Getter
     public static class ErrorResponse {
-        private int status;
-        private String message;
+        private final int status;
+        private final String message;
 
         public ErrorResponse(int status, String message) {
             this.status = status;
             this.message = message;
         }
-
-        public int getStatus() {
-            return status;
-        }
-
-        public String getMessage() {
-            return message;
-        }
     }
 
+    @Getter
     public static class ValidationErrorResponse extends ErrorResponse {
-        private Map<String, String> errors;
+        private final Map<String, String> errors;
 
         public ValidationErrorResponse(int status, String message, Map<String, String> errors) {
             super(status, message);
             this.errors = errors;
-        }
-
-        public Map<String, String> getErrors() {
-            return errors;
         }
     }
 }

@@ -12,6 +12,8 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
+
 @Component
 @RequiredArgsConstructor
 public class DataInitializer implements CommandLineRunner {
@@ -28,6 +30,8 @@ public class DataInitializer implements CommandLineRunner {
                     .email("admin@example.com")
                     .password(passwordEncoder.encode("admin1234"))
                     .nickname("Admin")
+                    .gender(Gender.MALE)
+                    .birthDate(LocalDate.now())
                     .koreanLevel(KoreanLevel.NATIVE)
                     .role(UserRole.ROLE_ADMIN)
                     .build();
@@ -41,6 +45,8 @@ public class DataInitializer implements CommandLineRunner {
                     .email("user@example.com")
                     .password(passwordEncoder.encode("user1234"))
                     .nickname("Test User")
+                    .gender(Gender.FEMALE)
+                    .birthDate(LocalDate.now())
                     .koreanLevel(KoreanLevel.BEGINNER)
                     .role(UserRole.ROLE_USER)
                     .build();

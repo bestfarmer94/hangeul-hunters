@@ -58,6 +58,7 @@ public class UserService {
                 .email(signUpRequest.getEmail())
                 .password(passwordEncoder.encode(signUpRequest.getPassword()))
                 .nickname(signUpRequest.getNickname())
+                .gender(signUpRequest.getGender())
                 .birthDate(signUpRequest.getBirthDate())
                 .role(UserRole.ROLE_USER)
                 .build();
@@ -80,7 +81,7 @@ public class UserService {
         );
         
         // 관심사 업데이트
-        if (request.getInterests() != null && !request.getInterests().isEmpty()) {
+        if (request.getInterests() != null) {
             interestService.updateUserInterests(userId, request.getInterests());
         }
         

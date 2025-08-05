@@ -58,6 +58,6 @@ public class AuthController extends ControllerSupport {
     )
     public ResponseEntity<Void> logout() {
         authService.logout(getCurrentUserId());
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 }

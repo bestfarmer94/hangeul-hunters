@@ -1,5 +1,6 @@
 package com.example.hangeulhunters.application.auth.dto;
 
+import com.example.hangeulhunters.domain.common.constant.Gender;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
@@ -29,6 +30,10 @@ public class SignUpRequest {
     @NotBlank(message = "Nickname is required")
     @Schema(description = "닉네임", example = "홍길동")
     private String nickname;
+
+    @NotNull(message = "Gender is required")
+    @Schema(description = "성별", example = "MALE")
+    private Gender gender;
 
     @NotNull(message = "BirthDate is required")
     @Past(message = "Birth date must be in the past")
