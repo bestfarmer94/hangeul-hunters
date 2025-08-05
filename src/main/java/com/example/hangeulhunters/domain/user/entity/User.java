@@ -1,5 +1,6 @@
 package com.example.hangeulhunters.domain.user.entity;
 
+import com.example.hangeulhunters.domain.common.constant.Gender;
 import com.example.hangeulhunters.domain.common.entity.BaseTimeEntity;
 import com.example.hangeulhunters.domain.user.constant.AuthProvider;
 import com.example.hangeulhunters.domain.user.constant.KoreanLevel;
@@ -33,9 +34,11 @@ public class User extends BaseTimeEntity {
     @Column(nullable = false)
     private String nickname;
 
-    @Column(nullable = true)
-    @Enumerated(EnumType.STRING)
-    private KoreanLevel koreanLevel;
+    @Column(nullable = false)
+    private Gender gender;
+
+    @Column(nullable = false)
+    private LocalDate birthDate;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
@@ -47,10 +50,11 @@ public class User extends BaseTimeEntity {
 
     @Column(nullable = true)
     private String providerId;
-    
+
     @Column(nullable = true)
-    private LocalDate birthDate;
-    
+    @Enumerated(EnumType.STRING)
+    private KoreanLevel koreanLevel;
+
     @Column(nullable = true)
     private String profileImageUrl;
     
