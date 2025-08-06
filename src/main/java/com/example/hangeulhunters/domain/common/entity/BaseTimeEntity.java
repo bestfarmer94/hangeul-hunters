@@ -36,8 +36,4 @@ public abstract class BaseTimeEntity {
     public void delete() {
         this.deletedAt = DateTimeUtil.now();
     }
-    
-    public boolean isDeleted() {
-        return this.deletedAt != null;
-    }
 }
