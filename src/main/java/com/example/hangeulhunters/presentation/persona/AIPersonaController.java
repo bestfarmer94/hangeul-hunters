@@ -1,5 +1,6 @@
 package com.example.hangeulhunters.presentation.persona;
 
+import com.example.hangeulhunters.application.common.dto.PageResponse;
 import com.example.hangeulhunters.application.persona.dto.AIPersonaDto;
 import com.example.hangeulhunters.application.persona.dto.AIPersonaRequest;
 import com.example.hangeulhunters.application.persona.service.AIPersonaService;
@@ -12,8 +13,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 /**
  * AI 페르소나 컨트롤러
@@ -29,13 +28,15 @@ public class AIPersonaController extends ControllerSupport {
     @GetMapping("/my")
     @PreAuthorize("hasRole('USER')")
     @Operation(
-        summary = "내 AI 페르소나 목록 조회",
-        description = "현재 로그인한 사용자의 AI 페르소나 목록을 조회합니다",
+        summary = "내 AI 페르소나 목록 조회 (페이징)",
+        description = "현재 로그인한 사용자의 AI 페르소나 목록을 페이징하여 조회합니다",
         security = @SecurityRequirement(name = "bearerAuth")
     )
-    public ResponseEntity<List<AIPersonaDto>> getMyPersonas() {
-        List<AIPersonaDto> personas = aiPersonaService.getPersonasByUserId(getCurrentUserId());
-        return ResponseEntity.ok(personas);
+    public ResponseEntity<PageResponse<AIPersonaDto>> getMyPersonas(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        PageResponse<AIPersonaDto> response = aiPersonaService.getPersonasByUserId(getCurrentUserId(), page, size);
+        return ResponseEntity.ok(response);
     }
 
     /**
