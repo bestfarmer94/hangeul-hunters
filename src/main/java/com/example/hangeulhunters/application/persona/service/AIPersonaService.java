@@ -1,17 +1,19 @@
 package com.example.hangeulhunters.application.persona.service;
 
+import com.example.hangeulhunters.application.common.dto.PageResponse;
 import com.example.hangeulhunters.application.persona.dto.AIPersonaDto;
 import com.example.hangeulhunters.application.persona.dto.AIPersonaRequest;
 import com.example.hangeulhunters.domain.persona.entity.AIPersona;
 import com.example.hangeulhunters.domain.persona.repository.AIPersonaRepository;
 import com.example.hangeulhunters.infrastructure.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * AI 페르소나 서비스
@@ -23,16 +25,21 @@ public class AIPersonaService {
     private final AIPersonaRepository aiPersonaRepository;
 
     /**
-     * 사용자의 AI 페르소나 목록 조회
+     * 사용자의 AI 페르소나 목록 페이징 조회
      *
      * @param userId 사용자 ID
-     * @return AI 페르소나 DTO 목록
+     * @param page 페이지 번호
+     * @param size 페이지 크기
+     * @return AI 페르소나 페이지 응답 DTO
      */
     @Transactional(readOnly = true)
-    public List<AIPersonaDto> getPersonasByUserId(Long userId) {
-        return aiPersonaRepository.findAllByUserIdAndDeletedAtNull(userId).stream()
-                .map(AIPersonaDto::fromEntity)
-                .collect(Collectors.toList());
+    public PageResponse<AIPersonaDto> getPersonasByUserId(Long userId, int page, int size) {
+        // 생성일 기준 내림차순 정렬 (최신순)
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        
+        Page<AIPersona> personaPage = aiPersonaRepository.findAllByUserIdAndDeletedAtNull(userId, pageable);
+        
+        return PageResponse.of(personaPage, AIPersonaDto::fromEntity);
     }
 
     /**
