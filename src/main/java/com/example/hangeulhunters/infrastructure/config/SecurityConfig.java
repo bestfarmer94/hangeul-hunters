@@ -2,7 +2,6 @@ package com.example.hangeulhunters.infrastructure.config;
 
 import com.example.hangeulhunters.infrastructure.security.JwtAuthenticationFilter;
 import com.example.hangeulhunters.infrastructure.security.JwtTokenProvider;
-import com.example.hangeulhunters.infrastructure.security.OAuth2AuthenticationSuccessHandler;
 import com.example.hangeulhunters.infrastructure.security.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -33,7 +32,7 @@ public class SecurityConfig {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final UserDetailsServiceImpl userDetailsService;
-    private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
+//    private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -65,9 +64,9 @@ public class SecurityConfig {
                 .requestMatchers("/h2-console/**").permitAll()
                 .anyRequest().authenticated()
             )
-            .oauth2Login(oauth2 -> oauth2
-                .successHandler(oAuth2AuthenticationSuccessHandler)
-            )
+//            .oauth2Login(oauth2 -> oauth2
+//                .successHandler(oAuth2AuthenticationSuccessHandler)
+//            )
             .headers(headers -> headers.frameOptions().disable())
             .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
 
