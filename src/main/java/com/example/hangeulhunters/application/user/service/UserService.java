@@ -1,10 +1,12 @@
 package com.example.hangeulhunters.application.user.service;
 
 import com.example.hangeulhunters.application.auth.dto.SignUpRequest;
+import com.example.hangeulhunters.application.file.service.FileService;
 import com.example.hangeulhunters.application.interest.dto.InterestDto;
 import com.example.hangeulhunters.application.interest.service.InterestService;
 import com.example.hangeulhunters.application.user.dto.ProfileUpdateRequest;
 import com.example.hangeulhunters.application.user.dto.UserDto;
+import com.example.hangeulhunters.domain.common.constant.ImageType;
 import com.example.hangeulhunters.domain.user.constant.UserRole;
 import com.example.hangeulhunters.domain.user.entity.User;
 import com.example.hangeulhunters.domain.user.repository.UserRepository;
@@ -23,8 +25,8 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-
     private final InterestService interestService;
+    private final FileService fileService;
 
     @Transactional(readOnly = true)
     public UserDto getUserById(Long id) {
@@ -41,12 +43,6 @@ public class UserService {
         List<String> interests = getInterestsForUser(user.getId());
         return UserDto.fromEntity(user, interests);
     }
-    
-    private List<String> getInterestsForUser(Long userId) {
-        return interestService.getUserInterests(userId).stream()
-                .map(InterestDto::getName)
-                .collect(Collectors.toList());
-    }
 
     @Transactional
     public UserDto createUser(SignUpRequest signUpRequest) {
@@ -54,12 +50,17 @@ public class UserService {
             throw new IllegalArgumentException("Email is already taken");
         }
 
+        // 프로필 이미지 처리
+        String profileImageUrl = fileService.saveImageIfNeed(ImageType.USER_PROFILE, signUpRequest.getProfileImageUrl());
+        
+        // 사용자 생성 및 저장
         User user = User.builder()
                 .email(signUpRequest.getEmail())
                 .password(passwordEncoder.encode(signUpRequest.getPassword()))
                 .nickname(signUpRequest.getNickname())
                 .gender(signUpRequest.getGender())
                 .birthDate(signUpRequest.getBirthDate())
+                .profileImageUrl(profileImageUrl)
                 .role(UserRole.ROLE_USER)
                 .build();
 
@@ -72,12 +73,15 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
         
+        // 프로필 이미지 처리
+        String profileImageUrl = fileService.saveImageIfNeed(ImageType.USER_PROFILE, request.getProfileImageUrl());
+
         // 기본 프로필 정보 업데이트
         user.updateProfile(
             request.getNickname(),
             request.getBirthDate(),
             request.getKoreanLevel(),
-            request.getProfileImageUrl()
+            profileImageUrl
         );
         
         // 관심사 업데이트
@@ -88,5 +92,11 @@ public class UserService {
         User savedUser = userRepository.save(user);
         List<String> interests = getInterestsForUser(userId);
         return UserDto.fromEntity(savedUser, interests);
+    }
+
+    private List<String> getInterestsForUser(Long userId) {
+        return interestService.getUserInterests(userId).stream()
+                .map(InterestDto::getName)
+                .collect(Collectors.toList());
     }
 }
