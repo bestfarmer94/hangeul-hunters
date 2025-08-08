@@ -21,13 +21,13 @@ public enum SituationExample {
     BOSS3("Requesting feedback on work.", "무슨 일로 찾아왔나?"),
 
     @Schema(description = "Meeting for the first time and greeting.")
-    GFPARENTS1("Meeting for the first time and greeting.", "반갑네. 부모님 되는 사람일세."),
+    GF_PARENTS1("Meeting for the first time and greeting.", "반갑네. 부모님 되는 사람일세."),
 
     @Schema(description = "Conversation over dinner.")
-    GFPARENTS2("Conversation over dinner.", "밥 묵자."),
+    GF_PARENTS2("Conversation over dinner.", "밥 묵자."),
 
     @Schema(description = "Apologizing for breaking a picture frame.")
-    GFPARENTS3("Apologizing for breaking a picture frame.", "안 다쳤어?"),
+    GF_PARENTS3("Apologizing for breaking a picture frame.", "안 다쳤어?"),
 
     @Schema(description = "Negotiating prices.")
     CLERK1("Negotiate prices.", "4달라"),
