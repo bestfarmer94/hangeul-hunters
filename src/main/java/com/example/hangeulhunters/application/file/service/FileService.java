@@ -32,7 +32,7 @@ public class FileService {
     public String saveImageIfNeed(ImageType imageType, String imageUrl) {
         return imageUrl != null && imageUrl.contains("/temp/")
                 ? saveImageUrl(imageType, imageUrl)
-                : null;
+                : imageUrl;
     }
 
     /**
