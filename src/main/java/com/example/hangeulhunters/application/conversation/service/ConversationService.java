@@ -5,6 +5,7 @@ import com.example.hangeulhunters.application.conversation.dto.ConversationDto;
 import com.example.hangeulhunters.application.conversation.dto.ConversationFilterRequest;
 import com.example.hangeulhunters.application.conversation.dto.ConversationRequest;
 import com.example.hangeulhunters.application.persona.service.AIPersonaService;
+import com.example.hangeulhunters.domain.conversation.constant.ConversationStatus;
 import com.example.hangeulhunters.domain.conversation.entity.Conversation;
 import com.example.hangeulhunters.domain.conversation.repository.ConversationRepository;
 import com.example.hangeulhunters.infrastructure.exception.ResourceNotFoundException;
@@ -70,6 +71,7 @@ public class ConversationService {
         Conversation conversation = Conversation.builder()
                 .userId(userId)
                 .personaId(request.getPersonaId())
+                .status(ConversationStatus.ACTIVE)
                 .situation(request.getSituation())
                 .build();
         
