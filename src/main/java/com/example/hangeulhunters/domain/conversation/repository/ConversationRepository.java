@@ -43,9 +43,9 @@ public interface ConversationRepository extends JpaRepository<Conversation, Long
             "   c.created_at DESC", nativeQuery = true)
     Page<Conversation> getConversationsByUser(
             @Param("userId") Long userId,
-            @Param("status") ConversationStatus status,
+            @Param("status") String status,
             @Param("personaId") Long personaId,
-            @Param("sortBy") ConversationSortBy sortBy,
+            @Param("sortBy") String sortBy,
             Pageable pageable
     );
 }

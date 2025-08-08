@@ -38,9 +38,9 @@ public class ConversationService {
         // 필터링된 대화 목록 조회
         Page<Conversation> conversations = conversationRepository.getConversationsByUser(
                 userId, 
-                filter.getStatus(), 
+                filter.getStatus().name(),
                 filter.getPersonaId(),
-                filter.getSortBy(),
+                filter.getSortBy().name(),
                 pageable
         );
 
