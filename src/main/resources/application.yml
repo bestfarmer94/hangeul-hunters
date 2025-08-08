@@ -4,8 +4,31 @@ server:
 spring:
   application:
     name: hangeul-hunters
+
   profiles:
     active: local
+
+  # Database Configuration (AWS RDS - Production)
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+    hikari:
+      maximum-pool-size: 10
+      connection-timeout: 30000
+
+  # JPA Configuration
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          time_zone: UTC
 
   # Redis Configuration
   data:
@@ -36,3 +59,10 @@ jwt:
   secret: ${JWT_SECRET:hangeulhunterssecretkey1234567890abcdefghijklmnopqrstuvwxyz}
   access-token-expiration: 86400000 # 1 day in milliseconds
   refresh-token-expiration: 604800000 # 7 days in milliseconds
+
+aws:
+  credentials:
+    access-key: ${AWS_ACCESS_KEY}
+    secret-key: ${AWS_SECRET_KEY}
+  region: ${AWS_REGION}
+  bucket: ${AWS_BUCKET_NAME}
