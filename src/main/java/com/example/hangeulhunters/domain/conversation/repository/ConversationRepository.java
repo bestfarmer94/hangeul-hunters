@@ -26,21 +26,21 @@ public interface ConversationRepository extends JpaRepository<Conversation, Long
      * @param pageable 페이징 정보
      * @return 페이징된 대화 목록
      */
-    @Query("SELECT c " +
+    @Query(value = "SELECT c.* " +
             "FROM " +
-            "   Conversation c " +
-            "   JOIN AIPersona p " +
-            "       ON c.personaId = p.id " +
-            "           and p.deletedAt IS NULL " +
+            "   conversation c " +
+            "   JOIN ai_persona p " +
+            "       ON c.persona_id = p.id " +
+            "           and p.deleted_at IS NULL " +
             "WHERE " +
-            "   c.userId = :userId " +
+            "   c.user_id = :userId " +
             "   AND (:status IS NULL OR c.status = :status) " +
-            "   AND (:personaId IS NULL OR c.personaId = :personaId) " +
-            "   AND c.deletedAt IS NULL " +
+            "   AND (:personaId IS NULL OR c.persona_id = :personaId) " +
+            "   AND c.deleted_at IS NULL " +
             "ORDER BY " +
             "   c.status ASC, " +
             "   CASE WHEN :sortBy = 'PERSONA_NAME_ASC' THEN p.name END ASC, " +
-            "   c.createdAt DESC")
+            "   c.created_at DESC", nativeQuery = true)
     Page<Conversation> getConversationsByUser(
             @Param("userId") Long userId,
             @Param("status") ConversationStatus status,
