@@ -6,8 +6,11 @@ import com.example.hangeulhunters.application.conversation.dto.ConversationFilte
 import com.example.hangeulhunters.application.conversation.dto.ConversationRequest;
 import com.example.hangeulhunters.application.persona.service.AIPersonaService;
 import com.example.hangeulhunters.domain.conversation.constant.ConversationStatus;
+import com.example.hangeulhunters.domain.conversation.constant.MessageType;
 import com.example.hangeulhunters.domain.conversation.entity.Conversation;
+import com.example.hangeulhunters.domain.conversation.entity.Message;
 import com.example.hangeulhunters.domain.conversation.repository.ConversationRepository;
+import com.example.hangeulhunters.domain.conversation.repository.MessageRepository;
 import com.example.hangeulhunters.infrastructure.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -21,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ConversationService {
 
     private final ConversationRepository conversationRepository;
+    private final MessageRepository messageRepository;
     private final AIPersonaService aIPersonaService;
 
     /**
@@ -68,14 +72,23 @@ public class ConversationService {
         // AI 페르소나 소유 검증
         aIPersonaService.getPersonaById(request.getPersonaId(), userId);
 
+        // 대화 생성
         Conversation conversation = Conversation.builder()
                 .userId(userId)
                 .personaId(request.getPersonaId())
                 .status(ConversationStatus.ACTIVE)
-                .situation(request.getSituation())
+                .situation(request.getSituation().getSituation())
                 .build();
-        
         Conversation savedConversation = conversationRepository.save(conversation);
+
+        // 대화 시작 메시지 생성
+        Message message = Message.builder()
+                .conversationId(savedConversation.getId())
+                .type(MessageType.AI)
+                .content(request.getSituation().getFirstMessage())
+                .build();
+        messageRepository.save(message);
+
         return ConversationDto.of(savedConversation, aIPersonaService.getPersonaById(savedConversation.getPersonaId(), userId));
     }
 
@@ -91,7 +104,9 @@ public class ConversationService {
         
         // 대화 종료 처리
         conversation.endConversation();
-        
+
+        // 피드백 생성
+
         conversationRepository.save(conversation);
     }
 }

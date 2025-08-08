@@ -40,6 +40,6 @@ public class SignUpRequest {
     @Schema(description = "생년월일", example = "1990-01-01", format = "date")
     private LocalDate birthDate;
     
-    @Schema(description = "프로필 이미지 URL", example = "https://noonchi-bucket.s3.ap-northeast-2.amazonaws.com/temp/123e4567-e89b-12d3-a456-426614174000.jpg")
+    @Schema(description = "프로필 이미지 URL", example = "https://noonchi-bucket.s3.ap-northeast-2.amazonaws.com/123e4567-e89b-12d3-a456-426614174000.jpg")
     private String profileImageUrl;
 }

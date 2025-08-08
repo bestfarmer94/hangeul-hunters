@@ -36,3 +36,12 @@ jwt:
   secret: ${JWT_SECRET:hangeulhunterssecretkey1234567890abcdefghijklmnopqrstuvwxyz}
   access-token-expiration: 86400000 # 1 day in milliseconds
   refresh-token-expiration: 604800000 # 7 days in milliseconds
+
+# Naver CLOVA Studio
+cloud:
+  naver:
+    clovastudio:
+      base-url: https://clovastudio.stream.ntruss.com
+      chat-path: /v3/tasks/{taskId}/chat-completions
+      eval-path: /v3/chat-completions/HCX-007
+      api-key: ${CLOVA_API_KEY:}

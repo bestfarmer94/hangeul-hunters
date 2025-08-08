@@ -1,5 +1,6 @@
 package com.example.hangeulhunters.application.conversation.dto;
 
+import com.example.hangeulhunters.domain.conversation.constant.SituationExample;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -16,6 +17,6 @@ public class ConversationRequest {
     @Schema(description = "AI 페르소나 ID", example = "1")
     private Long personaId;
 
-    @Schema(description = "대화 상황", example = "일상 대화")
-    private String situation;
+    @Schema(description = "대화 상황", example = "BOSS1")
+    private SituationExample situation;
 }
