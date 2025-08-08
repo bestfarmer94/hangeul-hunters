@@ -57,6 +57,7 @@ public class S3Service {
                         .withExpiration(expiration);
         
         generatePresignedUrlRequest.setContentType(fileType);
+        generatePresignedUrlRequest.addRequestParameter("x-amz-acl", "public-read");
 
         URL url = amazonS3.generatePresignedUrl(generatePresignedUrlRequest);
 
