@@ -67,7 +67,7 @@ public class ConversationService {
     }
 
     @Transactional(readOnly = true)
-    public ConversationDto getConversation(Long conversationId, Long userId) {
+    public ConversationDto getConversationById(Long userId, Long conversationId) {
         Conversation conversation = conversationRepository.findByIdAndUserId(conversationId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Conversation", "id", conversationId));
         
