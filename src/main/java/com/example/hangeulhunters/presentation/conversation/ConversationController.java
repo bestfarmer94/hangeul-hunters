@@ -26,6 +26,20 @@ public class ConversationController extends ControllerSupport {
 
     private final ConversationService conversationService;
 
+    @GetMapping("/{conversationId}")
+    @PreAuthorize("hasRole('USER')")
+    @Operation(
+            summary = "대화방 상세 조회",
+            description = "특정 대화방의 정보를 조회합니다",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    public ResponseEntity<ConversationDto> getConversationById(
+            @Parameter(description = "대화방 ID") @PathVariable Long conversationId) {
+
+        ConversationDto conversation = conversationService.getConversationById(getCurrentUserId(), conversationId);
+        return ResponseEntity.ok(conversation);
+    }
+
     @GetMapping
     @PreAuthorize("hasRole('USER')")
     @Operation(
