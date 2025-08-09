@@ -81,7 +81,7 @@ public class SecurityConfig {
                 "http://localhost:3000",
                 "https://noonchi.ai.kr",
                 "https://www.noonchi.ai.kr",
-                "https://pangpang-one.vercel.app/",
+                "https://pangpang-one.vercel.app",
                 "https://www.pangpang-one.com"
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
