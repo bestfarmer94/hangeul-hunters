@@ -39,7 +39,7 @@ public class MessageService {
         UserDto user = userService.getUserById(userId);
 
         // 대화 정보 조회
-        ConversationDto conversation = conversationService.getConversation(request.getConversationId(), userId);
+        ConversationDto conversation = conversationService.getConversationById(userId, request.getConversationId());
 
         // 대화 소유자 확인
         if (!conversation.getUserId().equals(userId)) {
@@ -97,7 +97,7 @@ public class MessageService {
 
     @Transactional(readOnly = true)
     public PageResponse<MessageDto> getMessagesByConversationId(Long userId, Long conversationId, int page, int size) {
-        ConversationDto conversation = conversationService.getConversation(conversationId, userId);
+        ConversationDto conversation = conversationService.getConversationById(userId, conversationId);
 
         if (!conversation.getUserId().equals(userId)) {
             throw new IllegalArgumentException("User does not own this conversation");
