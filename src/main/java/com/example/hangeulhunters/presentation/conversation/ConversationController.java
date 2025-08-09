@@ -5,6 +5,8 @@ import com.example.hangeulhunters.application.conversation.dto.ConversationDto;
 import com.example.hangeulhunters.application.conversation.dto.ConversationFilterRequest;
 import com.example.hangeulhunters.application.conversation.dto.ConversationRequest;
 import com.example.hangeulhunters.application.conversation.service.ConversationService;
+import com.example.hangeulhunters.application.conversation.service.FeedbackService;
+import com.example.hangeulhunters.application.conversation.service.MessageService;
 import com.example.hangeulhunters.domain.conversation.constant.ConversationSortBy;
 import com.example.hangeulhunters.domain.conversation.constant.ConversationStatus;
 import com.example.hangeulhunters.presentation.common.ControllerSupport;
@@ -25,6 +27,8 @@ import org.springframework.web.bind.annotation.*;
 public class ConversationController extends ControllerSupport {
 
     private final ConversationService conversationService;
+    private final MessageService messageService;
+    private final FeedbackService feedbackService;
 
     @GetMapping("/{conversationId}")
     @PreAuthorize("hasRole('USER')")
@@ -77,6 +81,7 @@ public class ConversationController extends ControllerSupport {
     )
     public ResponseEntity<ConversationDto> createConversation(@Valid @RequestBody ConversationRequest request) {
         ConversationDto conversation = conversationService.createConversation(getCurrentUserId(), request);
+        messageService.createFirstMessage(conversation);
         return ResponseEntity.ok(conversation);
     }
 
@@ -89,6 +94,7 @@ public class ConversationController extends ControllerSupport {
     )
     public ResponseEntity<Void> endConversation(@PathVariable Long conversationId) {
         conversationService.endConversation(getCurrentUserId(), conversationId);
+        feedbackService.feedbackConversation(getCurrentUserId(), conversationId);
         return ResponseEntity.noContent().build();
     }
 }

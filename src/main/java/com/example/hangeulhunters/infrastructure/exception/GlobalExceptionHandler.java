@@ -1,81 +1,94 @@
 package com.example.hangeulhunters.infrastructure.exception;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.Getter;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.validation.FieldError;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    // 404 - Resource not found
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFoundException ex) {
-        ErrorResponse errorResponse = new ErrorResponse(
-                HttpStatus.NOT_FOUND.value(),
-                ex.getMessage()
-        );
-        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    public ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFoundException ex, HttpServletRequest req) {
+        return build(HttpStatus.NOT_FOUND, ex.getMessage(), req);
     }
 
-    @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<ErrorResponse> handleBadCredentialsException(BadCredentialsException ex) {
-        ErrorResponse errorResponse = new ErrorResponse(
-                HttpStatus.UNAUTHORIZED.value(),
-                "Invalid email or password"
-        );
-        return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
+    // 401 - Auth errors
+    @ExceptionHandler({UnauthorizedException.class})
+    public ResponseEntity<ErrorResponse> handleUnauthorized(Exception ex, HttpServletRequest req) {
+        return build(HttpStatus.UNAUTHORIZED, "Unauthorized", req);
     }
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex) {
-        ErrorResponse errorResponse = new ErrorResponse(
-                HttpStatus.BAD_REQUEST.value(),
-                ex.getMessage()
-        );
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    // 403 - Access denied
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException ex, HttpServletRequest req) {
+        return build(HttpStatus.FORBIDDEN, "Access is denied", req);
     }
 
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ValidationErrorResponse> handleValidationExceptions(MethodArgumentNotValidException ex) {
-        Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getAllErrors().forEach((error) -> {
-            String fieldName = ((FieldError) error).getField();
-            String errorMessage = error.getDefaultMessage();
-            errors.put(fieldName, errorMessage);
-        });
-        
-        ValidationErrorResponse errorResponse = new ValidationErrorResponse(
-                HttpStatus.BAD_REQUEST.value(),
-                "Validation error",
+    // 400 - Bad request (validation + illegal arguments)
+    @ExceptionHandler({BadRequestException.class, MethodArgumentNotValidException.class})
+    public ResponseEntity<?> handleBadRequest(Exception ex, HttpServletRequest req) {
+        if (ex instanceof MethodArgumentNotValidException manv) {
+            Map<String, String> errors = new HashMap<>();
+            manv.getBindingResult().getFieldErrors().forEach(err -> errors.put(err.getField(), err.getDefaultMessage()));
+            return buildValidation(HttpStatus.BAD_REQUEST, "Bad Request", errors, req);
+        }
+        return build(HttpStatus.BAD_REQUEST, ex.getMessage(), req);
+    }
+
+    // 409 - Conflict (data integrity)
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<ErrorResponse> handleConflict(DataIntegrityViolationException ex, HttpServletRequest req) {
+        return build(HttpStatus.CONFLICT, "Conflict", req);
+    }
+
+    private ResponseEntity<ErrorResponse> build(HttpStatus status, String message, HttpServletRequest req) {
+        ErrorResponse error = new ErrorResponse(
+                status.value(),
+                status.getReasonPhrase(),
+                message,
+                req != null ? req.getRequestURI() : null,
+                OffsetDateTime.now()
+        );
+        return new ResponseEntity<>(error, status);
+    }
+
+    private ResponseEntity<ValidationErrorResponse> buildValidation(HttpStatus status, String message, Map<String, String> errors, HttpServletRequest req) {
+        ValidationErrorResponse error = new ValidationErrorResponse(
+                status.value(),
+                status.getReasonPhrase(),
+                message,
+                req != null ? req.getRequestURI() : null,
+                OffsetDateTime.now(),
                 errors
         );
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
-        ErrorResponse errorResponse = new ErrorResponse(
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                "An unexpected error occurred"
-        );
-        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(error, status);
     }
 
     @Getter
     public static class ErrorResponse {
         private final int status;
+        private final String error;
         private final String message;
+        private final String path;
+        private final OffsetDateTime timestamp;
 
-        public ErrorResponse(int status, String message) {
+        public ErrorResponse(int status, String error, String message, String path, OffsetDateTime timestamp) {
             this.status = status;
+            this.error = error;
             this.message = message;
+            this.path = path;
+            this.timestamp = timestamp;
         }
     }
 
@@ -83,8 +96,8 @@ public class GlobalExceptionHandler {
     public static class ValidationErrorResponse extends ErrorResponse {
         private final Map<String, String> errors;
 
-        public ValidationErrorResponse(int status, String message, Map<String, String> errors) {
-            super(status, message);
+        public ValidationErrorResponse(int status, String error, String message, String path, OffsetDateTime timestamp, Map<String, String> errors) {
+            super(status, error, message, path, timestamp);
             this.errors = errors;
         }
     }

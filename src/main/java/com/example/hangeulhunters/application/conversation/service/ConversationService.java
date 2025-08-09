@@ -9,14 +9,10 @@ import com.example.hangeulhunters.application.persona.service.AIPersonaService;
 import com.example.hangeulhunters.application.user.dto.UserDto;
 import com.example.hangeulhunters.application.user.service.UserService;
 import com.example.hangeulhunters.domain.conversation.constant.ConversationStatus;
-import com.example.hangeulhunters.domain.conversation.constant.MessageType;
 import com.example.hangeulhunters.domain.conversation.entity.Conversation;
-import com.example.hangeulhunters.domain.conversation.entity.Message;
 import com.example.hangeulhunters.domain.conversation.repository.ConversationRepository;
-import com.example.hangeulhunters.domain.conversation.repository.MessageRepository;
-import com.example.hangeulhunters.domain.user.constant.KoreanLevel;
+import com.example.hangeulhunters.infrastructure.exception.ForbiddenException;
 import com.example.hangeulhunters.infrastructure.exception.ResourceNotFoundException;
-import com.example.hangeulhunters.infrastructure.service.ClovaStudioService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -29,10 +25,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class ConversationService {
 
     private final ConversationRepository conversationRepository;
-    private final MessageRepository messageRepository;
     private final UserService userService;
     private final AIPersonaService aIPersonaService;
-    private final ClovaStudioService clovaStudioService;
 
     /**
      * 사용자의 대화 목록을 필터링하여 페이징 조회
@@ -93,23 +87,6 @@ public class ConversationService {
                 .build();
         Conversation savedConversation = conversationRepository.save(conversation);
 
-        ConversationDto conversationDto = ConversationDto.of(savedConversation, persona);
-
-        // 대화 시작 메시지 생성 (AI)
-        String firstMessage = clovaStudioService.generateAiMessage(
-                persona,
-                KoreanLevel.INTERMEDIATE,
-                conversationDto,
-                null
-        );
-
-        Message message = Message.builder()
-                .conversationId(savedConversation.getId())
-                .type(MessageType.AI)
-                .content(firstMessage)
-                .build();
-        messageRepository.save(message);
-
         return ConversationDto.of(savedConversation, aIPersonaService.getPersonaById(savedConversation.getPersonaId(), userId));
     }
 
@@ -120,13 +97,11 @@ public class ConversationService {
         
         // 사용자 본인의 대화만 종료 가능
         if (!conversation.getUserId().equals(userId)) {
-            throw new IllegalArgumentException("User does not own this conversation");
+            throw new ForbiddenException("User does not own this conversation");
         }
         
         // 대화 종료 처리
         conversation.endConversation();
-
-        // 피드백 생성
 
         conversationRepository.save(conversation);
     }

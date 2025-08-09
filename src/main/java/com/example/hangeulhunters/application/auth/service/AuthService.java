@@ -3,6 +3,7 @@ package com.example.hangeulhunters.application.auth.service;
 import com.example.hangeulhunters.application.auth.dto.*;
 import com.example.hangeulhunters.application.user.dto.UserDto;
 import com.example.hangeulhunters.application.user.service.UserService;
+import com.example.hangeulhunters.infrastructure.exception.UnauthorizedException;
 import com.example.hangeulhunters.infrastructure.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -100,7 +101,7 @@ public class AuthService {
         String newAccessToken = jwtTokenProvider.refreshAccessToken(refreshToken);
         
         if (newAccessToken == null) {
-            throw new IllegalArgumentException("Invalid or expired refresh token");
+        throw new UnauthorizedException("Invalid or expired refresh token");
         }
         
         return TokenRefreshResponse.builder()
