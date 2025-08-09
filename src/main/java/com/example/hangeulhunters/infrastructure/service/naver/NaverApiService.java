@@ -1,32 +1,35 @@
-package com.example.hangeulhunters.infrastructure.service;
+package com.example.hangeulhunters.infrastructure.service.naver;
 
 import com.example.hangeulhunters.application.conversation.dto.ConversationDto;
 import com.example.hangeulhunters.application.conversation.dto.EvaluateResult;
 import com.example.hangeulhunters.application.conversation.dto.MessageDto;
 import com.example.hangeulhunters.application.persona.dto.AIPersonaDto;
 import com.example.hangeulhunters.domain.user.constant.KoreanLevel;
-import com.example.hangeulhunters.infrastructure.config.ClovaStudioProperties;
-import com.example.hangeulhunters.infrastructure.dto.CommonClovaRequest;
-import com.example.hangeulhunters.infrastructure.dto.CommonClovaResponse;
-import com.example.hangeulhunters.infrastructure.dto.EvaluateScoreResponse;
-import com.example.hangeulhunters.infrastructure.dto.StructuredClovaRequest;
+import com.example.hangeulhunters.infrastructure.config.NaverApiProperties;
+import com.example.hangeulhunters.infrastructure.service.naver.dto.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor
-public class ClovaStudioService {
+public class NaverApiService {
 
     private final WebClient webClient;
     private final ObjectMapper objectMapper;
-    private final ClovaStudioProperties properties;
+    private final NaverApiProperties.ClovaStudio clovaStudioProperties;
+    private final NaverApiProperties.Papago papagoProperties;
 
+    public NaverApiService(WebClient webClient, ObjectMapper objectMapper, NaverApiProperties naverApiProperties) {
+        this.webClient = webClient;
+        this.objectMapper = objectMapper;
+        this.clovaStudioProperties = naverApiProperties.getClovaStudio();
+        this.papagoProperties = naverApiProperties.getPapago();
+    }
     /**
      * 대화형 AI 응답 생성
      * @param persona
@@ -38,16 +41,16 @@ public class ClovaStudioService {
     public String generateAiMessage(AIPersonaDto persona, KoreanLevel level, ConversationDto conversation, String userMessage) {
         try {
             String apiPath = conversation.getChatModelId() != null
-                    ? properties.getTuningModelPath().replace("{taskId}", conversation.getChatModelId())
-                    : properties.getCommonModelPath();
+                    ? clovaStudioProperties.getTuningModelPath().replace("{taskId}", conversation.getChatModelId())
+                    : clovaStudioProperties.getCommonModelPath();
 
-            String url = properties.getBaseUrl() + apiPath;
+            String url = clovaStudioProperties.getBaseUrl() + apiPath;
 
-            CommonClovaResponse response = webClient.post()
+            ClovaCommonResponse response = webClient.post()
                     .uri(url)
-                    .header("Authorization", properties.getApiKey())
+                    .header("Authorization", clovaStudioProperties.getApiKey())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .bodyValue(CommonClovaRequest.ofGenerateReply(
+                    .bodyValue(ClovaCommonRequest.ofGenerateReply(
                             persona.getAiRole(),
                             persona.getUserRole(),
                             conversation.getSituation(),
@@ -55,7 +58,7 @@ public class ClovaStudioService {
                             userMessage)
                     )
                     .retrieve()
-                    .bodyToMono(CommonClovaResponse.class)
+                    .bodyToMono(ClovaCommonResponse.class)
                     .onErrorResume(e -> Mono.empty())
                     .block();
 
@@ -77,13 +80,13 @@ public class ClovaStudioService {
      */
     public EvaluateResult evaluateMessage(AIPersonaDto persona, String situation, String aiMessage, String userMessage) {
         try {
-            String url = properties.getBaseUrl() + properties.getCommonModelPath();
+            String url = clovaStudioProperties.getBaseUrl() + clovaStudioProperties.getCommonModelPath();
 
-            EvaluateScoreResponse response = webClient.post()
+            ClovaCommonResponse response = webClient.post()
                     .uri(url)
-                    .header("Authorization", properties.getApiKey())
+                    .header("Authorization", clovaStudioProperties.getApiKey())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .bodyValue(StructuredClovaRequest.ofEvaluateScore(
+                    .bodyValue(EvaluateScoreRequest.ofEvaluateScore(
                             persona.getAiRole(),
                             persona.getUserRole(),
                             situation,
@@ -91,7 +94,7 @@ public class ClovaStudioService {
                             userMessage)
                     )
                     .retrieve()
-                    .bodyToMono(EvaluateScoreResponse.class)
+                    .bodyToMono(ClovaCommonResponse.class)
                     .onErrorResume(e -> Mono.empty())
                     .block();
 
@@ -108,13 +111,13 @@ public class ClovaStudioService {
      * 문장(메시지) 단위 피드백 (평가 기반)
      */
     public String feedbackMessage(AIPersonaDto persona, String situation, String aiMessage, String userMessage) {
-        String url = properties.getBaseUrl() + properties.getCommonModelPath();
+        String url = clovaStudioProperties.getBaseUrl() + clovaStudioProperties.getCommonModelPath();
 
-        EvaluateScoreResponse response = webClient.post()
+        ClovaCommonResponse response = webClient.post()
                 .uri(url)
-                .header("Authorization", properties.getApiKey())
+                .header("Authorization", clovaStudioProperties.getApiKey())
                 .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(CommonClovaRequest.ofFeedbackSentenceRequest(
+                .bodyValue(ClovaCommonRequest.ofFeedbackSentenceRequest(
                         persona.getAiRole(),
                         persona.getUserRole(),
                         situation,
@@ -122,7 +125,7 @@ public class ClovaStudioService {
                         userMessage)
                 )
                 .retrieve()
-                .bodyToMono(EvaluateScoreResponse.class)
+                .bodyToMono(ClovaCommonResponse.class)
                 .onErrorResume(e -> Mono.empty())
                 .block();
 
@@ -138,9 +141,9 @@ public class ClovaStudioService {
      */
     public String feedbackConversation(AIPersonaDto persona, String situation, List<MessageDto> messages) {
         try {
-            String url = properties.getBaseUrl() + properties.getCommonModelPath();
+            String url = clovaStudioProperties.getBaseUrl() + clovaStudioProperties.getCommonModelPath();
 
-            CommonClovaRequest request = CommonClovaRequest.ofFeedbackConversationRequest(
+            ClovaCommonRequest request = ClovaCommonRequest.ofFeedbackConversationRequest(
                     persona.getAiRole(),
                     persona.getUserRole(),
                     situation,
@@ -149,12 +152,12 @@ public class ClovaStudioService {
 
             var response = webClient.post()
                     .uri(url)
-                    .header("Authorization", properties.getApiKey())
-                    .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                    .header("Authorization", clovaStudioProperties.getApiKey())
+                    .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(request)
                     .retrieve()
-                    .bodyToMono(EvaluateScoreResponse.class)
-                    .onErrorResume(e -> reactor.core.publisher.Mono.empty())
+                    .bodyToMono(ClovaCommonResponse.class)
+                    .onErrorResume(e -> Mono.empty())
                     .block();
 
             if(response != null && response.getStatus().getCode().startsWith("2")) {
@@ -164,5 +167,29 @@ public class ClovaStudioService {
         }
 
         return null;
+    }
+
+    /**
+     * Papago 번역
+     */
+    public String translateMessage(String content) {
+        String url = papagoProperties.getBaseUrl() + papagoProperties.getTranslationPath();
+
+        PapagoTranslateResponse response = webClient.post()
+                .uri(url)
+                .header("x-ncp-apigw-api-key-id", papagoProperties.getClientId())
+                .header("x-ncp-apigw-api-key", papagoProperties.getClientSecret())
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(PapagoTranslateRequest.translateKoToEn(content))
+                .retrieve()
+                .bodyToMono(PapagoTranslateResponse.class)
+                .onErrorResume(e -> Mono.empty())
+                .block();
+
+        return Optional.ofNullable(response)
+                .map(PapagoTranslateResponse::getMessage)
+                .map(PapagoTranslateResponse.Message::getResult)
+                .map(PapagoTranslateResponse.Message.Result::getTranslatedText)
+                .orElseThrow(() -> new IllegalArgumentException("Failed to translate message"));
     }
 }

@@ -15,7 +15,7 @@ import com.example.hangeulhunters.domain.conversation.repository.MessageReposito
 import com.example.hangeulhunters.domain.user.constant.KoreanLevel;
 import com.example.hangeulhunters.infrastructure.exception.ForbiddenException;
 import com.example.hangeulhunters.infrastructure.exception.ResourceNotFoundException;
-import com.example.hangeulhunters.infrastructure.service.ClovaStudioService;
+import com.example.hangeulhunters.infrastructure.service.naver.NaverApiService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -33,7 +33,7 @@ public class MessageService {
 
     private final MessageRepository messageRepository;
     private final AIPersonaService aiPersonaService;
-    private final ClovaStudioService clovaStudioService;
+    private final NaverApiService clovaStudioService;
     private final ConversationService conversationService;
     private final UserService userService;
 
@@ -162,5 +162,26 @@ public class MessageService {
                 .content(firstMessage)
                 .build();
         messageRepository.save(message);
+    }
+
+    /**
+     * 메시지 번역 기능
+     * @param messageId 번역할 메시지 ID
+     * @return 번역된 메시지 DTO
+     */
+    @Transactional
+    public String translateMessage(Long messageId) {
+        // 메시지 조회
+        Message message = messageRepository.findById(messageId)
+                .orElseThrow(() -> new ResourceNotFoundException("Message not found"));
+
+        // 메시지 내용 번역
+        String translatedContent = clovaStudioService.translateMessage(message.getContent());
+
+        // 번역된 내용 저장
+        message.saveTranslatedContent(translatedContent);
+        messageRepository.save(message);
+
+        return translatedContent;
     }
 }

@@ -8,7 +8,7 @@ import com.example.hangeulhunters.application.persona.service.AIPersonaService;
 import com.example.hangeulhunters.domain.conversation.constant.FeedbackTarget;
 import com.example.hangeulhunters.domain.conversation.entity.Feedback;
 import com.example.hangeulhunters.domain.conversation.repository.FeedbackRepository;
-import com.example.hangeulhunters.infrastructure.service.ClovaStudioService;
+import com.example.hangeulhunters.infrastructure.service.naver.NaverApiService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,7 +24,7 @@ public class FeedbackService {
     private final ConversationService conversationService;
     private final AIPersonaService aiPersonaService;
     private final MessageService messageService;
-    private final ClovaStudioService clovaStudioService;
+    private final NaverApiService naverApiService;
 
     /**
      * 문장(메시지) 단위 피드백
@@ -52,7 +52,7 @@ public class FeedbackService {
         MessageDto prevMessage = messageService.getPrevMessage(messageId);
 
         // AI 메시지 피드백
-        String feedbackContent = clovaStudioService.feedbackMessage(
+        String feedbackContent = naverApiService.feedbackMessage(
                 persona,
                 conversation.getSituation(),
                 prevMessage.getContent(),
@@ -86,7 +86,7 @@ public class FeedbackService {
         List<MessageDto> messages = messageService.getAllMessagesByConversationId(conversationId);
 
         // 전체 대화 평가
-        String feedbackContent = clovaStudioService.feedbackConversation(
+        String feedbackContent = naverApiService.feedbackConversation(
                 persona,
                 conversation.getSituation(),
                 messages

@@ -1,9 +1,9 @@
-package com.example.hangeulhunters.infrastructure.dto;
+package com.example.hangeulhunters.infrastructure.service.naver.dto;
 
 import lombok.Getter;
 
 @Getter
-public class CommonClovaResponse {
+public class ClovaCommonResponse {
     private Status status;
     private Result result;
 

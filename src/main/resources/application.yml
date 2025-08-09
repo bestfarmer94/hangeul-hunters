@@ -39,9 +39,14 @@ jwt:
 
 # Naver CLOVA Studio
 cloud:
-  naver:
+  naver-api:
     clovastudio:
       base-url: https://clovastudio.stream.ntruss.com
       tuning-model-path: /v3/tasks/{taskId}/chat-completions
       common-model-path: /v3/chat-completions/HCX-007
       api-key: ${CLOVA_API_KEY:}
+    papago:
+      base-url: https://papago.apigw.ntruss.com/nmt/v1
+      translation-path: /translation
+      client-id: ${PAPAGO_CLIENT_ID:}
+      client-secret: ${PAPAGO_CLIENT_SECRET:}

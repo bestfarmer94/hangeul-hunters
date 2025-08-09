@@ -2,8 +2,8 @@ package com.example.hangeulhunters.application.file.service;
 
 import com.example.hangeulhunters.application.file.dto.PresignedUrlRequest;
 import com.example.hangeulhunters.domain.common.constant.ImageType;
-import com.example.hangeulhunters.infrastructure.dto.PresignedUrlDto;
-import com.example.hangeulhunters.infrastructure.service.S3Service;
+import com.example.hangeulhunters.infrastructure.service.aws.S3Service;
+import com.example.hangeulhunters.infrastructure.service.aws.dto.PresignedUrlDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
