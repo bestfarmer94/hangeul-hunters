@@ -76,7 +76,14 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost:3001", "http://localhost:3000", "https://noonchi.ai.kr", "https://www.noonchi.ai.kr"));
+        configuration.setAllowedOriginPatterns(Arrays.asList(
+                "http://localhost:3001",
+                "http://localhost:3000",
+                "https://noonchi.ai.kr",
+                "https://www.noonchi.ai.kr",
+                "https://pangpang-one.vercel.app/",
+                "https://www.pangpang-one.com"
+        ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
