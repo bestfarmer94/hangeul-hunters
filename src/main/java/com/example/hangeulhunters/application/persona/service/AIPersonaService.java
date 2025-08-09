@@ -75,7 +75,8 @@ public class AIPersonaService {
                 .name(request.getName())
                 .gender(request.getGender())
                 .age(request.getAge())
-                .relationship(request.getRelationship())
+                .aiRole(request.getRelationship().getAiRole())
+                .userRole(request.getRelationship().getUserRole())
                 .description(request.getDescription())
                 .profileImageUrl(request.getProfileImageUrl())
                 .build();

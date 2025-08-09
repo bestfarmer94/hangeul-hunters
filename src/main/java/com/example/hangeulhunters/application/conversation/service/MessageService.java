@@ -77,11 +77,10 @@ public class MessageService {
         messageRepository.save(userMessage);
 
         // AI 응답 생성
-        String aiReply = clovaStudioService.generateReply(
+        String aiReply = clovaStudioService.generateAiMessage(
                 persona,
                 user.getKoreanLevel(),
-                conversation.getSituation(),
-                lastAiMessage.getContent(),
+                conversation,
                 request.getContent()
         );
 

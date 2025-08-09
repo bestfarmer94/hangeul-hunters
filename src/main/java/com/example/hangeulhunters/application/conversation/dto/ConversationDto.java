@@ -33,6 +33,9 @@ public class ConversationDto {
     @Schema(description = "대화 상황", requiredMode = Schema.RequiredMode.REQUIRED)
     private String situation;
 
+    @Schema(description = "CLOVA Studio Chat Task ID", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    private String chatModelId;
+
     @Schema(description = "대화 생성일시", requiredMode = Schema.RequiredMode.REQUIRED, format = "date-time")
     private LocalDateTime createdAt;
 
@@ -46,6 +49,7 @@ public class ConversationDto {
                 .aiPersona(aiPersona)
                 .status(conversation.getStatus())
                 .situation(conversation.getSituation())
+                .chatModelId(conversation.getChatModelId())
                 .createdAt(DateTimeUtil.toLocalDateTime(conversation.getCreatedAt()))
                 .endedAt(DateTimeUtil.toLocalDateTime(conversation.getEndedAt()))
                 .build();

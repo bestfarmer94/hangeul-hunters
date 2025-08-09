@@ -61,12 +61,12 @@ public class EvaluateRequest {
         }
     }
 
-    public static EvaluateRequest of(String aiRelationship, String situation, String aiMessage, String userMessage) {
+    public static EvaluateRequest of(String aiRole, String userRole, String situation, String aiMessage, String userMessage) {
         return EvaluateRequest.builder()
                 .messages(List.of(
                         Message.builder()
                                 .role("system")
-                                .content(String.format(PromptConstant.EVALUATE_MESSAGE.getPromptMessage(), aiRelationship, situation))
+                                .content(String.format(PromptConstant.EVALUATE_MESSAGE.getPromptMessage(), aiRole, userRole, situation))
                                 .build(),
                         Message.builder()
                                 .role("assistant")

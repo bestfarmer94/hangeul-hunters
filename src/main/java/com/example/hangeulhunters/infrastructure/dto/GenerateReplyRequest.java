@@ -1,21 +1,30 @@
 package com.example.hangeulhunters.infrastructure.dto;
 
+import com.example.hangeulhunters.domain.user.constant.KoreanLevel;
 import com.example.hangeulhunters.infrastructure.constant.PromptConstant;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 
-@Getter
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class GenerateReplyRequest {
     private List<Message> messages;
+    private Integer maxTokens;
 
+    @Data
     @Builder
     public static class Message {
         private String role;
-        private Content content;
+        private List<Content> content;
 
+        @Data
         @Builder
         public static class Content {
             private String type;
@@ -23,31 +32,44 @@ public class GenerateReplyRequest {
         }
     }
 
-    public static GenerateReplyRequest of(String situation, String aiMessage, String message) {
+    public static GenerateReplyRequest of(String aiRole, String userRole, String situation, KoreanLevel level, String userMessage) {
+        List<Message> messages = new ArrayList<>();
+
+        messages.add(
+                Message.builder()
+                        .role("system")
+                        .content(List.of(
+                                Message.Content.builder()
+                                        .type("text")
+                                        .text(String.format(
+                                                PromptConstant.GENERATE_REPLY.getPromptMessage(),
+                                                aiRole,
+                                                userRole,
+                                                situation,
+                                                level)
+                                        )
+                                        .build()
+                                )
+                        )
+                        .build()
+        );
+
+        if(userMessage != null) {
+            messages.add(Message.builder()
+                    .role("user")
+                    .content(List.of(
+                            Message.Content.builder()
+                                    .type("text")
+                                    .text(userMessage)
+                                    .build()
+                            )
+                    )
+                    .build());
+        }
+
         return GenerateReplyRequest.builder()
-                .messages(List.of(
-                        Message.builder()
-                                .role("system")
-                                .content(Message.Content.builder()
-                                        .type("text")
-                                        .text(situation + PromptConstant.GENERATE_REPLY.getPromptMessage())
-                                        .build())
-                                .build(),
-                        Message.builder()
-                                .role("assistant")
-                                .content(Message.Content.builder()
-                                        .type("text")
-                                        .text(aiMessage)
-                                        .build())
-                                .build(),
-                        Message.builder()
-                                .role("user")
-                                .content(Message.Content.builder()
-                                        .type("text")
-                                        .text(message)
-                                        .build())
-                                .build()
-                ))
+                .messages(messages)
+//                .maxTokens(20)
                 .build();
     }
 }

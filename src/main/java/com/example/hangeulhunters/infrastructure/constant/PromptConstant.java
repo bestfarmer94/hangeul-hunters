@@ -6,13 +6,24 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum PromptConstant {
-    GENERATE_REPLY(" 상황에서 대화를 이어나가 주세요. 대화는 한국어로 진행되며, 상대방의 말에 자연스럽게 이어지는 답변을 작성해주세요."),
+    /**
+     * aiRole + userRole + situation + koreanLevel 필요.
+     */
+    GENERATE_REPLY("- You(AI) are a role player who coaches English learners' Korean tone through role-playing. " +
+            "- You(AI) must reply only 1 short sentences that can continue the role-playing in context. " +
+            "- You(AI) must communicate only in Korean. " +
+            "- The role of you(AI) is %s. " +
+            "- The role of user is %s. " +
+            "- This is a conversation in a situation of %s. (from the user's perspective)" +
+            "- User's Korean proficiency: %s. " +
+            "- When the user's message is not provided, please provide only 1 short sentence that would start role-playing appropriate to the situation."),
 
     /**
-     * aiRelationShip + situation 필요.
+     * aiRole + userRole + situation 필요.
      */
     EVALUATE_MESSAGE("- You are a Korean tone coach AI for English-speaking learners. " +
             "- The role of assistant is %s. " +
+            "- The role of user is %s. " +
             "- This is a conversation in a situation like %s. " +
             "- Evaluate the politeness and naturalness scores of the user's responses to assistant's words on a scale of 0 to 100.");
 
