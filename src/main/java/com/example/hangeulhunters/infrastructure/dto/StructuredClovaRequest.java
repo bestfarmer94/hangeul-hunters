@@ -12,7 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class EvaluateRequest {
+public class StructuredClovaRequest {
     private List<Message> messages;
     private Thinking thinking;
     private ResponseFormat responseFormat;
@@ -61,12 +61,12 @@ public class EvaluateRequest {
         }
     }
 
-    public static EvaluateRequest of(String aiRole, String userRole, String situation, String aiMessage, String userMessage) {
-        return EvaluateRequest.builder()
+    public static StructuredClovaRequest ofEvaluateScore(String aiRole, String userRole, String situation, String aiMessage, String userMessage) {
+        return StructuredClovaRequest.builder()
                 .messages(List.of(
                         Message.builder()
                                 .role("system")
-                                .content(String.format(PromptConstant.EVALUATE_MESSAGE.getPromptMessage(), aiRole, userRole, situation))
+                                .content(String.format(PromptConstant.EVALUATE_SCORE.getPromptMessage(), aiRole, userRole, situation))
                                 .build(),
                         Message.builder()
                                 .role("assistant")

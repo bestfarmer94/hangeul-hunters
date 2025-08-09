@@ -3,7 +3,7 @@ package com.example.hangeulhunters.infrastructure.dto;
 import lombok.Getter;
 
 @Getter
-public class GenerateReplyResponse {
+public class EvaluateScoreResponse {
     private Status status;
     private Result result;
 

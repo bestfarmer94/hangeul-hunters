@@ -3,7 +3,7 @@ package com.example.hangeulhunters.infrastructure.dto;
 import lombok.Getter;
 
 @Getter
-public class EvaluateResponse {
+public class CommonClovaResponse {
     private Status status;
     private Result result;
 

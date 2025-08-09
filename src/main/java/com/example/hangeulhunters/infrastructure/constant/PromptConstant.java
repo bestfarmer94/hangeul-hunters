@@ -21,7 +21,16 @@ public enum PromptConstant {
     /**
      * aiRole + userRole + situation 필요.
      */
-    EVALUATE_MESSAGE("- You are a Korean tone coach AI for English-speaking learners. " +
+    EVALUATE_SCORE("- You are a Korean tone coach AI for English-speaking learners. " +
+            "- The role of assistant is %s. " +
+            "- The role of user is %s. " +
+            "- This is a conversation in a situation like %s. " +
+            "- Evaluate the politeness and naturalness scores of the user's responses to assistant's words on a scale of 0 to 100."),
+
+    /**
+     * aiRole + userRole + situation 필요.
+     */
+    FEEDBACK_MESSAGE("- You are a Korean tone coach AI for English-speaking learners. " +
             "- The role of assistant is %s. " +
             "- The role of user is %s. " +
             "- This is a conversation in a situation like %s. " +

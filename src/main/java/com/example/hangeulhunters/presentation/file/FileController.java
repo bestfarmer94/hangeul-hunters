@@ -2,7 +2,7 @@ package com.example.hangeulhunters.presentation.file;
 
 import com.example.hangeulhunters.application.file.dto.PresignedUrlRequest;
 import com.example.hangeulhunters.application.file.service.FileService;
-import com.example.hangeulhunters.infrastructure.service.PresignedUrlDto;
+import com.example.hangeulhunters.infrastructure.dto.PresignedUrlDto;
 import com.example.hangeulhunters.presentation.common.ControllerSupport;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;

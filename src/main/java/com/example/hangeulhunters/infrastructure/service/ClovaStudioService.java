@@ -2,19 +2,22 @@ package com.example.hangeulhunters.infrastructure.service;
 
 import com.example.hangeulhunters.application.conversation.dto.ConversationDto;
 import com.example.hangeulhunters.application.conversation.dto.EvaluateResult;
+import com.example.hangeulhunters.application.conversation.dto.MessageDto;
 import com.example.hangeulhunters.application.persona.dto.AIPersonaDto;
 import com.example.hangeulhunters.domain.user.constant.KoreanLevel;
 import com.example.hangeulhunters.infrastructure.config.ClovaStudioProperties;
-import com.example.hangeulhunters.infrastructure.dto.EvaluateRequest;
-import com.example.hangeulhunters.infrastructure.dto.EvaluateResponse;
-import com.example.hangeulhunters.infrastructure.dto.GenerateReplyRequest;
-import com.example.hangeulhunters.infrastructure.dto.GenerateReplyResponse;
+import com.example.hangeulhunters.infrastructure.dto.CommonClovaRequest;
+import com.example.hangeulhunters.infrastructure.dto.CommonClovaResponse;
+import com.example.hangeulhunters.infrastructure.dto.EvaluateScoreResponse;
+import com.example.hangeulhunters.infrastructure.dto.StructuredClovaRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -40,11 +43,11 @@ public class ClovaStudioService {
 
             String url = properties.getBaseUrl() + apiPath;
 
-            GenerateReplyResponse response = webClient.post()
+            CommonClovaResponse response = webClient.post()
                     .uri(url)
                     .header("Authorization", properties.getApiKey())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .bodyValue(GenerateReplyRequest.of(
+                    .bodyValue(CommonClovaRequest.ofGenerateReply(
                             persona.getAiRole(),
                             persona.getUserRole(),
                             conversation.getSituation(),
@@ -52,7 +55,7 @@ public class ClovaStudioService {
                             userMessage)
                     )
                     .retrieve()
-                    .bodyToMono(GenerateReplyResponse.class)
+                    .bodyToMono(CommonClovaResponse.class)
                     .onErrorResume(e -> Mono.empty())
                     .block();
 
@@ -76,11 +79,11 @@ public class ClovaStudioService {
         try {
             String url = properties.getBaseUrl() + properties.getCommonModelPath();
 
-            EvaluateResponse response = webClient.post()
+            EvaluateScoreResponse response = webClient.post()
                     .uri(url)
                     .header("Authorization", properties.getApiKey())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .bodyValue(EvaluateRequest.of(
+                    .bodyValue(StructuredClovaRequest.ofEvaluateScore(
                             persona.getAiRole(),
                             persona.getUserRole(),
                             situation,
@@ -88,12 +91,74 @@ public class ClovaStudioService {
                             userMessage)
                     )
                     .retrieve()
-                    .bodyToMono(EvaluateResponse.class)
+                    .bodyToMono(EvaluateScoreResponse.class)
                     .onErrorResume(e -> Mono.empty())
                     .block();
 
             if (response != null && response.getStatus().getCode().startsWith("2")) {
                 return objectMapper.readValue(response.getResult().getMessage().getContent(), EvaluateResult.class);
+            }
+        } catch (Exception ignore) {
+        }
+
+        return null;
+    }
+
+    /**
+     * 문장(메시지) 단위 피드백 (평가 기반)
+     */
+    public String feedbackMessage(AIPersonaDto persona, String situation, String aiMessage, String userMessage) {
+        String url = properties.getBaseUrl() + properties.getCommonModelPath();
+
+        EvaluateScoreResponse response = webClient.post()
+                .uri(url)
+                .header("Authorization", properties.getApiKey())
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(CommonClovaRequest.ofFeedbackSentenceRequest(
+                        persona.getAiRole(),
+                        persona.getUserRole(),
+                        situation,
+                        aiMessage,
+                        userMessage)
+                )
+                .retrieve()
+                .bodyToMono(EvaluateScoreResponse.class)
+                .onErrorResume(e -> Mono.empty())
+                .block();
+
+        if(response != null && response.getStatus().getCode().startsWith("2")) {
+            return response.getResult().getMessage().getContent();
+        }
+
+        return null;
+    }
+
+    /**
+     * 전체 대화 피드백
+     */
+    public String feedbackConversation(AIPersonaDto persona, String situation, List<MessageDto> messages) {
+        try {
+            String url = properties.getBaseUrl() + properties.getCommonModelPath();
+
+            CommonClovaRequest request = CommonClovaRequest.ofFeedbackConversationRequest(
+                    persona.getAiRole(),
+                    persona.getUserRole(),
+                    situation,
+                    messages
+            );
+
+            var response = webClient.post()
+                    .uri(url)
+                    .header("Authorization", properties.getApiKey())
+                    .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                    .bodyValue(request)
+                    .retrieve()
+                    .bodyToMono(EvaluateScoreResponse.class)
+                    .onErrorResume(e -> reactor.core.publisher.Mono.empty())
+                    .block();
+
+            if(response != null && response.getStatus().getCode().startsWith("2")) {
+                return response.getResult().getMessage().getContent();
             }
         } catch (Exception ignore) {
         }

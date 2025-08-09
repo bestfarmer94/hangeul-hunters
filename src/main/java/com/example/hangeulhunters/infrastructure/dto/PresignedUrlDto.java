@@ -1,4 +1,4 @@
-package com.example.hangeulhunters.infrastructure.service;
+package com.example.hangeulhunters.infrastructure.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;

@@ -10,6 +10,7 @@ import com.example.hangeulhunters.domain.common.constant.ImageType;
 import com.example.hangeulhunters.domain.user.constant.UserRole;
 import com.example.hangeulhunters.domain.user.entity.User;
 import com.example.hangeulhunters.domain.user.repository.UserRepository;
+import com.example.hangeulhunters.infrastructure.exception.ConflictException;
 import com.example.hangeulhunters.infrastructure.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -47,7 +48,7 @@ public class UserService {
     @Transactional
     public UserDto createUser(SignUpRequest signUpRequest) {
         if (userRepository.existsByEmail(signUpRequest.getEmail())) {
-            throw new IllegalArgumentException("Email is already taken");
+            throw new ConflictException("Email is already taken");
         }
 
         // 프로필 이미지 처리
