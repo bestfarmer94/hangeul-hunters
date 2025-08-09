@@ -4,14 +4,19 @@ import com.example.hangeulhunters.application.common.dto.PageResponse;
 import com.example.hangeulhunters.application.conversation.dto.ConversationDto;
 import com.example.hangeulhunters.application.conversation.dto.ConversationFilterRequest;
 import com.example.hangeulhunters.application.conversation.dto.ConversationRequest;
+import com.example.hangeulhunters.application.persona.dto.AIPersonaDto;
 import com.example.hangeulhunters.application.persona.service.AIPersonaService;
+import com.example.hangeulhunters.application.user.dto.UserDto;
+import com.example.hangeulhunters.application.user.service.UserService;
 import com.example.hangeulhunters.domain.conversation.constant.ConversationStatus;
 import com.example.hangeulhunters.domain.conversation.constant.MessageType;
 import com.example.hangeulhunters.domain.conversation.entity.Conversation;
 import com.example.hangeulhunters.domain.conversation.entity.Message;
 import com.example.hangeulhunters.domain.conversation.repository.ConversationRepository;
 import com.example.hangeulhunters.domain.conversation.repository.MessageRepository;
+import com.example.hangeulhunters.domain.user.constant.KoreanLevel;
 import com.example.hangeulhunters.infrastructure.exception.ResourceNotFoundException;
+import com.example.hangeulhunters.infrastructure.service.ClovaStudioService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -25,7 +30,9 @@ public class ConversationService {
 
     private final ConversationRepository conversationRepository;
     private final MessageRepository messageRepository;
+    private final UserService userService;
     private final AIPersonaService aIPersonaService;
+    private final ClovaStudioService clovaStudioService;
 
     /**
      * 사용자의 대화 목록을 필터링하여 페이징 조회
@@ -69,8 +76,12 @@ public class ConversationService {
 
     @Transactional
     public ConversationDto createConversation(Long userId, ConversationRequest request) {
-        // AI 페르소나 소유 검증
-        aIPersonaService.getPersonaById(request.getPersonaId(), userId);
+
+        // 유저 정보 조회
+        UserDto user = userService.getUserById(userId);
+
+        // AI 페르소나 조회
+        AIPersonaDto persona =  aIPersonaService.getPersonaById(request.getPersonaId(), userId);
 
         // 대화 생성
         Conversation conversation = Conversation.builder()
@@ -78,14 +89,24 @@ public class ConversationService {
                 .personaId(request.getPersonaId())
                 .status(ConversationStatus.ACTIVE)
                 .situation(request.getSituation().getSituation())
+                .chatModelId(request.getSituation().getChatModelId())
                 .build();
         Conversation savedConversation = conversationRepository.save(conversation);
 
-        // 대화 시작 메시지 생성
+        ConversationDto conversationDto = ConversationDto.of(savedConversation, persona);
+
+        // 대화 시작 메시지 생성 (AI)
+        String firstMessage = clovaStudioService.generateAiMessage(
+                persona,
+                KoreanLevel.INTERMEDIATE,
+                conversationDto,
+                null
+        );
+
         Message message = Message.builder()
                 .conversationId(savedConversation.getId())
                 .type(MessageType.AI)
-                .content(request.getSituation().getFirstMessage())
+                .content(firstMessage)
                 .build();
         messageRepository.save(message);
 

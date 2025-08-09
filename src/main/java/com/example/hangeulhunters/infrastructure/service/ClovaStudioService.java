@@ -1,5 +1,6 @@
 package com.example.hangeulhunters.infrastructure.service;
 
+import com.example.hangeulhunters.application.conversation.dto.ConversationDto;
 import com.example.hangeulhunters.application.conversation.dto.EvaluateResult;
 import com.example.hangeulhunters.application.persona.dto.AIPersonaDto;
 import com.example.hangeulhunters.domain.user.constant.KoreanLevel;
@@ -27,20 +28,29 @@ public class ClovaStudioService {
      * 대화형 AI 응답 생성
      * @param persona
      * @param level
-     * @param situation
-     * @param aiMessage
+     * @param conversation
      * @param userMessage
      * @return
      */
-    public String generateReply(AIPersonaDto persona, KoreanLevel level, String situation, String aiMessage, String userMessage) {
+    public String generateAiMessage(AIPersonaDto persona, KoreanLevel level, ConversationDto conversation, String userMessage) {
         try {
-            String url = properties.getBaseUrl() + properties.getEvalPath();
+            String apiPath = conversation.getChatModelId() != null
+                    ? properties.getTuningModelPath().replace("{taskId}", conversation.getChatModelId())
+                    : properties.getCommonModelPath();
+
+            String url = properties.getBaseUrl() + apiPath;
 
             GenerateReplyResponse response = webClient.post()
                     .uri(url)
                     .header("Authorization", properties.getApiKey())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .bodyValue(GenerateReplyRequest.of(situation, aiMessage, userMessage))
+                    .bodyValue(GenerateReplyRequest.of(
+                            persona.getAiRole(),
+                            persona.getUserRole(),
+                            conversation.getSituation(),
+                            level,
+                            userMessage)
+                    )
                     .retrieve()
                     .bodyToMono(GenerateReplyResponse.class)
                     .onErrorResume(e -> Mono.empty())
@@ -56,18 +66,27 @@ public class ClovaStudioService {
 
     /**
      * 사용자 메시지 평가
+     * @param persona
+     * @param situation
+     * @param aiMessage
      * @param userMessage
      * @return
      */
     public EvaluateResult evaluateMessage(AIPersonaDto persona, String situation, String aiMessage, String userMessage) {
         try {
-            String url = properties.getBaseUrl() + properties.getEvalPath();
+            String url = properties.getBaseUrl() + properties.getCommonModelPath();
 
             EvaluateResponse response = webClient.post()
                     .uri(url)
                     .header("Authorization", properties.getApiKey())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .bodyValue(EvaluateRequest.of(persona.getRelationship(), situation, aiMessage, userMessage))
+                    .bodyValue(EvaluateRequest.of(
+                            persona.getAiRole(),
+                            persona.getUserRole(),
+                            situation,
+                            aiMessage,
+                            userMessage)
+                    )
                     .retrieve()
                     .bodyToMono(EvaluateResponse.class)
                     .onErrorResume(e -> Mono.empty())

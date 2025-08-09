@@ -42,6 +42,6 @@ cloud:
   naver:
     clovastudio:
       base-url: https://clovastudio.stream.ntruss.com
-      chat-path: /v3/tasks/{taskId}/chat-completions
-      eval-path: /v3/chat-completions/HCX-007
+      tuning-model-path: /v3/tasks/{taskId}/chat-completions
+      common-model-path: /v3/chat-completions/HCX-007
       api-key: ${CLOVA_API_KEY:}

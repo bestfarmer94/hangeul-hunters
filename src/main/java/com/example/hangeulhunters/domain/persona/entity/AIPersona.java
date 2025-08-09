@@ -39,7 +39,10 @@ public class AIPersona extends BaseTimeEntity {
     private Integer age;
 
     @Column(nullable = false)
-    private String relationship;
+    private String aiRole;
+
+    @Column(nullable = true)
+    private String userRole;
 
     @Column(nullable = true, columnDefinition = "TEXT")
     private String description;

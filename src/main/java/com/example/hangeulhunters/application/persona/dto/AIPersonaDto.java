@@ -33,9 +33,12 @@ public class AIPersonaDto {
     @Schema(description = "나이", required = true)
     private Integer age;
     
-    @Schema(description = "관계", required = true)
-    private String relationship;
-    
+    @Schema(description = "ai 역할", required = true)
+    private String aiRole;
+
+    @Schema(description = "유저 역할", required = true)
+    private String userRole;
+
     @Schema(description = "설명", nullable = true)
     private String description;
     
@@ -55,7 +58,8 @@ public class AIPersonaDto {
                 .name(aiPersona.getName())
                 .gender(aiPersona.getGender())
                 .age(aiPersona.getAge())
-                .relationship(aiPersona.getRelationship())
+                .aiRole(aiPersona.getAiRole())
+                .userRole(aiPersona.getUserRole())
                 .description(aiPersona.getDescription())
                 .profileImageUrl(aiPersona.getProfileImageUrl())
                 .build();

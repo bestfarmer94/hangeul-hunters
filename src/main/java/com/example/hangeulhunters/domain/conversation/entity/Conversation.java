@@ -37,6 +37,9 @@ public class Conversation extends BaseTimeEntity {
     private String situation;
 
     @Column(nullable = true)
+    private String chatModelId;
+
+    @Column(nullable = true)
     private OffsetDateTime endedAt;
 
     public void endConversation() {

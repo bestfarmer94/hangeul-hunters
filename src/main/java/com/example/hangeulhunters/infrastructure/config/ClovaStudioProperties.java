@@ -12,29 +12,21 @@ public class ClovaStudioProperties {
 
     /**
      * CLOVA Studio API Base URL
-     * 예: https://clovastudio.apigw.ntruss.com
      */
     private String baseUrl;
 
     /**
-     * 대화 생성(챗) 엔드포인트 경로
-     * 예: /v1/api/chat
+     * 튜닝 모델 엔드포인트 경로 (대화 모델)
      */
-    private String chatPath;
+    private String tuningModelPath;
 
     /**
-     * 평가 엔드포인트 경로(사용 시)
+     * 공통 모델 엔드포인트 경로
      */
-    private String evalPath;
+    private String commonModelPath;
 
     /**
      * API Key
      */
     private String apiKey;
-
-    /**
-     * 프로젝트/엔진 등 추가 파라미터가 필요한 경우
-     */
-    private String projectId;
-    private String model;
 }
