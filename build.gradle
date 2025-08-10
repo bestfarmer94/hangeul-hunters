@@ -38,6 +38,9 @@ dependencies {
     // DB
     runtimeOnly 'com.h2database:h2'
     implementation 'org.postgresql:postgresql'
+
+    // Flyway
+    implementation 'org.flywaydb:flyway-core'
     
     // Redis
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
