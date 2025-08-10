@@ -55,7 +55,7 @@ public class MessageController extends ControllerSupport {
             description = "AI를 사용하여 대화에 자동 응답 메시지를 생성합니다",
             security = @SecurityRequirement(name = "bearerAuth")
     )
-    public ResponseEntity<MessageDto> createAiReply(Long conversationId) {
+    public ResponseEntity<MessageDto> createAiReply(@Parameter(description = "대화 id") @RequestParam Long conversationId) {
         MessageDto message = messageService.createAiReply(getCurrentUserId(), conversationId);
         return ResponseEntity.ok(message);
     }
