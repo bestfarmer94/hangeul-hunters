@@ -4,8 +4,6 @@ server:
 spring:
   application:
     name: hangeul-hunters
-  profiles:
-    active: local
 
   # Redis Configuration
   data:
