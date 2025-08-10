@@ -33,7 +33,7 @@ public class MessageService {
 
     private final MessageRepository messageRepository;
     private final AIPersonaService aiPersonaService;
-    private final NaverApiService clovaStudioService;
+    private final NaverApiService naverApiService;
     private final ConversationService conversationService;
     private final UserService userService;
 
@@ -63,7 +63,7 @@ public class MessageService {
         // STT
 
         // 평가 수행
-       EvaluateResult eval = clovaStudioService.evaluateMessage(
+       EvaluateResult eval = naverApiService.evaluateMessage(
                persona,
                conversation.getSituation(),
                lastAiMessage.getContent(),
@@ -81,7 +81,7 @@ public class MessageService {
         messageRepository.save(userMessage);
 
         // AI 응답 생성
-        String aiReply = clovaStudioService.generateAiMessage(
+        String aiReply = naverApiService.generateAiMessage(
                 persona,
                 user.getKoreanLevel(),
                 conversation,
@@ -149,7 +149,7 @@ public class MessageService {
     public void createFirstMessage(ConversationDto conversation) {
 
         // 대화 시작 메시지 생성 (AI)
-        String firstMessage = clovaStudioService.generateAiMessage(
+        String firstMessage = naverApiService.generateAiMessage(
                 conversation.getAiPersona(),
                 KoreanLevel.INTERMEDIATE,
                 conversation,
@@ -176,7 +176,7 @@ public class MessageService {
                 .orElseThrow(() -> new ResourceNotFoundException("Message not found"));
 
         // 메시지 내용 번역
-        String translatedContent = clovaStudioService.translateMessage(message.getContent());
+        String translatedContent = naverApiService.translateContent("ko", "en", message.getContent());
 
         // 번역된 내용 저장
         message.saveTranslatedContent(translatedContent);
