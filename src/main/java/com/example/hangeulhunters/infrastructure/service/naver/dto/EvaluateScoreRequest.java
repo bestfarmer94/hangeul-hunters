@@ -1,6 +1,6 @@
-package com.example.hangeulhunters.infrastructure.dto;
+package com.example.hangeulhunters.infrastructure.service.naver.dto;
 
-import com.example.hangeulhunters.infrastructure.constant.PromptConstant;
+import com.example.hangeulhunters.infrastructure.service.naver.constant.PromptConstant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,7 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class StructuredClovaRequest {
+public class EvaluateScoreRequest {
     private List<Message> messages;
     private Thinking thinking;
     private ResponseFormat responseFormat;
@@ -61,8 +61,8 @@ public class StructuredClovaRequest {
         }
     }
 
-    public static StructuredClovaRequest ofEvaluateScore(String aiRole, String userRole, String situation, String aiMessage, String userMessage) {
-        return StructuredClovaRequest.builder()
+    public static EvaluateScoreRequest ofEvaluateScore(String aiRole, String userRole, String situation, String aiMessage, String userMessage) {
+        return EvaluateScoreRequest.builder()
                 .messages(List.of(
                         Message.builder()
                                 .role("system")

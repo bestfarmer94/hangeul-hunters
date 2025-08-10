@@ -1,4 +1,4 @@
-package com.example.hangeulhunters.infrastructure.service;
+package com.example.hangeulhunters.infrastructure.service.aws;
 
 import com.amazonaws.HttpMethod;
 import com.amazonaws.services.s3.AmazonS3;
@@ -7,7 +7,7 @@ import com.amazonaws.services.s3.model.CopyObjectRequest;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.example.hangeulhunters.domain.common.constant.ImageType;
-import com.example.hangeulhunters.infrastructure.dto.PresignedUrlDto;
+import com.example.hangeulhunters.infrastructure.service.aws.dto.PresignedUrlDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;

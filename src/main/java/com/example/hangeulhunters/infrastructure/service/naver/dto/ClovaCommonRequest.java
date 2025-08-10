@@ -1,9 +1,9 @@
-package com.example.hangeulhunters.infrastructure.dto;
+package com.example.hangeulhunters.infrastructure.service.naver.dto;
 
 import com.example.hangeulhunters.application.conversation.dto.MessageDto;
 import com.example.hangeulhunters.domain.conversation.constant.MessageType;
 import com.example.hangeulhunters.domain.user.constant.KoreanLevel;
-import com.example.hangeulhunters.infrastructure.constant.PromptConstant;
+import com.example.hangeulhunters.infrastructure.service.naver.constant.PromptConstant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,7 +16,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CommonClovaRequest {
+public class ClovaCommonRequest {
     private List<Message> messages;
     private Integer maxTokens;
 
@@ -58,7 +58,7 @@ public class CommonClovaRequest {
         }
     }
 
-    public static CommonClovaRequest ofGenerateReply(String aiRole, String userRole, String situation, KoreanLevel level, String userMessage) {
+    public static ClovaCommonRequest ofGenerateReply(String aiRole, String userRole, String situation, KoreanLevel level, String userMessage) {
         List<Message> messages = new ArrayList<>();
 
         messages.add(
@@ -84,13 +84,13 @@ public class CommonClovaRequest {
             messages.add(Message.ofUserMessage(userMessage));
         }
 
-        return CommonClovaRequest.builder()
+        return ClovaCommonRequest.builder()
                 .messages(messages)
                 .build();
     }
 
-    public static CommonClovaRequest ofFeedbackSentenceRequest(String aiRole, String userRole, String situation, String aiMessage, String userMessage) {
-        return CommonClovaRequest.builder()
+    public static ClovaCommonRequest ofFeedbackSentenceRequest(String aiRole, String userRole, String situation, String aiMessage, String userMessage) {
+        return ClovaCommonRequest.builder()
                 .messages(List.of(
                         Message.builder()
                                 .role("system")
@@ -113,7 +113,7 @@ public class CommonClovaRequest {
                 .build();
     }
 
-    public static CommonClovaRequest ofFeedbackConversationRequest(String aiRole, String userRole, String situation, List<MessageDto> conversationMessages) {
+    public static ClovaCommonRequest ofFeedbackConversationRequest(String aiRole, String userRole, String situation, List<MessageDto> conversationMessages) {
         List<Message> messages = new ArrayList<>();
         messages.add(
                 Message.builder()
@@ -140,7 +140,7 @@ public class CommonClovaRequest {
             );
         });
 
-        return CommonClovaRequest.builder()
+        return ClovaCommonRequest.builder()
                 .messages(messages)
                 .build();
     }

@@ -1,4 +1,4 @@
-package com.example.hangeulhunters.infrastructure.constant;
+package com.example.hangeulhunters.infrastructure.service.naver.constant;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
