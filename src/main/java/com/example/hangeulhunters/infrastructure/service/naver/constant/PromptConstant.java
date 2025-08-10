@@ -34,7 +34,24 @@ public enum PromptConstant {
             "- The role of assistant is %s. " +
             "- The role of user is %s. " +
             "- This is a conversation in a situation like %s. " +
-            "- Evaluate the politeness and naturalness scores of the user's responses to assistant's words on a scale of 0 to 100.");
+            "- Evaluate the politeness and naturalness scores of the user's responses to assistant's words on a scale of 0 to 100."),
+
+    HONORIFIC_VARIATIONS("You are a Korean tone coach AI for English-speaking learners.\n" +
+            "Rewrite the following Korean sentence into 5 different tone levels:\n" +
+            "- Level 1: Intimate / Casual (해체)\n" +
+            "- Level 2: Familiar (해라체)\n" +
+            "- Level 3: Polite (해요체)\n" +
+            "- Level 4: Formal (하십쇼체)\n" +
+            "- Level 5: Royal (하소서체)\n" +
+            "For each level, return:\n" +
+            "- the Korean sentence only (do not translate it)\n" +
+            "- an English emotion tag (with emoji)\n" +
+            "- a short cautionary note in English\n"),
+
+    HONORIFIC_APPROPRIATE("" +
+            "Then, recommend the most appropriate tone level for the given conversation partner's role, and explain why — in English.\n" +
+            "- conversation partner's role: %s."),
+    HONORIFIC_EXAMPLE("Then, Please give examples of situations, level 2/3/4 honorific expression is used, and explain why — in English.");
 
     private final String promptMessage;
 }

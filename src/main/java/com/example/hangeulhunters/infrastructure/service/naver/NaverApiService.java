@@ -3,11 +3,14 @@ package com.example.hangeulhunters.infrastructure.service.naver;
 import com.example.hangeulhunters.application.conversation.dto.ConversationDto;
 import com.example.hangeulhunters.application.conversation.dto.EvaluateResult;
 import com.example.hangeulhunters.application.conversation.dto.MessageDto;
+import com.example.hangeulhunters.application.language.dto.HonorificVariationsResponse;
 import com.example.hangeulhunters.application.persona.dto.AIPersonaDto;
 import com.example.hangeulhunters.domain.user.constant.KoreanLevel;
 import com.example.hangeulhunters.infrastructure.config.NaverApiProperties;
 import com.example.hangeulhunters.infrastructure.service.naver.dto.*;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -17,19 +20,12 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class NaverApiService {
 
     private final WebClient webClient;
     private final ObjectMapper objectMapper;
-    private final NaverApiProperties.ClovaStudio clovaStudioProperties;
-    private final NaverApiProperties.Papago papagoProperties;
-
-    public NaverApiService(WebClient webClient, ObjectMapper objectMapper, NaverApiProperties naverApiProperties) {
-        this.webClient = webClient;
-        this.objectMapper = objectMapper;
-        this.clovaStudioProperties = naverApiProperties.getClovaStudio();
-        this.papagoProperties = naverApiProperties.getPapago();
-    }
+    private final NaverApiProperties naverApiProperties;
     /**
      * 대화형 AI 응답 생성
      * @param persona
@@ -41,14 +37,14 @@ public class NaverApiService {
     public String generateAiMessage(AIPersonaDto persona, KoreanLevel level, ConversationDto conversation, String userMessage) {
         try {
             String apiPath = conversation.getChatModelId() != null
-                    ? clovaStudioProperties.getTuningModelPath().replace("{taskId}", conversation.getChatModelId())
-                    : clovaStudioProperties.getCommonModelPath();
+                    ? naverApiProperties.getClovaStudio().getTuningModelPath().replace("{taskId}", conversation.getChatModelId())
+                    : naverApiProperties.getClovaStudio().getCommonModelPath();
 
-            String url = clovaStudioProperties.getBaseUrl() + apiPath;
+            String url = naverApiProperties.getClovaStudio().getBaseUrl() + apiPath;
 
             ClovaCommonResponse response = webClient.post()
                     .uri(url)
-                    .header("Authorization", clovaStudioProperties.getApiKey())
+                    .header("Authorization", naverApiProperties.getClovaStudio().getApiKey())
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(ClovaCommonRequest.ofGenerateReply(
                             persona.getAiRole(),
@@ -80,11 +76,11 @@ public class NaverApiService {
      */
     public EvaluateResult evaluateMessage(AIPersonaDto persona, String situation, String aiMessage, String userMessage) {
         try {
-            String url = clovaStudioProperties.getBaseUrl() + clovaStudioProperties.getCommonModelPath();
+            String url = naverApiProperties.getClovaStudio().getBaseUrl() + naverApiProperties.getClovaStudio().getCommonModelPath();
 
             ClovaCommonResponse response = webClient.post()
                     .uri(url)
-                    .header("Authorization", clovaStudioProperties.getApiKey())
+                    .header("Authorization", naverApiProperties.getClovaStudio().getApiKey())
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(EvaluateScoreRequest.ofEvaluateScore(
                             persona.getAiRole(),
@@ -111,11 +107,11 @@ public class NaverApiService {
      * 문장(메시지) 단위 피드백 (평가 기반)
      */
     public String feedbackMessage(AIPersonaDto persona, String situation, String aiMessage, String userMessage) {
-        String url = clovaStudioProperties.getBaseUrl() + clovaStudioProperties.getCommonModelPath();
+        String url = naverApiProperties.getClovaStudio().getBaseUrl() + naverApiProperties.getClovaStudio().getCommonModelPath();
 
         ClovaCommonResponse response = webClient.post()
                 .uri(url)
-                .header("Authorization", clovaStudioProperties.getApiKey())
+                .header("Authorization", naverApiProperties.getClovaStudio().getApiKey())
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(ClovaCommonRequest.ofFeedbackSentenceRequest(
                         persona.getAiRole(),
@@ -141,7 +137,7 @@ public class NaverApiService {
      */
     public String feedbackConversation(AIPersonaDto persona, String situation, List<MessageDto> messages) {
         try {
-            String url = clovaStudioProperties.getBaseUrl() + clovaStudioProperties.getCommonModelPath();
+            String url = naverApiProperties.getClovaStudio().getBaseUrl() + naverApiProperties.getClovaStudio().getCommonModelPath();
 
             ClovaCommonRequest request = ClovaCommonRequest.ofFeedbackConversationRequest(
                     persona.getAiRole(),
@@ -152,7 +148,7 @@ public class NaverApiService {
 
             var response = webClient.post()
                     .uri(url)
-                    .header("Authorization", clovaStudioProperties.getApiKey())
+                    .header("Authorization", naverApiProperties.getClovaStudio().getApiKey())
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(request)
                     .retrieve()
@@ -170,17 +166,48 @@ public class NaverApiService {
     }
 
     /**
+     * 다양한 존댓말 표현들 생성
+     */
+    public HonorificVariationsResponse generateHonorificVariations(String aiRole, String sourceContent) {
+        String url = naverApiProperties.getClovaStudio().getBaseUrl() + naverApiProperties.getClovaStudio().getCommonModelPath();
+
+        ClovaCommonResponse response = webClient.post()
+                .uri(url)
+                .header("Authorization", naverApiProperties.getClovaStudio().getApiKey())
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(HonorificVariationsRequest.of(aiRole, sourceContent))
+                .retrieve()
+                .bodyToMono(ClovaCommonResponse.class)
+                .onErrorResume(e -> Mono.empty())
+                .block();
+
+        if(response.getStatus().getCode().startsWith("2")) {
+            try {
+                return objectMapper.readValue(response.getResult().getMessage().getContent(), HonorificVariationsResponse.class);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            throw new IllegalArgumentException(String.format(
+                    "status code: %s, error message: %s",
+                    response.getStatus().getCode(),
+                    response.getStatus().getMessage()
+            ));
+        }
+    }
+
+    /**
      * Papago 번역
      */
-    public String translateMessage(String content) {
-        String url = papagoProperties.getBaseUrl() + papagoProperties.getTranslationPath();
+    public String translateContent(String sourceLang, String targetLang, String content) {
+        String url = naverApiProperties.getPapago().getBaseUrl() + naverApiProperties.getPapago().getTranslationPath();
 
         PapagoTranslateResponse response = webClient.post()
                 .uri(url)
-                .header("x-ncp-apigw-api-key-id", papagoProperties.getClientId())
-                .header("x-ncp-apigw-api-key", papagoProperties.getClientSecret())
+                .header("x-ncp-apigw-api-key-id", naverApiProperties.getPapago().getClientId())
+                .header("x-ncp-apigw-api-key", naverApiProperties.getPapago().getClientSecret())
                 .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(PapagoTranslateRequest.translateKoToEn(content))
+                .bodyValue(PapagoTranslateRequest.of(sourceLang, targetLang, content))
                 .retrieve()
                 .bodyToMono(PapagoTranslateResponse.class)
                 .onErrorResume(e -> Mono.empty())

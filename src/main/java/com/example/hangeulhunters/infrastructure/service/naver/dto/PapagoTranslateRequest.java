@@ -10,10 +10,10 @@ public class PapagoTranslateRequest {
     private String target;
     private String text;
 
-    public static PapagoTranslateRequest translateKoToEn(String content) {
+    public static PapagoTranslateRequest of(String source, String target, String content) {
         return PapagoTranslateRequest.builder()
-                .source("ko")
-                .target("en")
+                .source(source)
+                .target(target)
                 .text(content)
                 .build();
     }
