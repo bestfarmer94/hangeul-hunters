@@ -16,6 +16,20 @@ CREATE TABLE users (
     deleted_at TIMESTAMPTZ
 );
 
+-- Interest
+CREATE TABLE interest (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT,
+    persona_id BIGINT,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    created_at TIMESTAMPTZ NOT NULL,
+    updated_at TIMESTAMPTZ,
+    deleted_at TIMESTAMPTZ
+);
+CREATE INDEX idx_interest_user_id ON interest(user_id);
+CREATE INDEX idx_interest_persona_id ON interest(persona_id);
+
 -- AI Persona
 CREATE TABLE ai_persona (
     id BIGSERIAL PRIMARY KEY,
