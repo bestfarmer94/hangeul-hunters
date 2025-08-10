@@ -39,9 +39,6 @@ public class MessageService {
 
     @Transactional
     public MessageDto sendMessage(Long userId, MessageRequest request) {
-        // 사용자 정보 조회
-        UserDto user = userService.getUserById(userId);
-
         // 대화 정보 조회
         ConversationDto conversation = conversationService.getConversationById(userId, request.getConversationId());
 
@@ -80,23 +77,7 @@ public class MessageService {
                 .build();
         messageRepository.save(userMessage);
 
-        // AI 응답 생성
-        String aiReply = naverApiService.generateAiMessage(
-                persona,
-                user.getKoreanLevel(),
-                conversation,
-                request.getContent()
-        );
-
-        // AI 메시지 저장
-        Message aiMessage = Message.builder()
-                .conversationId(conversation.getConversationId())
-                .type(MessageType.AI)
-                .content(aiReply)
-                .build();
-        messageRepository.save(aiMessage);
-
-        return MessageDto.fromEntity(aiMessage);
+        return MessageDto.fromEntity(userMessage);
     }
 
     @Transactional(readOnly = true)
@@ -183,5 +164,42 @@ public class MessageService {
         messageRepository.save(message);
 
         return translatedContent;
+    }
+
+    @Transactional
+    public MessageDto createAiReply(Long userId, Long conversationId) {
+        // 유저 정보 조회
+        UserDto user = userService.getUserById(userId);
+
+        // 대화 정보 조회
+        ConversationDto conversation = conversationService.getConversationById(userId, conversationId);
+
+        // 대화 소유자 확인
+        if (!conversation.getUserId().equals(userId)) {
+            throw new ForbiddenException("User does not own this conversation");
+        }
+
+        // AI 페르소나 정보 조회
+        AIPersonaDto persona = aiPersonaService.getPersonaById(conversation.getAiPersona().getPersonaId(), userId);
+
+        Message lastMessage = messageRepository.findFirstByConversationIdAndTypeOrderByCreatedAtDesc(conversationId, MessageType.USER)
+                .orElseThrow(() -> new ResourceNotFoundException("No user messages found for this conversation"));
+
+        // AI 응답 생성
+        String aiReply = naverApiService.generateAiMessage(
+                persona,
+                user.getKoreanLevel(),
+                conversation,
+                lastMessage.getContent()
+        );
+
+        // AI 메시지 저장
+        Message aiMessage = Message.builder()
+                .conversationId(conversation.getConversationId())
+                .type(MessageType.AI)
+                .content(aiReply)
+                .build();
+        messageRepository.save(aiMessage);
+        return MessageDto.fromEntity(aiMessage);
     }
 }

@@ -48,6 +48,18 @@ public class MessageController extends ControllerSupport {
         return ResponseEntity.ok(message);
     }
 
+    @PostMapping("/ai-reply")
+    @PreAuthorize("hasRole('USER')")
+    @Operation(
+            summary = "메시지 생성 (AI 응답)",
+            description = "AI를 사용하여 대화에 자동 응답 메시지를 생성합니다",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    public ResponseEntity<MessageDto> createAiReply(Long conversationId) {
+        MessageDto message = messageService.createAiReply(getCurrentUserId(), conversationId);
+        return ResponseEntity.ok(message);
+    }
+
     @PutMapping("{messageId}/translate")
     @PreAuthorize("hasRole('USER')")
     @Operation(
