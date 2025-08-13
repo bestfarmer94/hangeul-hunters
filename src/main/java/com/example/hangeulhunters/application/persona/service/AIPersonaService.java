@@ -79,6 +79,7 @@ public class AIPersonaService {
                 .userRole(request.getRelationship().getUserRole())
                 .description(request.getDescription())
                 .profileImageUrl(request.getProfileImageUrl())
+                .createdBy(userId)
                 .build();
         
         AIPersona savedPersona = aiPersonaRepository.save(persona);
@@ -99,7 +100,7 @@ public class AIPersonaService {
         AIPersona persona = aiPersonaRepository.findByIdAndUserIdAndDeletedAtNull(id, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("AI Persona not found with id: " + id));
         
-        persona.delete();
+        persona.delete(userId);
         aiPersonaRepository.save(persona);
     }
 }

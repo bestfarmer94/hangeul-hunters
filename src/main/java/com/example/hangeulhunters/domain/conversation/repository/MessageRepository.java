@@ -21,4 +21,6 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     Optional<Message> findFirstByConversationIdAndTypeOrderByCreatedAtDesc(Long conversationId, MessageType type);
 
     Optional<Message> findFirstByConversationIdAndCreatedAtBeforeOrderByCreatedAtDesc(Long conversationId, OffsetDateTime createdAt);
+
+    Integer countByCreatedByAndType(Long createdBy, MessageType type);
 }

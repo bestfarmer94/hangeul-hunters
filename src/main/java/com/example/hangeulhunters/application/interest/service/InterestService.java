@@ -65,6 +65,7 @@ public class InterestService {
                 Interest newInterest = Interest.builder()
                         .userId(userId)
                         .name(name)
+                        .createdBy(userId)
                         .build();
                 interestsToSave.add(newInterest);
             }
@@ -77,7 +78,7 @@ public class InterestService {
         
         // 삭제 대상 관심사 처리
         for (Interest interest : existingInterestMap.values()) {
-            interest.delete();
+            interest.delete(userId);
             interestRepository.save(interest);
         }
     }
