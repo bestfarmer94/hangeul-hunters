@@ -59,7 +59,9 @@ public class User extends BaseTimeEntity {
     @Column(nullable = true)
     private String profileImageUrl;
     
-    public void updateProfile(String nickname, LocalDate birthDate, KoreanLevel koreanLevel, String profileImageUrl) {
+    public void updateProfile(Long userId, String nickname, LocalDate birthDate, KoreanLevel koreanLevel, String profileImageUrl) {
+        super.update(userId);
+
         if (nickname != null) {
             this.nickname = nickname;
         }

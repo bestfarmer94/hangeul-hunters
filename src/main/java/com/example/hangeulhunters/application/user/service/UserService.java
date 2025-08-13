@@ -79,6 +79,7 @@ public class UserService {
 
         // 기본 프로필 정보 업데이트
         user.updateProfile(
+            userId,
             request.getNickname(),
             request.getBirthDate(),
             request.getKoreanLevel(),

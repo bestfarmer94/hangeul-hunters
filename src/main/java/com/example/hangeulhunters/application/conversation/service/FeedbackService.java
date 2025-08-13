@@ -66,6 +66,7 @@ public class FeedbackService {
                 .honorificScore(targetMessage.getPolitenessScore())
                 .naturalnessScore(targetMessage.getNaturalnessScore())
                 .content(feedbackContent)
+                .createdBy(userId)
                 .build();
         feedbackRepository.save(feedback);
         return FeedbackDto.fromEntity(feedback);
@@ -113,6 +114,7 @@ public class FeedbackService {
                 .honorificScore(avgPoliteness)
                 .naturalnessScore(avgNaturalness)
                 .content(feedbackContent)
+                .createdBy(userId)
                 .build();
         feedbackRepository.save(feedback);
     }

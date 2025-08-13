@@ -84,6 +84,7 @@ public class ConversationService {
                 .status(ConversationStatus.ACTIVE)
                 .situation(request.getSituation().getSituation())
                 .chatModelId(request.getSituation().getChatModelId())
+                .createdBy(userId)
                 .build();
         Conversation savedConversation = conversationRepository.save(conversation);
 
@@ -123,7 +124,7 @@ public class ConversationService {
         }
 
         // 대화 삭제 처리
-        conversation.delete();
+        conversation.delete(userId);
         conversationRepository.save(conversation);
     }
 }
