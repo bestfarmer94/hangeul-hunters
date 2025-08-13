@@ -58,87 +58,71 @@ public class ClovaCommonRequest {
         }
     }
 
-    public static ClovaCommonRequest ofGenerateReply(String aiRole, String userRole, String situation, KoreanLevel level, String userMessage) {
-        List<Message> messages = new ArrayList<>();
-
-        messages.add(
-                Message.builder()
-                        .role("system")
-                        .content(List.of(
-                                Message.Content.builder()
-                                        .type("text")
-                                        .text(String.format(
-                                                PromptConstant.GENERATE_REPLY.getPromptMessage(),
-                                                aiRole,
-                                                userRole,
-                                                situation,
-                                                level)
-                                        )
-                                        .build()
-                                )
-                        )
-                        .build()
+    public static ClovaCommonRequest ofGenerateReply(String aiRole, String userRole, String situation, KoreanLevel level, List<MessageDto> conversationMessages) {
+        String systemPrompt = String.format(
+                PromptConstant.GENERATE_REPLY.getPromptMessage(),
+                aiRole, userRole, situation, level
         );
-
-        if(userMessage != null) {
-            messages.add(Message.ofUserMessage(userMessage));
-        }
-
-        return ClovaCommonRequest.builder()
-                .messages(messages)
-                .build();
+        
+        return createWithSystemPromptAndMessages(systemPrompt, conversationMessages);
     }
 
     public static ClovaCommonRequest ofFeedbackSentenceRequest(String aiRole, String userRole, String situation, String aiMessage, String userMessage) {
-        return ClovaCommonRequest.builder()
-                .messages(List.of(
-                        Message.builder()
-                                .role("system")
-                                .content(List.of(
-                                        Message.Content.builder()
-                                                .type("text")
-                                                .text(String.format(
-                                                        PromptConstant.FEEDBACK_MESSAGE.getPromptMessage(),
-                                                        aiRole,
-                                                        userRole,
-                                                        situation
-                                                ))
-                                                .build()
-                                ))
-                                .build(),
-                        Message.ofAIMessage(aiMessage),
-                        Message.ofUserMessage(userMessage)
-                        )
-                )
-                .build();
+        String systemPrompt = String.format(
+                PromptConstant.FEEDBACK_MESSAGE.getPromptMessage(),
+                aiRole, userRole, situation
+        );
+        
+        List<MessageDto> messages = List.of(
+                MessageDto.builder().type(MessageType.AI).content(aiMessage).build(),
+                MessageDto.builder().type(MessageType.USER).content(userMessage).build()
+        );
+        
+        return createWithSystemPromptAndMessages(systemPrompt, messages);
     }
 
     public static ClovaCommonRequest ofFeedbackConversationRequest(String aiRole, String userRole, String situation, List<MessageDto> conversationMessages) {
+        String systemPrompt = String.format(
+                PromptConstant.FEEDBACK_MESSAGE.getPromptMessage(),
+                aiRole, userRole, situation
+        );
+        
+        return createWithSystemPromptAndMessages(systemPrompt, conversationMessages);
+    }
+
+    /**
+     * 시스템 프롬프트와 대화 내역을 포함한 공통 요청 객체 생성
+     *
+     * @param systemPrompt 시스템 프롬프트 메시지
+     * @param conversationMessages 대화 내역 (선택 사항)
+     * @return ClovaCommonRequest 객체
+     */
+    private static ClovaCommonRequest createWithSystemPromptAndMessages(String systemPrompt, List<MessageDto> conversationMessages) {
         List<Message> messages = new ArrayList<>();
+
+        // 시스템 프롬프트 추가
         messages.add(
                 Message.builder()
                         .role("system")
                         .content(List.of(
                                 Message.Content.builder()
                                         .type("text")
-                                        .text(String.format(
-                                                PromptConstant.FEEDBACK_MESSAGE.getPromptMessage(),
-                                                aiRole,
-                                                userRole,
-                                                situation
-                                        ))
+                                        .text(systemPrompt)
                                         .build()
-                ))
-                .build()
+                        ))
+                        .build()
         );
 
-        conversationMessages.forEach(message -> {
-            messages.add(
-                    message.getType() == MessageType.AI
-                            ? Message.ofAIMessage(message.getContent())
-                            : Message.ofUserMessage(message.getContent())
-            );
-        });
+        // 대화 내역 추가 (있는 경우)
+        if (conversationMessages != null && !conversationMessages.isEmpty()) {
+            conversationMessages.forEach(message -> {
+                messages.add(
+                        message.getType() == MessageType.AI
+                                ? Message.ofAIMessage(message.getContent())
+                                : Message.ofUserMessage(message.getContent())
+                );
+            });
+        }
 
         return ClovaCommonRequest.builder()
                 .messages(messages)

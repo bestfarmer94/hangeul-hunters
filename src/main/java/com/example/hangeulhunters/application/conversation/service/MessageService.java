@@ -13,6 +13,7 @@ import com.example.hangeulhunters.domain.conversation.constant.MessageType;
 import com.example.hangeulhunters.domain.conversation.constant.SituationExample;
 import com.example.hangeulhunters.domain.conversation.entity.Message;
 import com.example.hangeulhunters.domain.conversation.repository.MessageRepository;
+import com.example.hangeulhunters.infrastructure.exception.ConflictException;
 import com.example.hangeulhunters.infrastructure.exception.ForbiddenException;
 import com.example.hangeulhunters.infrastructure.exception.ResourceNotFoundException;
 import com.example.hangeulhunters.infrastructure.service.naver.NaverApiService;
@@ -170,6 +171,15 @@ public class MessageService {
 
     @Transactional
     public MessageDto createAiReply(Long userId, Long conversationId) {
+        // 마지막 메시지 조회
+        Message lastMessage = messageRepository.findFirstByConversationIdOrderByCreatedAtDesc(conversationId)
+                .orElseThrow(() -> new ResourceNotFoundException("No messages found for this conversation"));
+
+        // 마지막 메시지가 사용자 메시지가 아닌 경우 예외 처리
+        if(lastMessage.getType() != MessageType.USER) {
+            throw new ConflictException("Ai reply can only be created after a user message");
+        }
+
         // 유저 정보 조회
         UserDto user = userService.getUserById(userId);
 
@@ -184,15 +194,15 @@ public class MessageService {
         // AI 페르소나 정보 조회
         AIPersonaDto persona = aiPersonaService.getPersonaById(conversation.getAiPersona().getPersonaId(), userId);
 
-        Message lastMessage = messageRepository.findFirstByConversationIdAndTypeOrderByCreatedAtDesc(conversationId, MessageType.USER)
-                .orElseThrow(() -> new ResourceNotFoundException("No user messages found for this conversation"));
-
+        // 대화 내역 전체 조회
+        List<MessageDto> conversationMessages = getAllMessagesByConversationId(conversationId);
+        
         // AI 응답 생성
         String aiReply = naverApiService.generateAiMessage(
                 persona,
                 user.getKoreanLevel(),
                 conversation,
-                lastMessage.getContent()
+                conversationMessages
         );
 
         // AI 메시지 저장

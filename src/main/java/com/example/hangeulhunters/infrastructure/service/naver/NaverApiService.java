@@ -28,13 +28,13 @@ public class NaverApiService {
     private final NaverApiProperties naverApiProperties;
     /**
      * 대화형 AI 응답 생성
-     * @param persona
-     * @param level
-     * @param conversation
-     * @param userMessage
-     * @return
+     * @param persona AI 페르소나
+     * @param level 한국어 레벨
+     * @param conversation 대화 정보
+     * @param conversationMessages 대화 내역 전체
+     * @return AI 응답 메시지
      */
-    public String generateAiMessage(AIPersonaDto persona, KoreanLevel level, ConversationDto conversation, String userMessage) {
+    public String generateAiMessage(AIPersonaDto persona, KoreanLevel level, ConversationDto conversation, List<MessageDto> conversationMessages) {
         try {
             String apiPath = conversation.getChatModelId() != null
                     ? naverApiProperties.getClovaStudio().getTuningModelPath().replace("{taskId}", conversation.getChatModelId())
@@ -51,7 +51,7 @@ public class NaverApiService {
                             persona.getUserRole(),
                             conversation.getSituation(),
                             level,
-                            userMessage)
+                            conversationMessages)
                     )
                     .retrieve()
                     .bodyToMono(ClovaCommonResponse.class)
