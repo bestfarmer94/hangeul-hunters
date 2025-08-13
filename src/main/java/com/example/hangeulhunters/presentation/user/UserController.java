@@ -1,5 +1,6 @@
 package com.example.hangeulhunters.presentation.user;
 
+import com.example.hangeulhunters.application.conversation.service.MessageService;
 import com.example.hangeulhunters.application.user.dto.ProfileUpdateRequest;
 import com.example.hangeulhunters.application.user.dto.UserDto;
 import com.example.hangeulhunters.application.user.service.UserService;
@@ -20,16 +21,18 @@ import org.springframework.web.bind.annotation.*;
 public class UserController extends ControllerSupport {
 
     private final UserService userService;
+    private final MessageService messageService;
 
     @GetMapping("/me")
     @PreAuthorize("hasRole('USER')")
     @Operation(
         summary = "현재 사용자 정보 조회",
-        description = "로그인한 사용자의 정보를 조회합니다",
+        description = "로그인한 사용자의 정보를 조회합니다. 학습한 문장 수와 K-레벨 정보를 포함합니다.",
         security = @SecurityRequirement(name = "bearerAuth")
     )
     public ResponseEntity<UserDto> getCurrentUser() {
         UserDto userDto = userService.getUserById(getCurrentUserId());
+        userDto.addMyLearningInfo(messageService.countMyMessages(getCurrentUserId()));
         return ResponseEntity.ok(userDto);
     }
     

@@ -47,8 +47,8 @@ public class Conversation extends BaseTimeEntity {
         this.status = ConversationStatus.ENDED;
     }
 
-    public void delete() {
-        super.delete();
+    public void delete(Long userId) {
+        super.delete(userId);
         this.status = ConversationStatus.DELETED;
     }
 }

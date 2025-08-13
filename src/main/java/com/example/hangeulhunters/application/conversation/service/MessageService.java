@@ -10,9 +10,9 @@ import com.example.hangeulhunters.application.persona.service.AIPersonaService;
 import com.example.hangeulhunters.application.user.dto.UserDto;
 import com.example.hangeulhunters.application.user.service.UserService;
 import com.example.hangeulhunters.domain.conversation.constant.MessageType;
+import com.example.hangeulhunters.domain.conversation.constant.SituationExample;
 import com.example.hangeulhunters.domain.conversation.entity.Message;
 import com.example.hangeulhunters.domain.conversation.repository.MessageRepository;
-import com.example.hangeulhunters.domain.user.constant.KoreanLevel;
 import com.example.hangeulhunters.infrastructure.exception.ForbiddenException;
 import com.example.hangeulhunters.infrastructure.exception.ResourceNotFoundException;
 import com.example.hangeulhunters.infrastructure.service.naver.NaverApiService;
@@ -74,6 +74,7 @@ public class MessageService {
                 .content(request.getContent())
                 .politenessScore(eval.getPolitenessScore())
                 .naturalnessScore(eval.getNaturalnessScore())
+                .createdBy(userId)
                 .build();
         messageRepository.save(userMessage);
 
@@ -127,20 +128,21 @@ public class MessageService {
      * @param conversation
      */
     @Transactional
-    public void createFirstMessage(ConversationDto conversation) {
+    public void createFirstMessage(Long userId, ConversationDto conversation, SituationExample situationExample) {
 
-        // 대화 시작 메시지 생성 (AI)
-        String firstMessage = naverApiService.generateAiMessage(
-                conversation.getAiPersona(),
-                KoreanLevel.INTERMEDIATE,
-                conversation,
-                null
-        );
+        // todo 대화 시작 메시지 생성 (AI) [현재는 수준 미달로 인해, 첫문장 따로 준비]
+//        String firstMessage = naverApiService.generateAiMessage(
+//                conversation.getAiPersona(),
+//                KoreanLevel.INTERMEDIATE,
+//                conversation,
+//                null
+//        );
 
         Message message = Message.builder()
                 .conversationId(conversation.getConversationId())
                 .type(MessageType.AI)
-                .content(firstMessage)
+                .content(situationExample.getFirstMessage())
+                .createdBy(userId)
                 .build();
         messageRepository.save(message);
     }
@@ -198,8 +200,19 @@ public class MessageService {
                 .conversationId(conversation.getConversationId())
                 .type(MessageType.AI)
                 .content(aiReply)
+                .createdBy(userId)
                 .build();
         messageRepository.save(aiMessage);
         return MessageDto.fromEntity(aiMessage);
+    }
+
+    /**
+     * 사용자가 작성한 메시지 수를 카운트합니다.
+     * @param userId 사용자 ID
+     * @return 사용자가 작성한 메시지 수
+     */
+    @Transactional(readOnly = true)
+    public Integer countMyMessages(Long userId) {
+        return messageRepository.countByCreatedByAndType(userId, MessageType.USER);
     }
 }

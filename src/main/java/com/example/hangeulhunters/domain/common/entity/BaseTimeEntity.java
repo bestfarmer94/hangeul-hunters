@@ -2,38 +2,48 @@ package com.example.hangeulhunters.domain.common.entity;
 
 import com.example.hangeulhunters.infrastructure.util.DateTimeUtil;
 import jakarta.persistence.Column;
-import jakarta.persistence.EntityListeners;
 import jakarta.persistence.MappedSuperclass;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.OffsetDateTime;
 
 @MappedSuperclass
-@EntityListeners(AuditingEntityListener.class)
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
 public abstract class BaseTimeEntity {
-    
-    @CreatedDate
+
     @Column(updatable = false, nullable = false)
+    @Builder.Default
     private OffsetDateTime createdAt = DateTimeUtil.now();
 
-    @LastModifiedDate
     @Column(nullable = true)
-    private OffsetDateTime updatedAt = DateTimeUtil.now();
+    private OffsetDateTime updatedAt;
 
     @Column(nullable = true)
     private OffsetDateTime deletedAt;
 
-    public void delete() {
+    @Column(updatable = false, nullable = true)
+    private Long createdBy;
+
+    @Column(nullable = true)
+    private Long updatedBy;
+    
+    @Column(nullable = true)
+    private Long deletedBy;
+
+    public void update(Long userId) {
+        this.updatedAt = DateTimeUtil.now();
+        this.updatedBy = userId;
+    }
+
+    public void delete(Long userId) {
         this.deletedAt = DateTimeUtil.now();
+        this.deletedBy = userId;
     }
 }
