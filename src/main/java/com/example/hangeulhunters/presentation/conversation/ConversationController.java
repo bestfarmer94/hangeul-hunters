@@ -97,4 +97,16 @@ public class ConversationController extends ControllerSupport {
         feedbackService.feedbackConversation(getCurrentUserId(), conversationId);
         return ResponseEntity.noContent().build();
     }
+
+    @DeleteMapping("/{conversationId}")
+    @PreAuthorize("hasRole('USER')")
+    @Operation(
+        summary = "대화 삭제",
+        description = "대화를 삭제합니다. 실제로 데이터베이스에서 삭제되지 않고 삭제 상태로 변경됩니다.",
+        security = @SecurityRequirement(name = "bearerAuth")
+    )
+    public ResponseEntity<Void> deleteConversation(@PathVariable Long conversationId) {
+        conversationService.deleteConversation(getCurrentUserId(), conversationId);
+        return ResponseEntity.noContent().build();
+    }
 }
