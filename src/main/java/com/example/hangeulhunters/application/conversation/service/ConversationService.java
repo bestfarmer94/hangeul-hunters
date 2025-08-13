@@ -105,4 +105,25 @@ public class ConversationService {
 
         conversationRepository.save(conversation);
     }
+
+    /**
+     * 대화 삭제
+     *
+     * @param userId 사용자 ID
+     * @param conversationId 삭제할 대화 ID
+     */
+    @Transactional
+    public void deleteConversation(Long userId, Long conversationId) {
+        Conversation conversation = conversationRepository.findById(conversationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Conversation", "id", conversationId));
+
+        // 사용자 본인의 대화만 삭제 가능
+        if (!conversation.getUserId().equals(userId)) {
+            throw new ForbiddenException("User does not own this conversation");
+        }
+
+        // 대화 삭제 처리
+        conversation.delete();
+        conversationRepository.save(conversation);
+    }
 }
