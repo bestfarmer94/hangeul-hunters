@@ -4,6 +4,7 @@ import com.example.hangeulhunters.application.common.dto.PageResponse;
 import com.example.hangeulhunters.application.conversation.dto.MessageDto;
 import com.example.hangeulhunters.application.conversation.dto.MessageRequest;
 import com.example.hangeulhunters.application.conversation.service.MessageService;
+import com.example.hangeulhunters.infrastructure.service.naver.dto.HonorificVariationsResponse;
 import com.example.hangeulhunters.presentation.common.ControllerSupport;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -71,5 +72,16 @@ public class MessageController extends ControllerSupport {
             @Parameter(description = "메시지 id") @PathVariable Long messageId) {
         String translatedMessage = messageService.translateMessage(messageId);
         return ResponseEntity.ok(translatedMessage);
+    }
+
+    @GetMapping("/{messageId}/honorific-variations")
+    @PreAuthorize("hasRole('USER')")
+    @Operation(
+            summary = "여러가지 존댓말 표현 생성",
+            description = "주어진 원문에 대해 다양한 존댓말 표현을 생성합니다",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    public ResponseEntity<HonorificVariationsResponse.ExpressionsByFormality> honorificVariations(@PathVariable Long messageId) {
+        return ResponseEntity.ok(messageService.generateHonorificVariations(getCurrentUserId(), messageId));
     }
 }

@@ -3,7 +3,6 @@ package com.example.hangeulhunters.infrastructure.service.naver;
 import com.example.hangeulhunters.application.conversation.dto.ConversationDto;
 import com.example.hangeulhunters.application.conversation.dto.EvaluateResult;
 import com.example.hangeulhunters.application.conversation.dto.MessageDto;
-import com.example.hangeulhunters.application.language.dto.HonorificVariationsResponse;
 import com.example.hangeulhunters.application.persona.dto.AIPersonaDto;
 import com.example.hangeulhunters.domain.user.constant.KoreanLevel;
 import com.example.hangeulhunters.infrastructure.config.NaverApiProperties;
@@ -82,7 +81,7 @@ public class NaverApiService {
                     .uri(url)
                     .header("Authorization", naverApiProperties.getClovaStudio().getApiKey())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .bodyValue(EvaluateScoreRequest.ofEvaluateScore(
+                    .bodyValue(EvaluateScoreRequest.of(
                             persona.getAiRole(),
                             persona.getUserRole(),
                             situation,
@@ -168,14 +167,14 @@ public class NaverApiService {
     /**
      * 다양한 존댓말 표현들 생성
      */
-    public HonorificVariationsResponse generateHonorificVariations(String aiRole, String sourceContent) {
+    public HonorificVariationsResponse generateHonorificVariations(String sourceContent) {
         String url = naverApiProperties.getClovaStudio().getBaseUrl() + naverApiProperties.getClovaStudio().getCommonModelPath();
 
         ClovaCommonResponse response = webClient.post()
                 .uri(url)
                 .header("Authorization", naverApiProperties.getClovaStudio().getApiKey())
                 .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(HonorificVariationsRequest.of(aiRole, sourceContent))
+                .bodyValue(HonorificVariationsRequest.of(sourceContent))
                 .retrieve()
                 .bodyToMono(ClovaCommonResponse.class)
                 .onErrorResume(e -> Mono.empty())
