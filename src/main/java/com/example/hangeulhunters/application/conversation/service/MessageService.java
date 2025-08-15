@@ -13,10 +13,12 @@ import com.example.hangeulhunters.domain.conversation.constant.MessageType;
 import com.example.hangeulhunters.domain.conversation.constant.SituationExample;
 import com.example.hangeulhunters.domain.conversation.entity.Message;
 import com.example.hangeulhunters.domain.conversation.repository.MessageRepository;
+import com.example.hangeulhunters.domain.persona.constant.Relationship;
 import com.example.hangeulhunters.infrastructure.exception.ConflictException;
 import com.example.hangeulhunters.infrastructure.exception.ForbiddenException;
 import com.example.hangeulhunters.infrastructure.exception.ResourceNotFoundException;
 import com.example.hangeulhunters.infrastructure.service.naver.NaverApiService;
+import com.example.hangeulhunters.infrastructure.service.naver.dto.HonorificVariationsResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -196,7 +198,7 @@ public class MessageService {
 
         // 대화 내역 전체 조회
         List<MessageDto> conversationMessages = getAllMessagesByConversationId(conversationId);
-        
+
         // AI 응답 생성
         String aiReply = naverApiService.generateAiMessage(
                 persona,
@@ -224,5 +226,46 @@ public class MessageService {
     @Transactional(readOnly = true)
     public Integer countMyMessages(Long userId) {
         return messageRepository.countByCreatedByAndType(userId, MessageType.USER);
+    }
+
+    /**
+     * 메시지 ID로 해당 메시지에 대한 존댓말 변형을 생성하고,
+     * AI 페르소나의 역할에 맞는 표현을 추출하여 반환합니다.
+     *
+     * @param currentUserId 현재 사용자 ID
+     * @param messageId 메시지 ID
+     * @return AI 역할에 맞는 존댓말 표현 응답
+     */
+    @Transactional(readOnly = true)
+    public HonorificVariationsResponse.ExpressionsByFormality generateHonorificVariations(Long currentUserId, Long messageId) {
+        // 메시지 조회
+        Message message = messageRepository.findById(messageId)
+                .orElseThrow(() -> new ResourceNotFoundException("Message not found"));
+
+        // 대화 조회
+        ConversationDto conversation = conversationService.getConversationById(currentUserId, message.getConversationId());
+
+        // 대화 소유자 확인
+        if (!conversation.getUserId().equals(currentUserId)) {
+            throw new ForbiddenException("User does not own this conversation");
+        }
+
+        // AI 페르소나 정보 조회
+        AIPersonaDto persona = aiPersonaService.getPersonaById(conversation.getAiPersona().getPersonaId(), currentUserId);
+
+        // AI 역할 정보 조회
+        Relationship aiRole = Relationship.ofAiRole(persona.getAiRole());
+
+        // 존댓말 표형 생성
+        HonorificVariationsResponse variations = naverApiService.generateHonorificVariations(
+                message.getContent()
+        );
+
+        // AI 역할에 따른 적절한 표현 추출
+        return switch (aiRole.getIntimacyLevel()) {
+            case "low" -> variations.getLowIntimacyExpressions();
+            case "high" -> variations.getHighIntimacyExpressions();
+            default -> variations.getMediumIntimacyExpressions();
+        };
     }
 }
