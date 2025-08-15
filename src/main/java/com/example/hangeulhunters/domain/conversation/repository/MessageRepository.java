@@ -18,6 +18,8 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
 
     List<Message> findAllByConversationIdOrderByCreatedAtAsc(Long conversationId);
 
+    Optional<Message> findFirstByConversationIdOrderByCreatedAtDesc(Long conversationId);
+
     Optional<Message> findFirstByConversationIdAndTypeOrderByCreatedAtDesc(Long conversationId, MessageType type);
 
     Optional<Message> findFirstByConversationIdAndCreatedAtBeforeOrderByCreatedAtDesc(Long conversationId, OffsetDateTime createdAt);

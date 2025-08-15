@@ -1,7 +1,7 @@
 package com.example.hangeulhunters.presentation.language;
 
-import com.example.hangeulhunters.application.language.dto.HonorificVariationsResponse;
 import com.example.hangeulhunters.application.language.service.LanguageService;
+import com.example.hangeulhunters.infrastructure.service.naver.dto.HonorificVariationsResponse;
 import com.example.hangeulhunters.presentation.common.ControllerSupport;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -27,8 +27,7 @@ public class LanguageController extends ControllerSupport {
             description = "주어진 원문에 대해 다양한 존댓말 표현을 생성합니다"
     )
     public ResponseEntity<HonorificVariationsResponse> honorificVariations(
-            @Parameter(description = "원문") @RequestParam String sourceContent,
-            @Parameter(description = "ai 역할(관계) (대화 중일 경우에만)", example = "Boss") @RequestParam(required = false) String aiRole) {
-        return ResponseEntity.ok(languageService.generateHonorificVariations(aiRole, sourceContent));
+            @Parameter(description = "원문") @RequestParam String sourceContent) {
+        return ResponseEntity.ok(languageService.generateHonorificVariations(sourceContent));
     }
 }

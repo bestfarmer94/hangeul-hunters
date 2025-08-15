@@ -1,132 +1,57 @@
 package com.example.hangeulhunters.infrastructure.service.naver.dto;
 
 import com.example.hangeulhunters.infrastructure.service.naver.constant.PromptConstant;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
+import java.util.Arrays;
 import java.util.List;
 
+/**
+ * 존댓말 변형 요청을 위한 구조화된 요청 클래스
+ */
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class HonorificVariationsRequest {
-    private List<Message> messages;
-    private Thinking thinking;
-    private ResponseFormat responseFormat;
+@EqualsAndHashCode(callSuper = true)
+@SuperBuilder
+public class HonorificVariationsRequest extends ClovaStructuredRequest<HonorificVariationsProperties> {
 
-    @Data
-    @Builder
-    public static class Message {
-        private String role;
-        private String content;
-    }
+    /**
+     * 존댓말 변형 요청 객체 생성
+     * @param sourceContent 원본 내용
+     * @return 존댓말 변형 요청 객체
+     */
+    public static HonorificVariationsRequest of(String sourceContent) {
+        // 설명 메시지 결정
+        String explainMessage = PromptConstant.HONORIFIC_EXAMPLE.getPromptMessage();
 
-    @Data
-    @Builder
-    public static class Thinking {
-        private String effort;
-    }
+        // 시스템 프롬프트 생성
+        String systemPrompt = PromptConstant.NOONCHI_DEFINITION_PROMPT.getPromptMessage() + explainMessage;
 
-    @Data
-    @Builder
-    public static class ResponseFormat {
-        private String type;
-        private Schema schema;
-
-        @Data
-        @Builder
-        public static class Schema {
-            private String type;
-            private Properties properties;
-            private List<String> required;
-
-            @Data
-            @Builder
-            public static class Properties {
-                private Property honorificLevel1;
-                private Property honorificLevel2;
-                private Property honorificLevel3;
-                private Property honorificLevel4;
-                private Property honorificLevel5;
-                private Property explain;
-
-                @Data
-                @Builder
-                public static class Property {
-                    private String type;
-                    private String description;
-                }
-            }
-        }
-    }
-
-    public static HonorificVariationsRequest of(String aiRole, String sourceContent) {
-        String explainMessage = aiRole != null
-                ? String.format(PromptConstant.HONORIFIC_APPROPRIATE.getPromptMessage(), aiRole)
-                : PromptConstant.HONORIFIC_EXAMPLE.getPromptMessage();
-
-        return HonorificVariationsRequest.builder()
-                .messages(List.of(
-                        Message.builder()
-                                .role("system")
-                                .content(PromptConstant.HONORIFIC_VARIATIONS.getPromptMessage() + explainMessage)
-                                .build(),
-                        Message.builder()
-                                .role("user")
-                                .content(sourceContent)
-                                .build()
-                        )
-                )
-                .thinking(Thinking.builder()
-                        .effort("none")
+        // 메시지 목록 생성
+        List<Message> messages = Arrays.asList(
+                Message.builder()
+                        .role("system")
+                        .content(systemPrompt)
+                        .build(),
+                Message.builder()
+                        .role("user")
+                        .content(sourceContent)
                         .build()
-                )
-                .responseFormat(ResponseFormat.builder()
-                        .type("json")
-                        .schema(ResponseFormat.Schema.builder()
-                                .type("object")
-                                .properties(ResponseFormat.Schema.Properties.builder()
-                                        .honorificLevel1(ResponseFormat.Schema.Properties.Property.builder()
-                                                .type("string")
-                                                .description("Level 1: Intimate / Casual (해체)")
-                                                .build()
-                                        )
-                                        .honorificLevel2(ResponseFormat.Schema.Properties.Property.builder()
-                                                .type("string")
-                                                .description("Level 2: Familiar (해라체)")
-                                                .build()
-                                        )
-                                        .honorificLevel3(ResponseFormat.Schema.Properties.Property.builder()
-                                                .type("string")
-                                                .description("Level 3: Polite (해요체)")
-                                                .build()
-                                        )
-                                        .honorificLevel4(ResponseFormat.Schema.Properties.Property.builder()
-                                                .type("string")
-                                                .description("Level 4: Formal (하십쇼체)")
-                                                .build()
-                                        )
-                                        .honorificLevel5(ResponseFormat.Schema.Properties.Property.builder()
-                                                .type("string")
-                                                .description("Level 5: Royal (하소서체)")
-                                                .build()
-                                        )
-                                        .explain(ResponseFormat.Schema.Properties.Property.builder()
-                                                .type("string")
-                                                .description(explainMessage)
-                                                .build()
-                                        )
-                                        .build()
-                                )
-                                .required(List.of("honorificLevel1", "honorificLevel2", "honorificLevel3",
-                                        "honorificLevel4", "honorificLevel5", "explain")
-                                )
-                                .build()
-                        )
-                        .build())
-                .build();
+        );
+
+        // 필수 필드 목록
+        List<String> requiredFields = Arrays.asList(
+                "lowIntimacyExpressions", "mediumIntimacyExpressions", "highIntimacyExpressions", "explain"
+        );
+
+        // 속성 생성
+        HonorificVariationsProperties properties = HonorificVariationsProperties.createDefault(explainMessage);
+
+        // 요청 객체 생성 및 반환
+        HonorificVariationsRequest request = new HonorificVariationsRequest();
+        return request.createBaseRequest(messages, properties, requiredFields);
     }
 }
