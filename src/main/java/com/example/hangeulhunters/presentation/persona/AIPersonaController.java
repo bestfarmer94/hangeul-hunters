@@ -53,7 +53,7 @@ public class AIPersonaController extends ControllerSupport {
         security = @SecurityRequirement(name = "bearerAuth")
     )
     public ResponseEntity<AIPersonaDto> getPersonaById(@PathVariable Long personaId) {
-        AIPersonaDto persona = aiPersonaService.getPersonaById(personaId, getCurrentUserId());
+        AIPersonaDto persona = aiPersonaService.getPersonaById(getCurrentUserId(), personaId);
         return ResponseEntity.ok(persona);
     }
 
@@ -71,7 +71,7 @@ public class AIPersonaController extends ControllerSupport {
         security = @SecurityRequirement(name = "bearerAuth")
     )
     public ResponseEntity<AIPersonaDto> createPersona(@Valid @RequestBody AIPersonaRequest request) {
-        AIPersonaDto createdPersona = aiPersonaService.createPersona(request, getCurrentUserId());
+        AIPersonaDto createdPersona = aiPersonaService.createPersona(getCurrentUserId(), request);
         return ResponseEntity.ok(createdPersona);
     }
 
