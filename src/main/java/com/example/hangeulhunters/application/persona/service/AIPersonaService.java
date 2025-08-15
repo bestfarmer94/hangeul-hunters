@@ -55,7 +55,7 @@ public class AIPersonaService {
     public AIPersonaDto getPersonaById(Long userId, Long personaId) {
         // 사용자 본인의 페르소나만 조회 가능
         AIPersona persona = aiPersonaRepository.findByIdAndUserIdAndDeletedAtNull(personaId, userId)
-                .orElseThrow(() -> new ResourceNotFoundException("AI Persona not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("AI Persona not found with id: " + personaId));
         
         return AIPersonaDto.fromEntity(persona);
     }
@@ -98,7 +98,7 @@ public class AIPersonaService {
     public void deletePersona(Long userId, Long personaId) {
         // 사용자 본인의 페르소나만 삭제 가능
         AIPersona persona = aiPersonaRepository.findByIdAndUserIdAndDeletedAtNull(personaId, userId)
-                .orElseThrow(() -> new ResourceNotFoundException("AI Persona not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("AI Persona not found with id: " + personaId));
         
         persona.delete(userId);
         aiPersonaRepository.save(persona);
