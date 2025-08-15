@@ -54,7 +54,7 @@ public class ConversationService {
                 conversations.stream()
                         .map(conversation -> ConversationDto.of(
                                 conversation,
-                                aIPersonaService.getPersonaById(conversation.getPersonaId(), userId)
+                                aIPersonaService.getPersonaById(userId, conversation.getPersonaId())
                         ))
                         .toList()
         );
@@ -65,7 +65,7 @@ public class ConversationService {
         Conversation conversation = conversationRepository.findByIdAndUserId(conversationId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Conversation", "id", conversationId));
         
-        return ConversationDto.of(conversation, aIPersonaService.getPersonaById(conversation.getPersonaId(), userId));
+        return ConversationDto.of(conversation, aIPersonaService.getPersonaById(userId, conversation.getPersonaId()));
     }
 
     @Transactional
@@ -75,7 +75,7 @@ public class ConversationService {
         UserDto user = userService.getUserById(userId);
 
         // AI 페르소나 조회
-        AIPersonaDto persona =  aIPersonaService.getPersonaById(request.getPersonaId(), userId);
+        AIPersonaDto persona =  aIPersonaService.getPersonaById(userId, request.getPersonaId());
 
         // 대화 생성
         Conversation conversation = Conversation.builder()
@@ -88,7 +88,7 @@ public class ConversationService {
                 .build();
         Conversation savedConversation = conversationRepository.save(conversation);
 
-        return ConversationDto.of(savedConversation, aIPersonaService.getPersonaById(savedConversation.getPersonaId(), userId));
+        return ConversationDto.of(savedConversation, aIPersonaService.getPersonaById(userId, savedConversation.getPersonaId()));
     }
 
     @Transactional
