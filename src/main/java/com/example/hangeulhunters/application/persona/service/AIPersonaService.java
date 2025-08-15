@@ -45,16 +45,16 @@ public class AIPersonaService {
     /**
      * AI 페르소나 상세 조회
      *
-     * @param id AI 페르소나 ID
      * @param userId 요청한 사용자 ID
+     * @param personaId AI 페르소나 ID
      * @return AI 페르소나 DTO
      * @throws ResourceNotFoundException 페르소나가 존재하지 않는 경우
      * @throws AccessDeniedException 권한이 없는 경우
      */
     @Transactional(readOnly = true)
-    public AIPersonaDto getPersonaById(Long id, Long userId) {
+    public AIPersonaDto getPersonaById(Long userId, Long personaId) {
         // 사용자 본인의 페르소나만 조회 가능
-        AIPersona persona = aiPersonaRepository.findByIdAndUserIdAndDeletedAtNull(id, userId)
+        AIPersona persona = aiPersonaRepository.findByIdAndUserIdAndDeletedAtNull(personaId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("AI Persona not found with id: " + id));
         
         return AIPersonaDto.fromEntity(persona);
@@ -63,13 +63,13 @@ public class AIPersonaService {
     /**
      * AI 페르소나 생성
      *
-     * @param request AI 페르소나 생성 요청
      * @param userId 요청한 사용자 ID
+     * @param request AI 페르소나 생성 요청
      * @return 생성된 AI 페르소나 DTO
      * @throws ResourceNotFoundException 사용자가 존재하지 않는 경우
      */
     @Transactional
-    public AIPersonaDto createPersona(AIPersonaRequest request, Long userId) {
+    public AIPersonaDto createPersona(Long userId, AIPersonaRequest request) {
         AIPersona persona = AIPersona.builder()
                 .userId(userId)
                 .name(request.getName())
@@ -89,15 +89,15 @@ public class AIPersonaService {
     /**
      * AI 페르소나 삭제 (소프트 딜리트)
      *
-     * @param id AI 페르소나 ID
      * @param userId 요청한 사용자 ID
+     * @param personaId AI 페르소나 ID
      * @throws ResourceNotFoundException 페르소나가 존재하지 않는 경우
      * @throws AccessDeniedException 권한이 없는 경우
      */
     @Transactional
-    public void deletePersona(Long id, Long userId) {
+    public void deletePersona(Long userId, Long personaId) {
         // 사용자 본인의 페르소나만 삭제 가능
-        AIPersona persona = aiPersonaRepository.findByIdAndUserIdAndDeletedAtNull(id, userId)
+        AIPersona persona = aiPersonaRepository.findByIdAndUserIdAndDeletedAtNull(personaId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("AI Persona not found with id: " + id));
         
         persona.delete(userId);

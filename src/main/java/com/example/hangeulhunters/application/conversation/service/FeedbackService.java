@@ -43,10 +43,10 @@ public class FeedbackService {
         };
 
         // 대화 정보 조회
-        ConversationDto conversation = conversationService.getConversationById(targetMessage.getConversationId(), userId);
+        ConversationDto conversation = conversationService.getConversationById(userId, targetMessage.getConversationId());
 
         // AI 페르소나 정보 조회
-        AIPersonaDto persona = aiPersonaService.getPersonaById(conversation.getAiPersona().getPersonaId(), userId);
+        AIPersonaDto persona = aiPersonaService.getPersonaById(userId, conversation.getAiPersona().getPersonaId());
 
         // 직전 AI 메시지 조회 (문맥 제공)
         MessageDto prevMessage = messageService.getPrevMessage(messageId);
@@ -81,7 +81,7 @@ public class FeedbackService {
         ConversationDto conversation = conversationService.getConversationById(userId, conversationId);
 
         // AI 페르소나 정보 조회
-        AIPersonaDto persona = aiPersonaService.getPersonaById(conversation.getAiPersona().getPersonaId(), userId);
+        AIPersonaDto persona = aiPersonaService.getPersonaById(userId, conversation.getAiPersona().getPersonaId());
 
         // 전체 대화 메시지 조회
         List<MessageDto> messages = messageService.getAllMessagesByConversationId(conversationId);

@@ -49,7 +49,7 @@ public class MessageService {
         }
 
         // AI 페르소나 정보 조회
-        AIPersonaDto persona = aiPersonaService.getPersonaById(conversation.getAiPersona().getPersonaId(), userId);
+        AIPersonaDto persona = aiPersonaService.getPersonaById(userId, conversation.getAiPersona().getPersonaId());
 
         // 마지막 AI 메시지 조회
         Message lastAiMessage = messageRepository.findFirstByConversationIdAndTypeOrderByCreatedAtDesc(
@@ -192,7 +192,7 @@ public class MessageService {
         }
 
         // AI 페르소나 정보 조회
-        AIPersonaDto persona = aiPersonaService.getPersonaById(conversation.getAiPersona().getPersonaId(), userId);
+        AIPersonaDto persona = aiPersonaService.getPersonaById(userId, conversation.getAiPersona().getPersonaId());
 
         // 대화 내역 전체 조회
         List<MessageDto> conversationMessages = getAllMessagesByConversationId(conversationId);
