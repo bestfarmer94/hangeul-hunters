@@ -30,25 +30,23 @@ public enum PromptConstant {
     /**
      * aiRole + userRole + situation 필요.
      */
-    FEEDBACK_MESSAGE("당신은 영어를 사용하는 학습자를 위한 한국어 표현 코치 AI입니다. " +
-            "AI의 역할은 %s이고, 사용자의 역할은 %s입니다. " +
-            "이것은 %s와 같은 상황에서의 대화입니다. " +
-            "사용자의 응답에 대해 다음 정보를 제공해주세요: " +
-            "1. 대화 흐름에 맞는 적절한 표현: 사용자의 응답이 더 자연스러워질 수 있는 표현 제안 " +
-            "2. 표현에 대한 설명: 제안된 표현이 왜 더 적절한지에 대한 설명"),
+    FEEDBACK_MESSAGE("The AI's role is %s, and the user's role is %s.\n" +
+            "This is a conversation in the same context as %s.\n" +
+            "Please provide the following information about the entire conversation in English:\n" +
+            "1. Appropriate expressions that fit the conversation flow: Suggestions for expressions that can make the user's response more natural.\n" +
+            "2. Explanation of the expression in English: An explanation of why the suggested expression is more appropriate."),
 
     /**
      * aiRole + userRole + situation 필요.
      */
-    FEEDBACK_CONVERSATION("당신은 영어를 사용하는 학습자를 위한 한국어 표현 코치 AI입니다. " +
-            "AI의 역할은 %s이고, 사용자의 역할은 %s입니다. " +
-            "이것은 %s와 같은 상황에서의 대화입니다. " +
-            "전체 대화에 대해 다음 정보를 제공해주세요: " +
-            "1. 대화 내용 요약: 대화의 주요 내용을 간략히 요약 " +
-            "2. 잘한 점: 사용자가 대화에서 잘한 부분 " +
-            "3. 개선할 점: 사용자가 개선해야 할 부분 " +
-            "4. 개선할 점에 대한 표현 예시: 개선이 필요한 표현에 대한 구체적인 예시 " +
-            "5. 한국어 능력 기준의 한줄평: 사용자의 한국어 능력에 대한 전반적인 평가"),
+    FEEDBACK_CONVERSATION("The AI's role is %s, and the user's role is %s.\n" +
+            "This is a conversation in the same context as %s.\n" +
+            "Please provide the following information about the entire conversation in English:\n" +
+            "1. Summary in English: Briefly summarize the main points of the conversation in English.\n" +
+            "2. Explain What worked well in English: What the user did well in the conversation.\n" +
+            "3. Explain What needs improvement in English: What the user needs to improve.\n" +
+            "4. Examples of expressions for improvement: Specific examples of expressions that need improvement.\n" +
+            "5. One-line evaluation based on Korean proficiency in English: An overall evaluation of the user's Korean proficiency."),
 
     //todo 시간 생기면, 학습 모델로 변경 필요.
     NOONCHI_DEFINITION_PROMPT("# Korean Honorifics Learning AI Tutor - System Prompt for Naver Clova AI Studio\n" +
