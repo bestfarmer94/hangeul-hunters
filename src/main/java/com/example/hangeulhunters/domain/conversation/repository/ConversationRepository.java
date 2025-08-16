@@ -1,7 +1,5 @@
 package com.example.hangeulhunters.domain.conversation.repository;
 
-import com.example.hangeulhunters.domain.conversation.constant.ConversationSortBy;
-import com.example.hangeulhunters.domain.conversation.constant.ConversationStatus;
 import com.example.hangeulhunters.domain.conversation.entity.Conversation;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,16 +29,14 @@ public interface ConversationRepository extends JpaRepository<Conversation, Long
             "   conversation c " +
             "   JOIN ai_persona p " +
             "       ON c.persona_id = p.id " +
-            "           and p.deleted_at IS NULL " +
             "WHERE " +
             "   c.user_id = :userId " +
             "   AND (:status IS NULL OR c.status = :status) " +
             "   AND (:personaId IS NULL OR c.persona_id = :personaId) " +
             "   AND c.deleted_at IS NULL " +
             "ORDER BY " +
-            "   c.status ASC, " +
             "   CASE WHEN :sortBy = 'PERSONA_NAME_ASC' THEN p.name END ASC, " +
-            "   c.created_at DESC", nativeQuery = true)
+            "   c.last_activity_at DESC", nativeQuery = true)
     Page<Conversation> getConversationsByUser(
             @Param("userId") Long userId,
             @Param("status") String status,

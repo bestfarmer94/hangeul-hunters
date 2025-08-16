@@ -80,6 +80,9 @@ public class MessageService {
                 .createdBy(userId)
                 .build();
         messageRepository.save(userMessage);
+        
+        // 대화의 마지막 활동 시간 업데이트
+        conversationService.updateLastActivity(conversation.getConversationId());
 
         return MessageDto.fromEntity(userMessage);
     }
@@ -148,6 +151,9 @@ public class MessageService {
                 .createdBy(userId)
                 .build();
         messageRepository.save(message);
+        
+        // 대화의 마지막 활동 시간 업데이트
+        conversationService.updateLastActivity(conversation.getConversationId());
     }
 
     /**
@@ -215,6 +221,10 @@ public class MessageService {
                 .createdBy(userId)
                 .build();
         messageRepository.save(aiMessage);
+        
+        // 대화의 마지막 활동 시간 업데이트
+        conversationService.updateLastActivity(conversation.getConversationId());
+        
         return MessageDto.fromEntity(aiMessage);
     }
 

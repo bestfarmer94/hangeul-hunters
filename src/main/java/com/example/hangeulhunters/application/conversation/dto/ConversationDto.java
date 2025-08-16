@@ -41,6 +41,9 @@ public class ConversationDto {
 
     @Schema(description = "대화 종료일시", requiredMode = Schema.RequiredMode.NOT_REQUIRED, format = "date-time")
     private LocalDateTime endedAt;
+    
+    @Schema(description = "마지막 활동 일시", requiredMode = Schema.RequiredMode.REQUIRED, format = "date-time")
+    private LocalDateTime lastActivityAt;
 
     public static ConversationDto of(Conversation conversation, AIPersonaDto aiPersona) {
         return ConversationDto.builder()
@@ -52,6 +55,7 @@ public class ConversationDto {
                 .chatModelId(conversation.getChatModelId())
                 .createdAt(DateTimeUtil.toLocalDateTime(conversation.getCreatedAt()))
                 .endedAt(DateTimeUtil.toLocalDateTime(conversation.getEndedAt()))
+                .lastActivityAt(DateTimeUtil.toLocalDateTime(conversation.getLastActivityAt()))
                 .build();
     }
 }

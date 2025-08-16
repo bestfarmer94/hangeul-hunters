@@ -20,6 +20,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class ConversationService {
@@ -42,8 +44,8 @@ public class ConversationService {
         
         // 필터링된 대화 목록 조회
         Page<Conversation> conversations = conversationRepository.getConversationsByUser(
-                userId, 
-                filter.getStatus().name(),
+                userId,
+                Optional.ofNullable(filter.getStatus()).map(ConversationStatus::name).orElse(null),
                 filter.getPersonaId(),
                 filter.getSortBy().name(),
                 pageable
@@ -125,6 +127,20 @@ public class ConversationService {
 
         // 대화 삭제 처리
         conversation.delete(userId);
+        conversationRepository.save(conversation);
+    }
+    
+    /**
+     * 대화의 마지막 활동 시간을 업데이트합니다.
+     *
+     * @param conversationId 대화 ID
+     */
+    @Transactional
+    public void updateLastActivity(Long conversationId) {
+        Conversation conversation = conversationRepository.findById(conversationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Conversation", "id", conversationId));
+        
+        conversation.updateLastActivity();
         conversationRepository.save(conversation);
     }
 }
