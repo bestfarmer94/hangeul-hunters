@@ -55,7 +55,7 @@ public class ConversationController extends ControllerSupport {
     public ResponseEntity<PageResponse<ConversationDto>> getUserConversations(
             @Parameter(description = "대화 상태") @RequestParam(required = false) ConversationStatus status,
             @Parameter(description = "AI 페르소나 ID") @RequestParam(required = false) Long personaId,
-            @Parameter(description = "정렬 기준") @RequestParam(defaultValue = "CREATED_AT_DESC") ConversationSortBy sortBy,
+            @Parameter(description = "정렬 기준") @RequestParam(defaultValue = "LAST_ACTIVITY_DESC") ConversationSortBy sortBy,
             @Parameter(description = "페이지 번호") @RequestParam(defaultValue = "1") Integer page,
             @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "10") Integer size) {
         
