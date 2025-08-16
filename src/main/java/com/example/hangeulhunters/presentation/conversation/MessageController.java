@@ -2,13 +2,16 @@ package com.example.hangeulhunters.presentation.conversation;
 
 import com.example.hangeulhunters.application.common.dto.PageResponse;
 import com.example.hangeulhunters.application.conversation.dto.MessageDto;
+import com.example.hangeulhunters.application.conversation.dto.MessageFeedbackDto;
 import com.example.hangeulhunters.application.conversation.dto.MessageRequest;
+import com.example.hangeulhunters.application.conversation.service.FeedbackService;
 import com.example.hangeulhunters.application.conversation.service.MessageService;
 import com.example.hangeulhunters.infrastructure.service.naver.dto.HonorificVariationsResponse;
 import com.example.hangeulhunters.presentation.common.ControllerSupport;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,9 +21,11 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/messages")
 @RequiredArgsConstructor
+@Tag(name = "Message", description = "Message API")
 public class MessageController extends ControllerSupport {
 
     private final MessageService messageService;
+    private final FeedbackService feedbackService;
 
     @GetMapping
     @PreAuthorize("hasRole('USER')")
@@ -84,5 +89,19 @@ public class MessageController extends ControllerSupport {
     public ResponseEntity<HonorificVariationsResponse.ExpressionsByFormality> honorificVariations(
             @Parameter(description = "메시지 id") @PathVariable Long messageId) {
         return ResponseEntity.ok(messageService.generateHonorificVariations(getCurrentUserId(), messageId));
+    }
+    
+    @PostMapping("/{messageId}/feedback")
+    @PreAuthorize("hasRole('USER')")
+    @Operation(
+            summary = "메시지 피드백 생성",
+            description = "특정 메시지에 대한 피드백을 생성합니다.",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    public ResponseEntity<MessageFeedbackDto> createMessageFeedback(
+            @PathVariable Long messageId
+    ) {
+        MessageFeedbackDto feedback = feedbackService.feedbackMessage(getCurrentUserId(), messageId);
+        return ResponseEntity.ok(feedback);
     }
 }
