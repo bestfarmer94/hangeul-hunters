@@ -81,7 +81,8 @@ public class MessageController extends ControllerSupport {
             description = "주어진 원문에 대해 다양한 존댓말 표현을 생성합니다",
             security = @SecurityRequirement(name = "bearerAuth")
     )
-    public ResponseEntity<HonorificVariationsResponse.ExpressionsByFormality> honorificVariations(@PathVariable Long messageId) {
+    public ResponseEntity<HonorificVariationsResponse.ExpressionsByFormality> honorificVariations(
+            @Parameter(description = "메시지 id") @PathVariable Long messageId) {
         return ResponseEntity.ok(messageService.generateHonorificVariations(getCurrentUserId(), messageId));
     }
 }
