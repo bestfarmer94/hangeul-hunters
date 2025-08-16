@@ -29,10 +29,11 @@ public class EvaluateScoreRequest extends ClovaStructuredRequest<EvaluateScorePr
      */
     public static EvaluateScoreRequest of(String aiRole, String userRole, String situation, String aiMessage, String userMessage) {
         // 시스템 프롬프트 생성
-        String systemPrompt = String.format(
-                PromptConstant.EVALUATE_SCORE.getPromptMessage(),
-                aiRole, userRole, situation
-        );
+        String systemPrompt = PromptConstant.NOONCHI_DEFINITION_PROMPT.getPromptMessage() +
+                String.format(
+                        PromptConstant.EVALUATE_SCORE.getPromptMessage(),
+                        aiRole, userRole, situation
+                );
 
         // 메시지 목록 생성
         List<Message> messages = Arrays.asList(

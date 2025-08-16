@@ -31,11 +31,11 @@ public class MessageFeedbackProperties {
         return MessageFeedbackProperties.builder()
                 .appropriateExpression(Property.builder()
                         .type("string")
-                        .description("대화 흐름에 맞는 적절한 표현")
+                        .description("Appropriate expressions that fit the conversation flow: Suggestions for expressions that can make the user's response more natural.")
                         .build())
                 .explain(Property.builder()
                         .type("string")
-                        .description("표현에 대한 설명")
+                        .description("Explanation of the expression in English: An explanation of why the suggested expression is more appropriate.")
                         .build())
                 .build();
     }

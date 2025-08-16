@@ -67,29 +67,6 @@ public class ClovaCommonRequest {
         return createWithSystemPromptAndMessages(systemPrompt, conversationMessages);
     }
 
-    public static ClovaCommonRequest ofFeedbackSentenceRequest(String aiRole, String userRole, String situation, String aiMessage, String userMessage) {
-        String systemPrompt = String.format(
-                PromptConstant.FEEDBACK_MESSAGE.getPromptMessage(),
-                aiRole, userRole, situation
-        );
-        
-        List<MessageDto> messages = List.of(
-                MessageDto.builder().type(MessageType.AI).content(aiMessage).build(),
-                MessageDto.builder().type(MessageType.USER).content(userMessage).build()
-        );
-        
-        return createWithSystemPromptAndMessages(systemPrompt, messages);
-    }
-
-    public static ClovaCommonRequest ofFeedbackConversationRequest(String aiRole, String userRole, String situation, List<MessageDto> conversationMessages) {
-        String systemPrompt = String.format(
-                PromptConstant.FEEDBACK_MESSAGE.getPromptMessage(),
-                aiRole, userRole, situation
-        );
-        
-        return createWithSystemPromptAndMessages(systemPrompt, conversationMessages);
-    }
-
     /**
      * 시스템 프롬프트와 대화 내역을 포함한 공통 요청 객체 생성
      *
