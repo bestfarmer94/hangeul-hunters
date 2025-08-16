@@ -1,14 +1,19 @@
 package com.example.hangeulhunters.application.conversation.service;
 
 import com.example.hangeulhunters.application.conversation.dto.ConversationDto;
-import com.example.hangeulhunters.application.conversation.dto.FeedbackDto;
+import com.example.hangeulhunters.application.conversation.dto.ConversationFeedbackDto;
 import com.example.hangeulhunters.application.conversation.dto.MessageDto;
+import com.example.hangeulhunters.application.conversation.dto.MessageFeedbackDto;
 import com.example.hangeulhunters.application.persona.dto.AIPersonaDto;
 import com.example.hangeulhunters.application.persona.service.AIPersonaService;
-import com.example.hangeulhunters.domain.conversation.constant.FeedbackTarget;
-import com.example.hangeulhunters.domain.conversation.entity.Feedback;
-import com.example.hangeulhunters.domain.conversation.repository.FeedbackRepository;
+import com.example.hangeulhunters.domain.conversation.entity.ConversationFeedback;
+import com.example.hangeulhunters.domain.conversation.entity.MessageFeedback;
+import com.example.hangeulhunters.domain.conversation.repository.ConversationFeedbackRepository;
+import com.example.hangeulhunters.domain.conversation.repository.MessageFeedbackRepository;
+import com.example.hangeulhunters.infrastructure.exception.ResourceNotFoundException;
 import com.example.hangeulhunters.infrastructure.service.naver.NaverApiService;
+import com.example.hangeulhunters.infrastructure.service.naver.dto.ConversationFeedbackResponse;
+import com.example.hangeulhunters.infrastructure.service.naver.dto.MessageFeedbackResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,63 +25,70 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class FeedbackService {
 
-    private final FeedbackRepository feedbackRepository;
+    private final MessageFeedbackRepository messageFeedbackRepository;
+    private final ConversationFeedbackRepository conversationFeedbackRepository;
+    private final MessageService messageService;
     private final ConversationService conversationService;
     private final AIPersonaService aiPersonaService;
-    private final MessageService messageService;
     private final NaverApiService naverApiService;
 
     /**
      * 문장(메시지) 단위 피드백
      */
-    @Transactional(readOnly = true)
-    public FeedbackDto feedbackMessage(Long userId, Long messageId) {
+    @Transactional
+    public MessageFeedbackDto feedbackMessage(Long userId, Long messageId) {
         // 메시지 정보 조회
-        MessageDto targetMessage = messageService.getMessageById(messageId);
+        MessageDto userMessage = messageService.getMessageById(messageId);
 
         // 해당 메시지의 피드백이 이미 존재하는지 확인
-        Optional<Feedback> existingFeedback = feedbackRepository.findByTargetAndTargetId(FeedbackTarget.MESSAGE, messageId);
+        Optional<MessageFeedback> existingFeedback = messageFeedbackRepository.findByMessageId(messageId);
 
         // 이미 피드백이 존재하면 해당 피드백 반환
         if(existingFeedback.isPresent()) {
-            return FeedbackDto.fromEntity(existingFeedback.get());
+            return MessageFeedbackDto.fromEntity(existingFeedback.get());
         };
 
         // 대화 정보 조회
-        ConversationDto conversation = conversationService.getConversationById(userId, targetMessage.getConversationId());
-
-        // AI 페르소나 정보 조회
-        AIPersonaDto persona = aiPersonaService.getPersonaById(userId, conversation.getAiPersona().getPersonaId());
+        ConversationDto conversation = conversationService.getConversationById(userId, userMessage.getConversationId());
 
         // 직전 AI 메시지 조회 (문맥 제공)
-        MessageDto prevMessage = messageService.getPrevMessage(messageId);
+        MessageDto aiMessage = messageService.getPrevMessage(messageId);
 
         // AI 메시지 피드백
-        String feedbackContent = naverApiService.feedbackMessage(
-                persona,
+        MessageFeedbackResponse feedbackContent = naverApiService.feedbackMessage(
+                conversation.getAiPersona(),
                 conversation.getSituation(),
-                prevMessage.getContent(),
-                targetMessage.getContent()
+                aiMessage.getContent(),
+                userMessage.getContent()
         );
 
         // 피드백 저장
-        Feedback feedback = Feedback.builder()
-                .target(FeedbackTarget.MESSAGE)
-                .targetId(messageId)
-                .honorificScore(targetMessage.getPolitenessScore())
-                .naturalnessScore(targetMessage.getNaturalnessScore())
-                .content(feedbackContent)
+        MessageFeedback feedback = MessageFeedback.builder()
+                .messageId(userMessage.getMessageId())
+                .politenessScore(userMessage.getPolitenessScore())
+                .naturalnessScore(userMessage.getNaturalnessScore())
+//                .pronunciationScore()
+                .appropriateExpression(feedbackContent.getAppropriateExpression())
+                .explain(feedbackContent.getExplain())
                 .createdBy(userId)
                 .build();
-        feedbackRepository.save(feedback);
-        return FeedbackDto.fromEntity(feedback);
+        messageFeedbackRepository.save(feedback);
+        return MessageFeedbackDto.fromEntity(feedback);
     }
 
     /**
      * 대화 전체 피드백
      */
-    @Transactional(readOnly = true)
-    public void feedbackConversation(Long userId, Long conversationId) {
+    @Transactional
+    public ConversationFeedbackDto feedbackConversation(Long userId, Long conversationId) {
+        // 해당 대화의 피드백이 이미 존재하는지 확인
+        Optional<ConversationFeedback> existingFeedback = conversationFeedbackRepository.findByConversationId(conversationId);
+
+        // 이미 피드백이 존재하면 해당 피드백 반환
+        if(existingFeedback.isPresent()) {
+            return ConversationFeedbackDto.fromEntity(existingFeedback.get());
+        }
+
         // 대화 정보 조회
         ConversationDto conversation = conversationService.getConversationById(userId, conversationId);
 
@@ -87,13 +99,13 @@ public class FeedbackService {
         List<MessageDto> messages = messageService.getAllMessagesByConversationId(conversationId);
 
         // 전체 대화 평가
-        String feedbackContent = naverApiService.feedbackConversation(
+        ConversationFeedbackResponse feedbackContent = naverApiService.feedbackConversation(
                 persona,
                 conversation.getSituation(),
                 messages
         );
 
-        // 평균 점수 계산 및 저장
+        // 평균 점수 계산
         Integer avgPoliteness = (int) Math.round(messages.stream()
                 .map(MessageDto::getPolitenessScore)
                 .filter(java.util.Objects::nonNull)
@@ -108,14 +120,30 @@ public class FeedbackService {
                 .average()
                 .orElse(0));
 
-        Feedback feedback = Feedback.builder()
-                .target(FeedbackTarget.CONVERSATION)
-                .targetId(conversationId)
-                .honorificScore(avgPoliteness)
+        // 피드백 저장
+        ConversationFeedback feedback = ConversationFeedback.builder()
+                .conversationId(conversationId)
+                .politenessScore(avgPoliteness)
                 .naturalnessScore(avgNaturalness)
-                .content(feedbackContent)
+//                .pronunciationScore((Integer) feedbackMap.getOrDefault("pronunciationScore", 0))
+                .summary(feedbackContent.getSummary())
+                .goodPoints(feedbackContent.getGoodPoints())
+                .improvementPoints(feedbackContent.getImprovementPoints())
+                .improvementExamples(feedbackContent.getImprovementExamples())
+                .overallEvaluation(feedbackContent.getOverallEvaluation())
                 .createdBy(userId)
                 .build();
-        feedbackRepository.save(feedback);
+        conversationFeedbackRepository.save(feedback);
+        return ConversationFeedbackDto.fromEntity(feedback);
+    }
+    
+    /**
+     * 대화 피드백 조회
+     */
+    @Transactional(readOnly = true)
+    public ConversationFeedbackDto getConversationFeedback(Long conversationId) {
+        ConversationFeedback feedback = conversationFeedbackRepository.findByConversationId(conversationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Conversation feedback not found for conversation ID: " + conversationId));
+        return ConversationFeedbackDto.fromEntity(feedback);
     }
 }

@@ -2,6 +2,7 @@ package com.example.hangeulhunters.presentation.conversation;
 
 import com.example.hangeulhunters.application.common.dto.PageResponse;
 import com.example.hangeulhunters.application.conversation.dto.ConversationDto;
+import com.example.hangeulhunters.application.conversation.dto.ConversationFeedbackDto;
 import com.example.hangeulhunters.application.conversation.dto.ConversationFilterRequest;
 import com.example.hangeulhunters.application.conversation.dto.ConversationRequest;
 import com.example.hangeulhunters.application.conversation.service.ConversationService;
@@ -108,5 +109,33 @@ public class ConversationController extends ControllerSupport {
     public ResponseEntity<Void> deleteConversation(@PathVariable Long conversationId) {
         conversationService.deleteConversation(getCurrentUserId(), conversationId);
         return ResponseEntity.noContent().build();
+    }
+    
+    @GetMapping("/{conversationId}/feedback")
+    @PreAuthorize("hasRole('USER')")
+    @Operation(
+            summary = "대화 전체 피드백 조회",
+            description = "대화 전체에 대한 피드백을 조회합니다.",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    public ResponseEntity<ConversationFeedbackDto> getConversationFeedback(
+            @PathVariable Long conversationId
+    ) {
+        ConversationFeedbackDto feedback = feedbackService.getConversationFeedback(conversationId);
+        return ResponseEntity.ok(feedback);
+    }
+
+    @PostMapping("/{conversationId}/feedback")
+    @PreAuthorize("hasRole('USER')")
+    @Operation(
+            summary = "대화 전체 피드백 생성",
+            description = "대화 전체에 대한 피드백을 생성합니다. (종료된 대화에 피드백이 없을 때 사용)",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    public ResponseEntity<ConversationFeedbackDto> createConversationFeedback(
+            @PathVariable Long conversationId
+    ) {
+        ConversationFeedbackDto feedback = feedbackService.feedbackConversation(getCurrentUserId(), conversationId);
+        return ResponseEntity.ok(feedback);
     }
 }

@@ -105,14 +105,14 @@ public class NaverApiService {
     /**
      * 문장(메시지) 단위 피드백 (평가 기반)
      */
-    public String feedbackMessage(AIPersonaDto persona, String situation, String aiMessage, String userMessage) {
+    public MessageFeedbackResponse feedbackMessage(AIPersonaDto persona, String situation, String aiMessage, String userMessage) {
         String url = naverApiProperties.getClovaStudio().getBaseUrl() + naverApiProperties.getClovaStudio().getCommonModelPath();
 
         ClovaCommonResponse response = webClient.post()
                 .uri(url)
                 .header("Authorization", naverApiProperties.getClovaStudio().getApiKey())
                 .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(ClovaCommonRequest.ofFeedbackSentenceRequest(
+                .bodyValue(MessageFeedbackRequest.of(
                         persona.getAiRole(),
                         persona.getUserRole(),
                         situation,
@@ -124,40 +124,46 @@ public class NaverApiService {
                 .onErrorResume(e -> Mono.empty())
                 .block();
 
-        if(response != null && response.getStatus().getCode().startsWith("2")) {
-            return response.getResult().getMessage().getContent();
+        if(response.getStatus().getCode().startsWith("2")) {
+            try {
+                return objectMapper.readValue(response.getResult().getMessage().getContent(), MessageFeedbackResponse.class);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            throw new IllegalArgumentException(String.format(
+                    "status code: %s, error message: %s",
+                    response.getStatus().getCode(),
+                    response.getStatus().getMessage()
+            ));
         }
-
-        return null;
     }
 
     /**
      * 전체 대화 피드백
      */
-    public String feedbackConversation(AIPersonaDto persona, String situation, List<MessageDto> messages) {
+    public ConversationFeedbackResponse feedbackConversation(AIPersonaDto persona, String situation, List<MessageDto> messages) {
         try {
             String url = naverApiProperties.getClovaStudio().getBaseUrl() + naverApiProperties.getClovaStudio().getCommonModelPath();
 
-            ClovaCommonRequest request = ClovaCommonRequest.ofFeedbackConversationRequest(
+            ClovaCommonResponse response = webClient.post()
+                .uri(url)
+                .header("Authorization", naverApiProperties.getClovaStudio().getApiKey())
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(ConversationFeedbackRequest.of(
                     persona.getAiRole(),
                     persona.getUserRole(),
                     situation,
-                    messages
-            );
+                    messages)
+                )
+                .retrieve()
+                .bodyToMono(ClovaCommonResponse.class)
+                .onErrorResume(e -> Mono.empty())
+                .block();
 
-            var response = webClient.post()
-                    .uri(url)
-                    .header("Authorization", naverApiProperties.getClovaStudio().getApiKey())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .bodyValue(request)
-                    .retrieve()
-                    .bodyToMono(ClovaCommonResponse.class)
-                    .onErrorResume(e -> Mono.empty())
-                    .block();
-
-            if(response != null && response.getStatus().getCode().startsWith("2")) {
-                return response.getResult().getMessage().getContent();
-            }
+            if(response.getStatus().getCode().startsWith("2")) {
+                return objectMapper.readValue(response.getResult().getMessage().getContent(), ConversationFeedbackResponse.class);
+            } 
         } catch (Exception ignore) {
         }
 
