@@ -31,7 +31,7 @@ public class ConversationFeedbackRequest extends ClovaStructuredRequest<Conversa
      */
     public static ConversationFeedbackRequest of(String aiRole, String userRole, String situation, List<MessageDto> messages) {
         // 시스템 프롬프트 생성
-        String systemPrompt = PromptConstant.NOONCHI_DEFINITION_PROMPT.getPromptMessage() +
+        String systemPrompt = PromptConstant.HONORIFIC_SLIDER.getPromptMessage() +
                 String.format(
                         PromptConstant.FEEDBACK_CONVERSATION.getPromptMessage(),
                         aiRole, userRole, situation
