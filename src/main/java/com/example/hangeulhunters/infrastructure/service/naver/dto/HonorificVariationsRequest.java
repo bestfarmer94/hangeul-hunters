@@ -24,11 +24,8 @@ public class HonorificVariationsRequest extends ClovaStructuredRequest<Honorific
      * @return 존댓말 변형 요청 객체
      */
     public static HonorificVariationsRequest of(String sourceContent) {
-        // 설명 메시지 결정
-        String explainMessage = PromptConstant.HONORIFIC_EXAMPLE.getPromptMessage();
-
         // 시스템 프롬프트 생성
-        String systemPrompt = PromptConstant.NOONCHI_DEFINITION_PROMPT.getPromptMessage() + explainMessage;
+        String systemPrompt = PromptConstant.HONORIFIC_SLIDER.getPromptMessage();
 
         // 메시지 목록 생성
         List<Message> messages = Arrays.asList(
@@ -48,7 +45,7 @@ public class HonorificVariationsRequest extends ClovaStructuredRequest<Honorific
         );
 
         // 속성 생성
-        HonorificVariationsProperties properties = HonorificVariationsProperties.createDefault(explainMessage);
+        HonorificVariationsProperties properties = HonorificVariationsProperties.createDefault();
 
         // 요청 객체 생성 및 반환
         HonorificVariationsRequest request = new HonorificVariationsRequest();
