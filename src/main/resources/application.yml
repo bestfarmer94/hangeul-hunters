@@ -63,7 +63,7 @@ jwt:
 # Naver CLOVA Studio
 cloud:
   naver-api:
-    clovastudio:
+    clova-studio:
       base-url: https://clovastudio.stream.ntruss.com
       tuning-model-path: /v3/tasks/{taskId}/chat-completions
       common-model-path: /v3/chat-completions/HCX-007
@@ -73,3 +73,9 @@ cloud:
       translation-path: /translation
       client-id: ${PAPAGO_CLIENT_ID:}
       client-secret: ${PAPAGO_CLIENT_SECRET:}
+  google-api:
+    tts:
+      language-code: ko-KR
+      default-voice-name: ko-KR-Chirp3-HD-Leda
+      default-male-voice-name: ko-KR-Chirp3-HD-Orus
+      default-female-voice-name: ko-KR-Chirp3-HD-Leda
