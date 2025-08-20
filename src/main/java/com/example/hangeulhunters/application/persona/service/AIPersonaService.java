@@ -3,6 +3,7 @@ package com.example.hangeulhunters.application.persona.service;
 import com.example.hangeulhunters.application.common.dto.PageResponse;
 import com.example.hangeulhunters.application.persona.dto.AIPersonaDto;
 import com.example.hangeulhunters.application.persona.dto.AIPersonaRequest;
+import com.example.hangeulhunters.domain.persona.constant.PersonaVoice;
 import com.example.hangeulhunters.domain.persona.entity.AIPersona;
 import com.example.hangeulhunters.domain.persona.repository.AIPersonaRepository;
 import com.example.hangeulhunters.infrastructure.exception.ResourceNotFoundException;
@@ -70,6 +71,8 @@ public class AIPersonaService {
      */
     @Transactional
     public AIPersonaDto createPersona(Long userId, AIPersonaRequest request) {
+        String voice = PersonaVoice.getPersonaVoice(request.getRelationship(), request.getGender());
+
         AIPersona persona = AIPersona.builder()
                 .userId(userId)
                 .name(request.getName())
@@ -79,6 +82,7 @@ public class AIPersonaService {
                 .userRole(request.getRelationship().getUserRole())
                 .description(request.getDescription())
                 .profileImageUrl(request.getProfileImageUrl())
+                .voice(voice)
                 .createdBy(userId)
                 .build();
         
