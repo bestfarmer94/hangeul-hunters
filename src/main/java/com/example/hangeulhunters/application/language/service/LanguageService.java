@@ -3,6 +3,7 @@ package com.example.hangeulhunters.application.language.service;
 import com.example.hangeulhunters.application.file.service.FileService;
 import com.example.hangeulhunters.infrastructure.service.google.GoogleApiService;
 import com.example.hangeulhunters.infrastructure.service.naver.NaverApiService;
+import com.example.hangeulhunters.infrastructure.service.naver.dto.ClovaSpeechSTTResponse;
 import com.example.hangeulhunters.infrastructure.service.naver.dto.HonorificVariationsResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -28,7 +29,7 @@ public class LanguageService {
         // 존댓말 표현 생성
         return naverApiService.generateHonorificVariations(translatedToKoreanContent);
     }
-    
+
     /**
      * 텍스트를 음성으로 변환하여 S3 임시 URL을 반환
      *
@@ -43,5 +44,16 @@ public class LanguageService {
 
         // 2. S3 임시 폴더에 음성 파일 업로드
         return fileService.uploadTempFile(audioData, "mp3");
+    }
+
+    /**
+     * STT (Speech to Text) 변환 - 일반 텍스트 추출용
+     *
+     * @param audioUrl 음성 파일 URL (Presigned URL)
+     * @return STT 결과 텍스트
+     */
+    @Transactional(readOnly = true)
+    public ClovaSpeechSTTResponse convertSpeechToText(String audioUrl) {
+        return naverApiService.convertSpeechToText(audioUrl);
     }
 }

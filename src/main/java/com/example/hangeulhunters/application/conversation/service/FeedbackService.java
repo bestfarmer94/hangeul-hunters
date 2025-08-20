@@ -67,7 +67,7 @@ public class FeedbackService {
                 .messageId(userMessage.getMessageId())
                 .politenessScore(userMessage.getPolitenessScore())
                 .naturalnessScore(userMessage.getNaturalnessScore())
-//                .pronunciationScore()
+                .pronunciationScore(userMessage.getPronunciationScore())
                 .appropriateExpression(feedbackContent.getAppropriateExpression())
                 .explain(feedbackContent.getExplain())
                 .createdBy(userId)
@@ -120,12 +120,19 @@ public class FeedbackService {
                 .average()
                 .orElse(0));
 
+        Integer avgPronunciation = (int) Math.round(messages.stream()
+                .map(MessageDto::getPronunciationScore)
+                .filter(java.util.Objects::nonNull)
+                .mapToInt(Integer::intValue)
+                .average()
+                .orElse(0));
+
         // 피드백 저장
         ConversationFeedback feedback = ConversationFeedback.builder()
                 .conversationId(conversationId)
                 .politenessScore(avgPoliteness)
                 .naturalnessScore(avgNaturalness)
-//                .pronunciationScore((Integer) feedbackMap.getOrDefault("pronunciationScore", 0))
+                .pronunciationScore(avgPronunciation)
                 .summary(feedbackContent.getSummary())
                 .goodPoints(feedbackContent.getGoodPoints())
                 .improvementPoints(feedbackContent.getImprovementPoints())

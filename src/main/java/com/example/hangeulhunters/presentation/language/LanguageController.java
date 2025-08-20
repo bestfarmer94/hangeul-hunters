@@ -1,5 +1,6 @@
 package com.example.hangeulhunters.presentation.language;
 
+import com.example.hangeulhunters.application.language.dto.SpeechToTextRequest;
 import com.example.hangeulhunters.application.language.dto.TTSRequest;
 import com.example.hangeulhunters.application.language.service.LanguageService;
 import com.example.hangeulhunters.infrastructure.service.naver.dto.HonorificVariationsResponse;
@@ -46,5 +47,17 @@ public class LanguageController extends ControllerSupport {
         String audioUrl = languageService.convertTextToSpeech(request.getText(), null);
         
         return ResponseEntity.ok(audioUrl);
+    }
+
+    @PostMapping("/stt")
+    @PreAuthorize("hasRole('USER')")
+    @Operation(
+            summary = "음성을 텍스트로 변환 (STT)",
+            description = "Presigned URL을 통해 음성 파일을 받아 텍스트로 변환합니다",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    public ResponseEntity<String> convertSpeechToText(@Valid @RequestBody SpeechToTextRequest request) {
+        String sttResult = languageService.convertSpeechToText(request.getAudioUrl()).getText();
+        return ResponseEntity.ok(sttResult);
     }
 }

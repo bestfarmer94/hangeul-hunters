@@ -3,7 +3,7 @@ package com.example.hangeulhunters.infrastructure.service.naver.dto;
 import lombok.Getter;
 
 @Getter
-public class ClovaCommonResponse {
+public class ClovaStudioCommonResponse {
     private Status status;
     private Result result;
 

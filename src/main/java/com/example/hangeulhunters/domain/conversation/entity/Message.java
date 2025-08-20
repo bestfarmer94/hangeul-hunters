@@ -49,6 +49,12 @@ public class Message extends BaseTimeEntity {
     private Integer naturalnessScore;
 
     /**
+     * 발음 정확도
+     */
+    @Column(nullable = true)
+    private Integer pronunciationScore;
+
+    /**
      * 번역문 저장
      */
     public void saveTranslatedContent(String translatedContent) {

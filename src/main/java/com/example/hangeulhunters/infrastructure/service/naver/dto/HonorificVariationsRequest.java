@@ -16,7 +16,7 @@ import java.util.List;
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 @SuperBuilder
-public class HonorificVariationsRequest extends ClovaStructuredRequest<HonorificVariationsProperties> {
+public class HonorificVariationsRequest extends ClovaStudioStructuredRequest<HonorificVariationsProperties> {
 
     /**
      * 존댓말 변형 요청 객체 생성

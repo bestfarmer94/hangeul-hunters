@@ -41,6 +41,9 @@ public class MessageDto {
     @Schema(description = "맥락 점수", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private Integer naturalnessScore;
 
+    @Schema(description = "발음 점수", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    private Integer pronunciationScore;
+
     @Schema(description = "메시지 생성일시", requiredMode = Schema.RequiredMode.REQUIRED, format = "date-time")
     private LocalDateTime createdAt;
 
@@ -54,6 +57,7 @@ public class MessageDto {
                 .audioUrl(message.getAudioUrl())
                 .politenessScore(message.getPolitenessScore())
                 .naturalnessScore(message.getNaturalnessScore())
+                .pronunciationScore(message.getPronunciationScore())
                 .createdAt(DateTimeUtil.toLocalDateTime(message.getCreatedAt()))
                 .build();
     }

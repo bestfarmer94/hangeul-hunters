@@ -19,7 +19,7 @@ import java.util.List;
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 @SuperBuilder
-public class ConversationFeedbackRequest extends ClovaStructuredRequest<ConversationFeedbackProperties> {
+public class ConversationFeedbackRequestStudio extends ClovaStudioStructuredRequest<ConversationFeedbackProperties> {
 
     /**
      * 대화 피드백 요청 객체 생성
@@ -29,7 +29,7 @@ public class ConversationFeedbackRequest extends ClovaStructuredRequest<Conversa
      * @param messages 대화 메시지 목록
      * @return 대화 피드백 요청 객체
      */
-    public static ConversationFeedbackRequest of(String aiRole, String userRole, String situation, List<MessageDto> messages) {
+    public static ConversationFeedbackRequestStudio of(String aiRole, String userRole, String situation, List<MessageDto> messages) {
         // 시스템 프롬프트 생성
         String systemPrompt =
                 String.format(
@@ -68,7 +68,7 @@ public class ConversationFeedbackRequest extends ClovaStructuredRequest<Conversa
         ConversationFeedbackProperties properties = ConversationFeedbackProperties.createDefault();
 
         // 요청 객체 생성 및 반환
-        ConversationFeedbackRequest request = new ConversationFeedbackRequest();
+        ConversationFeedbackRequestStudio request = new ConversationFeedbackRequestStudio();
         return request.createBaseRequest(messageList, properties, requiredFields);
     }
 }
