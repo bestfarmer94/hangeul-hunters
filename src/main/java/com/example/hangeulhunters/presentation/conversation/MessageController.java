@@ -104,4 +104,17 @@ public class MessageController extends ControllerSupport {
         MessageFeedbackDto feedback = feedbackService.feedbackMessage(getCurrentUserId(), messageId);
         return ResponseEntity.ok(feedback);
     }
+
+    @PutMapping("{messageId}/tts")
+    @PreAuthorize("hasRole('USER')")
+    @Operation(
+            summary = "특정 메시지를 음성으로 변환",
+            description = "특정 메세지를 음성 데이터로 변환합니다",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    public ResponseEntity<String> convertMessageToSpeech(
+            @Parameter(description = "메시지 id") @PathVariable Long messageId) {
+        String ttsAudioUrl = messageService.convertMessageToSpeech(getCurrentUserId(), messageId);
+        return ResponseEntity.ok(ttsAudioUrl);
+    }
 }

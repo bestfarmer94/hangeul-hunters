@@ -10,9 +10,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -44,16 +41,10 @@ public class LanguageController extends ControllerSupport {
             description = "입력된 텍스트를 음성 데이터로 변환합니다",
             security = @SecurityRequirement(name = "bearerAuth")
     )
-    public ResponseEntity<byte[]> convertTextToSpeech(@Valid @RequestBody TTSRequest request) {
+    public ResponseEntity<String> convertTextToSpeech(@Valid @RequestBody TTSRequest request) {
         // TTS 서비스를 통해 음성 변환
-        byte[] audioData = languageService.convertTextToSpeech(request);
+        String audioUrl = languageService.convertTextToSpeech(request.getText(), null);
         
-        // 응답 헤더 설정
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-        headers.setContentLength(audioData.length);
-        headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=speech.mp3");
-        
-        return new ResponseEntity<>(audioData, headers, HttpStatus.OK);
+        return ResponseEntity.ok(audioUrl);
     }
 }

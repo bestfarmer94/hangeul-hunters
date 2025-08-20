@@ -54,4 +54,11 @@ public class Message extends BaseTimeEntity {
     public void saveTranslatedContent(String translatedContent) {
         this.translatedContent = translatedContent;
     }
+
+    /**
+     * audio url 저장
+     */
+    public void saveAudioUrl(String audioUrl) {
+        this.audioUrl = audioUrl;
+    }
 }
