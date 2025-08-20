@@ -56,7 +56,7 @@ public class ConversationService {
                 conversations.stream()
                         .map(conversation -> ConversationDto.of(
                                 conversation,
-                                aIPersonaService.getPersonaById(userId, conversation.getPersonaId())
+                                aIPersonaService.getPersonaByIdIncludeDeleted(userId, conversation.getPersonaId())
                         ))
                         .toList()
         );
