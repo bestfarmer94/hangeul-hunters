@@ -312,8 +312,8 @@ public class MessageService {
 
         // AI 역할에 따른 적절한 표현 추출
         return switch (aiRole.getIntimacyLevel()) {
-            case "low" -> variations.getLowIntimacyExpressions();
-            case "high" -> variations.getHighIntimacyExpressions();
+            case "Close" -> variations.getCloseIntimacyExpressions();
+            case "Distant" -> variations.getDistantIntimacyExpressions();
             default -> variations.getMediumIntimacyExpressions();
         };
     }

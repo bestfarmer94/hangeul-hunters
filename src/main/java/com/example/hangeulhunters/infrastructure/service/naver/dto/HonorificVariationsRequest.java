@@ -41,7 +41,7 @@ public class HonorificVariationsRequest extends ClovaStudioStructuredRequest<Hon
 
         // 필수 필드 목록
         List<String> requiredFields = Arrays.asList(
-                "lowIntimacyExpressions", "mediumIntimacyExpressions", "highIntimacyExpressions", "explain"
+                "closeIntimacyExpressions", "mediumIntimacyExpressions", "distantIntimacyExpressions", "explain"
         );
 
         // 속성 생성

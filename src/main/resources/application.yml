@@ -4,6 +4,8 @@ server:
 spring:
   application:
     name: hangeul-hunters
+  profiles:
+    active: local
 
   # H2 Console
   h2:
