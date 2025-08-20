@@ -89,7 +89,7 @@ public class AIPersonaController extends ControllerSupport {
         security = @SecurityRequirement(name = "bearerAuth")
     )
     public ResponseEntity<Void> deletePersona(@PathVariable Long personaId) {
-        aiPersonaService.deletePersona(personaId, getCurrentUserId());
+        aiPersonaService.deletePersona(getCurrentUserId(), personaId);
         return ResponseEntity.noContent().build();
     }
 }
