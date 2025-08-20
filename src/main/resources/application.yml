@@ -81,5 +81,3 @@ cloud:
     tts:
       language-code: ko-KR
       default-voice-name: ko-KR-Chirp3-HD-Leda
-      default-male-voice-name: ko-KR-Chirp3-HD-Orus
-      default-female-voice-name: ko-KR-Chirp3-HD-Leda

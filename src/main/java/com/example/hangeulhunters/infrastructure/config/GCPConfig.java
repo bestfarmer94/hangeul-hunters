@@ -37,10 +37,8 @@ public class GCPConfig {
         
         @Data
         public static class TTS {
-            private String languageCode = "ko-KR";
-            private String defaultVoiceName = "ko-KR-Standard-A";
-            private String defaultMaleVoiceName = "ko-KR-Standard-C";
-            private String defaultFemaleVoiceName = "ko-KR-Standard-A";
+            private String languageCode;
+            private String defaultVoiceName;
         }
     }
 }
