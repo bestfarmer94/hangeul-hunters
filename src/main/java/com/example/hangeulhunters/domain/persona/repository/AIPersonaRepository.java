@@ -25,4 +25,6 @@ public interface AIPersonaRepository extends JpaRepository<AIPersona, Long> {
     Page<AIPersona> findAllByUserIdAndDeletedAtNull(Long userId, Pageable pageable);
 
     Optional<AIPersona> findByIdAndUserIdAndDeletedAtNull(Long id, Long userId);
+
+    Optional<AIPersona> findByIdAndUserId(Long personaId, Long userId);
 }
