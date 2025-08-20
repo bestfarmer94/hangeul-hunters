@@ -16,7 +16,7 @@ import java.util.List;
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 @SuperBuilder
-public class EvaluateScoreRequest extends ClovaStructuredRequest<EvaluateScoreProperties> {
+public class EvaluateScoreRequest extends ClovaStudioStructuredRequest<EvaluateScoreProperties> {
 
     /**
      * 평가 점수 요청 객체 생성

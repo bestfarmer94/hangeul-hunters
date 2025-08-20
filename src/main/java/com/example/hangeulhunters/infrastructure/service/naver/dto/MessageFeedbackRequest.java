@@ -15,7 +15,7 @@ import java.util.List;
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 @SuperBuilder
-public class MessageFeedbackRequest extends ClovaStructuredRequest<MessageFeedbackProperties> {
+public class MessageFeedbackRequest extends ClovaStudioStructuredRequest<MessageFeedbackProperties> {
 
     /**
      * 메시지 피드백 요청 객체 생성

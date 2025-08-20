@@ -41,9 +41,10 @@ public class S3Service {
         String fileName = UUID.randomUUID() + "." + fileExtension;
         String key = TEMP_FOLDER + fileName;
 
-        // 메타데이터 설정
+        // 메타데이터 설정 (파일 확장자에 따라 Content-Type 설정)
+        String contentType = getContentType(fileExtension);
         ObjectMetadata metadata = new ObjectMetadata();
-        metadata.setContentType(fileType);
+        metadata.setContentType(contentType);
 
         // Presigned URL 생성
         Date expiration = new Date();
@@ -54,7 +55,7 @@ public class S3Service {
                         .withMethod(HttpMethod.PUT)
                         .withExpiration(expiration);
         
-        generatePresignedUrlRequest.setContentType(fileType);
+        generatePresignedUrlRequest.setContentType(contentType);
         generatePresignedUrlRequest.addRequestParameter("x-amz-acl", "public-read");
 
         URL url = amazonS3.generatePresignedUrl(generatePresignedUrlRequest);
@@ -77,7 +78,8 @@ public class S3Service {
         
         // 파일이 temp 폴더에 있는지 확인
         if (!sourceKey.startsWith(TEMP_FOLDER)) {
-            throw new IllegalArgumentException("Source file must be in the temp folder");
+            // temp 폴더에 없는 경우, 이미 영구 저장소에 있는 파일로 간주하고 그대로 반환
+            return imageUrl;
         }
 
         // 파일 이름 추출
@@ -155,23 +157,17 @@ public class S3Service {
         return url.substring(pathStartIndex + 1);
     }
 
-    /**
-     * 파일 확장자에 따라 컨텐츠 타입을 반환합니다.
-     *
-     * @param fileExtension 파일 확장자 (예: "jpg", "png", "pdf")
-     * @return 컨텐츠 타입 (예: "image/jpeg", "image/png", "application/pdf")
-     */
     private String getContentType(String fileExtension) {
         return switch (fileExtension.toLowerCase()) {
             case "jpg", "jpeg" -> "image/jpeg";
             case "png" -> "image/png";
             case "gif" -> "image/gif";
+            case "bmp" -> "image/bmp";
+            case "webp" -> "image/webp";
             case "mp3" -> "audio/mpeg";
-            case "pdf" -> "application/pdf";
-            case "doc", "docx" -> "application/msword";
-            case "xls", "xlsx" -> "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-            case "ppt", "pptx" -> "application/vnd.openxmlformats-officedocument.presentationml.presentation";
-            default -> "application/octet-stream"; // 기본 컨텐츠 타입
+            case "wav" -> "audio/wav";
+            case "flac" -> "audio/flac";
+            default -> "application/octet-stream";
         };
     }
 }

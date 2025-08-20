@@ -21,6 +21,7 @@ import com.example.hangeulhunters.infrastructure.exception.ConflictException;
 import com.example.hangeulhunters.infrastructure.exception.ForbiddenException;
 import com.example.hangeulhunters.infrastructure.exception.ResourceNotFoundException;
 import com.example.hangeulhunters.infrastructure.service.naver.NaverApiService;
+import com.example.hangeulhunters.infrastructure.service.naver.dto.ClovaSpeechSTTResponse;
 import com.example.hangeulhunters.infrastructure.service.naver.dto.HonorificVariationsResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -55,6 +56,27 @@ public class MessageService {
             throw new ForbiddenException("User does not own this conversation");
         }
 
+        String messageContent = request.getContent();
+        String audioUrl = null;
+        Integer pronunciationScore = null;
+
+        // 음성 파일 URL이 있을 경우 STT 수행
+        if (request.getAudioUrl() != null && !request.getAudioUrl().isBlank()) {
+
+            // 1. STT 수행 (임시 URL 사용)
+            ClovaSpeechSTTResponse sttResult = languageService.convertSpeechToText(request.getAudioUrl());
+
+            // 2. STT 결과 처리
+            messageContent = sttResult.getText();
+            audioUrl = fileService.saveAudioUrl(AudioType.MESSAGE_AUDIO, request.getAudioUrl());
+            pronunciationScore = sttResult.getAssessment_score();
+        }
+
+        // STT 결과가 없거나 비어있으면 예외 처리
+        if (messageContent == null || messageContent.isBlank()) {
+            throw new IllegalArgumentException("Message content is empty or STT conversion failed.");
+        }
+
         // AI 페르소나 정보 조회
         AIPersonaDto persona = aiPersonaService.getPersonaById(userId, conversation.getAiPersona().getPersonaId());
 
@@ -65,23 +87,23 @@ public class MessageService {
                 )
                 .orElseThrow(() -> new IllegalArgumentException("No messages found for this conversation"));
 
-        // STT
-
         // 평가 수행
        EvaluateResult eval = naverApiService.evaluateMessage(
                persona,
                conversation.getSituation(),
                lastAiMessage.getContent(),
-               request.getContent()
+               messageContent
        );
 
         // 사용자 메시지 저장
         Message userMessage = Message.builder()
                 .conversationId(conversation.getConversationId())
                 .type(MessageType.USER)
-                .content(request.getContent())
+                .content(messageContent)
+                .audioUrl(audioUrl)
                 .politenessScore(eval.getPolitenessScore())
                 .naturalnessScore(eval.getNaturalnessScore())
+                .pronunciationScore(pronunciationScore)
                 .createdBy(userId)
                 .build();
         messageRepository.save(userMessage);
@@ -177,7 +199,7 @@ public class MessageService {
         if( message.getAudioUrl() != null) {
             return message.getAudioUrl();
         }
-        
+
         // 채팅방 정보 조회
         ConversationDto conversation = conversationService.getConversationById(userId, message.getConversationId());
 

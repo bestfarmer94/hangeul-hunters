@@ -16,7 +16,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
-public abstract class ClovaStructuredRequest<P> {
+public abstract class ClovaStudioStructuredRequest<P> {
     private List<Message> messages;
     private Thinking thinking;
     private ResponseFormat<P> responseFormat;
@@ -57,7 +57,7 @@ public abstract class ClovaStructuredRequest<P> {
      * @param requiredFields 필수 필드 목록
      * @return 구조화된 요청 객체
      */
-    protected <T extends ClovaStructuredRequest<P>> T createBaseRequest(
+    protected <T extends ClovaStudioStructuredRequest<P>> T createBaseRequest(
             List<Message> messages,
             P properties,
             List<String> requiredFields

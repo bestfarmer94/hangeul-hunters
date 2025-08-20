@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
@@ -41,11 +42,11 @@ public class NaverApiService {
 
             String url = naverApiProperties.getClovaStudio().getBaseUrl() + apiPath;
 
-            ClovaCommonResponse response = webClient.post()
+            ClovaStudioCommonResponse response = webClient.post()
                     .uri(url)
                     .header("Authorization", naverApiProperties.getClovaStudio().getApiKey())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .bodyValue(ClovaCommonRequest.ofGenerateReply(
+                    .bodyValue(ClovaStudioCommonRequest.ofGenerateReply(
                             persona.getAiRole(),
                             persona.getUserRole(),
                             conversation.getSituation(),
@@ -53,7 +54,7 @@ public class NaverApiService {
                             conversationMessages)
                     )
                     .retrieve()
-                    .bodyToMono(ClovaCommonResponse.class)
+                    .bodyToMono(ClovaStudioCommonResponse.class)
                     .onErrorResume(e -> Mono.empty())
                     .block();
 
@@ -77,7 +78,7 @@ public class NaverApiService {
         try {
             String url = naverApiProperties.getClovaStudio().getBaseUrl() + naverApiProperties.getClovaStudio().getCommonModelPath();
 
-            ClovaCommonResponse response = webClient.post()
+            ClovaStudioCommonResponse response = webClient.post()
                     .uri(url)
                     .header("Authorization", naverApiProperties.getClovaStudio().getApiKey())
                     .contentType(MediaType.APPLICATION_JSON)
@@ -89,7 +90,7 @@ public class NaverApiService {
                             userMessage)
                     )
                     .retrieve()
-                    .bodyToMono(ClovaCommonResponse.class)
+                    .bodyToMono(ClovaStudioCommonResponse.class)
                     .onErrorResume(e -> Mono.empty())
                     .block();
 
@@ -108,7 +109,7 @@ public class NaverApiService {
     public MessageFeedbackResponse feedbackMessage(AIPersonaDto persona, String situation, String aiMessage, String userMessage) {
         String url = naverApiProperties.getClovaStudio().getBaseUrl() + naverApiProperties.getClovaStudio().getCommonModelPath();
 
-        ClovaCommonResponse response = webClient.post()
+        ClovaStudioCommonResponse response = webClient.post()
                 .uri(url)
                 .header("Authorization", naverApiProperties.getClovaStudio().getApiKey())
                 .contentType(MediaType.APPLICATION_JSON)
@@ -120,7 +121,7 @@ public class NaverApiService {
                         userMessage)
                 )
                 .retrieve()
-                .bodyToMono(ClovaCommonResponse.class)
+                .bodyToMono(ClovaStudioCommonResponse.class)
                 .onErrorResume(e -> Mono.empty())
                 .block();
 
@@ -146,18 +147,18 @@ public class NaverApiService {
         try {
             String url = naverApiProperties.getClovaStudio().getBaseUrl() + naverApiProperties.getClovaStudio().getCommonModelPath();
 
-            ClovaCommonResponse response = webClient.post()
+            ClovaStudioCommonResponse response = webClient.post()
                 .uri(url)
                 .header("Authorization", naverApiProperties.getClovaStudio().getApiKey())
                 .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(ConversationFeedbackRequest.of(
+                .bodyValue(ConversationFeedbackRequestStudio.of(
                     persona.getAiRole(),
                     persona.getUserRole(),
                     situation,
                     messages)
                 )
                 .retrieve()
-                .bodyToMono(ClovaCommonResponse.class)
+                .bodyToMono(ClovaStudioCommonResponse.class)
                 .onErrorResume(e -> Mono.empty())
                 .block();
 
@@ -176,13 +177,13 @@ public class NaverApiService {
     public HonorificVariationsResponse generateHonorificVariations(String sourceContent) {
         String url = naverApiProperties.getClovaStudio().getBaseUrl() + naverApiProperties.getClovaStudio().getCommonModelPath();
 
-        ClovaCommonResponse response = webClient.post()
+        ClovaStudioCommonResponse response = webClient.post()
                 .uri(url)
                 .header("Authorization", naverApiProperties.getClovaStudio().getApiKey())
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(HonorificVariationsRequest.of(sourceContent))
                 .retrieve()
-                .bodyToMono(ClovaCommonResponse.class)
+                .bodyToMono(ClovaStudioCommonResponse.class)
                 .onErrorResume(e -> Mono.empty())
                 .block();
 
@@ -200,6 +201,91 @@ public class NaverApiService {
             ));
         }
     }
+
+    /**
+     * STT (Speech to Text) 변환 - 일반 텍스트 추출용
+     * @param audioUrl 음성 파일 URL (Presigned URL)
+     * @return STT 결과 텍스트
+     */
+    public ClovaSpeechSTTResponse convertSpeechToText(String audioUrl) {
+        // 1. Presigned URL에서 오디오 데이터를 byte[]로 다운로드
+        byte[] audioBytes = webClient.get()
+                .uri(audioUrl)
+                .retrieve()
+                .bodyToMono(byte[].class)
+                .block();
+
+        if (audioBytes == null) {
+            return null;
+        }
+
+        // 2. CLOVA Speech API (단문 인식) 호출
+        String url = naverApiProperties.getClovaSpeech().getBaseUrl() + naverApiProperties.getClovaSpeech().getInvokePath() + "?lang=Kor";
+
+        return webClient.post()
+                .uri(url)
+                .header("X-CLOVASPEECH-API-KEY", naverApiProperties.getClovaSpeech().getSecretKey())
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(BodyInserters.fromValue(audioBytes))
+                .retrieve()
+                .bodyToMono(ClovaSpeechSTTResponse.class)
+                .onErrorResume(e -> Mono.empty())
+                .block();
+    }
+
+//    /**
+//     * STT (Speech to Text) 변환 - 발음 평가용
+//     * @param audioUrl 음성 파일 URL (Presigned URL)
+//     * @param script 평가 기준 스크립트
+//     * @return STT 평가 결과
+//     */
+//    public ClovaSpeechEvaluationResponse evaluateSpeech(String audioUrl, String script) {
+//        // 1. Presigned URL에서 오디오 데이터를 byte[]로 다운로드
+//        byte[] audioBytes = webClient.get()
+//                .uri(audioUrl)
+//                .retrieve()
+//                .bodyToMono(byte[].class)
+//                .block();
+//
+//        if (audioBytes == null) {
+//            return null;
+//        }
+//
+//        // 2. 요청 DTO 생성
+//        ClovaSpeechSTTRequest requestDto = ClovaSpeechSTTRequest.builder()
+//                .lang("Kor")
+//                .script(script)
+//                .assessment("pronunciation")
+//                .build();
+//
+//        // 3. Multipart Body 생성
+//        MultipartBodyBuilder builder = new MultipartBodyBuilder();
+//        try {
+//            builder.part("params", objectMapper.writeValueAsString(requestDto), MediaType.APPLICATION_JSON);
+//        } catch (JsonProcessingException e) {
+//            throw new RuntimeException("Failed to serialize request DTO", e);
+//        }
+//        builder.part("media", audioBytes, MediaType.APPLICATION_OCTET_STREAM)
+//                .filename("audio.wav"); // 파일 이름은 중요하지 않음
+//
+//        // 4. CLOVA Speech API (평가) 호출
+//        String url = naverApiProperties.getClovaSpeech().getBaseUrl() + naverApiProperties.getClovaSpeech().getInvokePath();
+//
+//        try {
+//            return webClient.post()
+//                    .uri(url)
+//                    .header("X-CLOVASPEECH-API-KEY", naverApiProperties.getClovaSpeech().getSecretKey())
+//                    .contentType(MediaType.MULTIPART_FORM_DATA)
+//                    .body(BodyInserters.fromMultipartData(builder.build()))
+//                    .retrieve()
+//                    .bodyToMono(ClovaSpeechEvaluationResponse.class)
+//                    .onErrorResume(e -> Mono.empty())
+//                    .block();
+//        } catch (Exception ignore) {
+//        }
+//
+//        return null;
+//    }
 
     /**
      * Papago 번역

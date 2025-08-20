@@ -16,7 +16,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ClovaCommonRequest {
+public class ClovaStudioCommonRequest {
     private List<Message> messages;
     private Integer maxTokens;
 
@@ -58,7 +58,7 @@ public class ClovaCommonRequest {
         }
     }
 
-    public static ClovaCommonRequest ofGenerateReply(String aiRole, String userRole, String situation, KoreanLevel level, List<MessageDto> conversationMessages) {
+    public static ClovaStudioCommonRequest ofGenerateReply(String aiRole, String userRole, String situation, KoreanLevel level, List<MessageDto> conversationMessages) {
         String systemPrompt = String.format(
                 PromptConstant.GENERATE_REPLY.getPromptMessage(),
                 aiRole, userRole, situation, level
@@ -74,7 +74,7 @@ public class ClovaCommonRequest {
      * @param conversationMessages 대화 내역 (선택 사항)
      * @return ClovaCommonRequest 객체
      */
-    private static ClovaCommonRequest createWithSystemPromptAndMessages(String systemPrompt, List<MessageDto> conversationMessages) {
+    private static ClovaStudioCommonRequest createWithSystemPromptAndMessages(String systemPrompt, List<MessageDto> conversationMessages) {
         List<Message> messages = new ArrayList<>();
 
         // 시스템 프롬프트 추가
@@ -101,7 +101,7 @@ public class ClovaCommonRequest {
             });
         }
 
-        return ClovaCommonRequest.builder()
+        return ClovaStudioCommonRequest.builder()
                 .messages(messages)
                 .build();
     }

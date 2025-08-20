@@ -67,7 +67,11 @@ cloud:
       base-url: https://clovastudio.stream.ntruss.com
       tuning-model-path: /v3/tasks/{taskId}/chat-completions
       common-model-path: /v3/chat-completions/HCX-007
-      api-key: ${CLOVA_API_KEY:}
+      api-key: ${CLOVA_STUDIO_API_KEY:}
+    clova-speech:
+      base-url: https://clovaspeech-gw.ncloud.com
+      invoke-path: /recog/v1/stt
+      secret-key: ${CLOVA_SPEECH_SECRET_KEY:}
     papago:
       base-url: https://papago.apigw.ntruss.com/nmt/v1
       translation-path: /translation

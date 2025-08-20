@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "cloud.naver-api")
 public class NaverApiProperties {
     private ClovaStudio clovaStudio;
+    private ClovaSpeech clovaSpeech;
     private Papago papago;
 
     @Data
@@ -17,6 +18,13 @@ public class NaverApiProperties {
         private String tuningModelPath;
         private String commonModelPath;
         private String apiKey;
+    }
+
+    @Data
+    public static class ClovaSpeech {
+        private String baseUrl;
+        private String invokePath;
+        private String secretKey;
     }
 
     @Data
