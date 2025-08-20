@@ -10,16 +10,16 @@ import lombok.Data;
 public class HonorificVariationsResponse {
 
     @Schema(description = "친밀함 레벨 Low", requiredMode = Schema.RequiredMode.REQUIRED)
-    @JsonProperty("lowIntimacyExpressions")
-    private ExpressionsByFormality lowIntimacyExpressions;
+    @JsonProperty("closeIntimacyExpressions")
+    private ExpressionsByFormality closeIntimacyExpressions;
 
     @Schema(description = "친밀함 레벨 Medium", requiredMode = Schema.RequiredMode.REQUIRED)
     @JsonProperty("mediumIntimacyExpressions")
     private ExpressionsByFormality mediumIntimacyExpressions;
 
     @Schema(description = "친밀함 레벨 High", requiredMode = Schema.RequiredMode.REQUIRED)
-    @JsonProperty("highIntimacyExpressions")
-    private ExpressionsByFormality highIntimacyExpressions;
+    @JsonProperty("distantIntimacyExpressions")
+    private ExpressionsByFormality distantIntimacyExpressions;
 
     @Schema(description = "예시 및 설명", requiredMode = Schema.RequiredMode.REQUIRED)
     @JsonProperty("explain")

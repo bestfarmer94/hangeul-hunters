@@ -6,8 +6,8 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum Relationship {
-    BOSS("boss", "employee", "high"),
-    GF_PARENTS("girlfriend's parents","daughter's boyfriend", "high"),
+    BOSS("boss", "employee", "Distant"),
+    GF_PARENTS("girlfriend's parents","daughter's boyfriend", "Distant"),
     CLERK("cafe clerk","customer", "medium");
 
     private final String aiRole;
