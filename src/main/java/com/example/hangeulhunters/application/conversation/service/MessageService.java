@@ -5,10 +5,13 @@ import com.example.hangeulhunters.application.conversation.dto.ConversationDto;
 import com.example.hangeulhunters.application.conversation.dto.EvaluateResult;
 import com.example.hangeulhunters.application.conversation.dto.MessageDto;
 import com.example.hangeulhunters.application.conversation.dto.MessageRequest;
+import com.example.hangeulhunters.application.file.service.FileService;
+import com.example.hangeulhunters.application.language.service.LanguageService;
 import com.example.hangeulhunters.application.persona.dto.AIPersonaDto;
 import com.example.hangeulhunters.application.persona.service.AIPersonaService;
 import com.example.hangeulhunters.application.user.dto.UserDto;
 import com.example.hangeulhunters.application.user.service.UserService;
+import com.example.hangeulhunters.domain.common.constant.AudioType;
 import com.example.hangeulhunters.domain.conversation.constant.MessageType;
 import com.example.hangeulhunters.domain.conversation.constant.SituationExample;
 import com.example.hangeulhunters.domain.conversation.entity.Message;
@@ -39,6 +42,8 @@ public class MessageService {
     private final NaverApiService naverApiService;
     private final ConversationService conversationService;
     private final UserService userService;
+    private final LanguageService languageService;
+    private final FileService fileService;
 
     @Transactional
     public MessageDto sendMessage(Long userId, MessageRequest request) {
@@ -158,23 +163,35 @@ public class MessageService {
 
     /**
      * 메시지 번역 기능
+     * @param userId 사용자 ID
      * @param messageId 번역할 메시지 ID
-     * @return 번역된 메시지 DTO
+     * @return TTS 변환된 오디오 URL
      */
     @Transactional
-    public String translateMessage(Long messageId) {
+    public String convertMessageToSpeech(Long userId, Long messageId) {
         // 메시지 조회
         Message message = messageRepository.findById(messageId)
                 .orElseThrow(() -> new ResourceNotFoundException("Message not found"));
 
-        // 메시지 내용 번역
-        String translatedContent = naverApiService.translateContent("ko", "en", message.getContent());
+        // 이미 오디오 URL이 있는 경우, 해당 URL 반환
+        if( message.getAudioUrl() != null) {
+            return message.getAudioUrl();
+        }
+        
+        // 채팅방 정보 조회
+        ConversationDto conversation = conversationService.getConversationById(userId, message.getConversationId());
 
-        // 번역된 내용 저장
-        message.saveTranslatedContent(translatedContent);
+        // TTS 변환
+        String tempAudioUrl = languageService.convertTextToSpeech(message.getContent(), conversation.getAiPersona().getVoice());
+
+        // 오디오 URL 저장
+        String savedAudioUrl = fileService.saveAudioUrl(AudioType.MESSAGE_AUDIO, tempAudioUrl);
+
+        // 오디오 URL을 메시지에 저장
+        message.saveAudioUrl(savedAudioUrl);
         messageRepository.save(message);
 
-        return translatedContent;
+        return savedAudioUrl;
     }
 
     @Transactional
@@ -277,5 +294,26 @@ public class MessageService {
             case "high" -> variations.getHighIntimacyExpressions();
             default -> variations.getMediumIntimacyExpressions();
         };
+    }
+
+    /**
+     * 메시지 번역 기능
+     * @param messageId 번역할 메시지 ID
+     * @return 번역된 메시지 DTO
+     */
+    @Transactional
+    public String translateMessage(Long messageId) {
+        // 메시지 조회
+        Message message = messageRepository.findById(messageId)
+                .orElseThrow(() -> new ResourceNotFoundException("Message not found"));
+
+        // 메시지 내용 번역
+        String translatedContent = naverApiService.translateContent("ko", "en", message.getContent());
+
+        // 번역된 내용 저장
+        message.saveTranslatedContent(translatedContent);
+        messageRepository.save(message);
+
+        return translatedContent;
     }
 }

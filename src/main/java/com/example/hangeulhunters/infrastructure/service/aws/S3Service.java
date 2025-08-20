@@ -2,16 +2,13 @@ package com.example.hangeulhunters.infrastructure.service.aws;
 
 import com.amazonaws.HttpMethod;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.CannedAccessControlList;
-import com.amazonaws.services.s3.model.CopyObjectRequest;
-import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.example.hangeulhunters.domain.common.constant.ImageType;
+import com.amazonaws.services.s3.model.*;
 import com.example.hangeulhunters.infrastructure.service.aws.dto.PresignedUrlDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayInputStream;
 import java.net.URL;
 import java.util.Date;
 import java.util.UUID;
@@ -68,13 +65,13 @@ public class S3Service {
     }
 
     /**
-     * 임시 파일을 지정된 프로필 폴더로 이동
+     * 임시 파일을 지정된 폴더로 이동
      *
-     * @param imageType 이미지 타입 (USER_PROFILE, PERSONA_PROFILE)
+     * @param destinationPath 목적 경로
      * @param imageUrl 이미지 URL
      * @return 이동된 파일의 URL
      */
-    public String moveProfileImage(ImageType imageType, String imageUrl) {
+    public String moveFile(String destinationPath, String imageUrl) {
         // URL 에서 키 추출
         String sourceKey = extractKeyFromUrl(imageUrl);
         
@@ -86,8 +83,8 @@ public class S3Service {
         // 파일 이름 추출
         String fileName = sourceKey.substring(TEMP_FOLDER.length());
         
-        // 대상 키 생성 (이미지 타입에 따라 경로 결정)
-        String destinationKey = imageType.getPath() + fileName;
+        // 대상 키 생성
+        String destinationKey = destinationPath + fileName;
         
         // 파일 복사
         CopyObjectRequest copyObjectRequest = new CopyObjectRequest(
@@ -106,6 +103,32 @@ public class S3Service {
         return amazonS3.getUrl(bucketName, destinationKey).toString();
     }
     
+    /**
+     * 임시 폴더에 파일을 업로드하고 URL을 반환
+     *
+     * @param data 파일 데이터 (byte array)
+     * @param fileExtension 파일 확장자
+     * @return 업로드된 파일의 URL
+     */
+    public String uploadTempFile(byte[] data, String fileExtension) {
+        String fileName = UUID.randomUUID() + "." + fileExtension;
+        String key = TEMP_FOLDER + fileName;
+
+        ObjectMetadata metadata = new ObjectMetadata();
+        metadata.setContentLength(data.length);
+        metadata.setContentType(getContentType(fileExtension));
+
+        try (ByteArrayInputStream inputStream = new ByteArrayInputStream(data)) {
+            PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, key, inputStream, metadata)
+                    .withCannedAcl(CannedAccessControlList.PublicRead);
+            amazonS3.putObject(putObjectRequest);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to upload file to S3", e);
+        }
+
+        return amazonS3.getUrl(bucketName, key).toString();
+    }
+
     /**
      * URL 에서 S3 객체 키 추출
      *
@@ -130,5 +153,25 @@ public class S3Service {
         
         // 키 추출 (첫 번째 '/' 이후의 모든 문자)
         return url.substring(pathStartIndex + 1);
+    }
+
+    /**
+     * 파일 확장자에 따라 컨텐츠 타입을 반환합니다.
+     *
+     * @param fileExtension 파일 확장자 (예: "jpg", "png", "pdf")
+     * @return 컨텐츠 타입 (예: "image/jpeg", "image/png", "application/pdf")
+     */
+    private String getContentType(String fileExtension) {
+        return switch (fileExtension.toLowerCase()) {
+            case "jpg", "jpeg" -> "image/jpeg";
+            case "png" -> "image/png";
+            case "gif" -> "image/gif";
+            case "mp3" -> "audio/mpeg";
+            case "pdf" -> "application/pdf";
+            case "doc", "docx" -> "application/msword";
+            case "xls", "xlsx" -> "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+            case "ppt", "pptx" -> "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+            default -> "application/octet-stream"; // 기본 컨텐츠 타입
+        };
     }
 }

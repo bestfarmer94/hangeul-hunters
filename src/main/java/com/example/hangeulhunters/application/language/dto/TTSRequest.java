@@ -21,7 +21,4 @@ public class TTSRequest {
     @Size(max = 1000, message = "텍스트는 최대 1000자까지 입력 가능합니다.")
     @Schema(description = "변환할 텍스트", example = "안녕하세요. 반갑습니다.")
     private String text;
-
-    @Schema(description = "목소리", example = "ko-KR-Chirp3-HD-Leda")
-    private String voice;
 }

@@ -4,14 +4,13 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 /**
- * 이미지 타입
- * 이미지 저장 경로를 결정하는 타입 상수
+ * 오디오 타입
+ * 오디오 저장 경로를 결정하는 타입 상수
  */
 @Getter
 @RequiredArgsConstructor
-public enum ImageType {
-    USER_PROFILE("profiles/users/"),
-    PERSONA_PROFILE("profiles/personas/");
-    
+public enum AudioType {
+    MESSAGE_AUDIO("audio/messages/"),;
+
     private final String path;
 }
