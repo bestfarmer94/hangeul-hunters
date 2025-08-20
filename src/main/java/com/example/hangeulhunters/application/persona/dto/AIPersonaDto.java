@@ -18,32 +18,35 @@ import lombok.NoArgsConstructor;
 @Schema(description = "AI 페르소나 정보 DTO")
 public class AIPersonaDto {
     
-    @Schema(description = "AI 페르소나 ID", required = true)
+    @Schema(description = "AI 페르소나 ID", requiredMode = Schema.RequiredMode.REQUIRED)
     private Long personaId;
     
-    @Schema(description = "사용자 ID (소유)", nullable = true)
+    @Schema(description = "사용자 ID (소유)", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private Long userId;
     
-    @Schema(description = "이름", required = true)
+    @Schema(description = "이름", requiredMode = Schema.RequiredMode.REQUIRED)
     private String name;
     
-    @Schema(description = "성별", required = true)
+    @Schema(description = "성별", requiredMode = Schema.RequiredMode.REQUIRED)
     private Gender gender;
     
-    @Schema(description = "나이", required = true)
+    @Schema(description = "나이", requiredMode = Schema.RequiredMode.REQUIRED)
     private Integer age;
     
-    @Schema(description = "ai 역할", required = true)
+    @Schema(description = "ai 역할", requiredMode = Schema.RequiredMode.REQUIRED)
     private String aiRole;
 
-    @Schema(description = "유저 역할", required = true)
+    @Schema(description = "유저 역할", requiredMode = Schema.RequiredMode.REQUIRED)
     private String userRole;
 
-    @Schema(description = "설명", nullable = true)
+    @Schema(description = "설명", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private String description;
     
-    @Schema(description = "프로필 이미지 URL", nullable = true)
+    @Schema(description = "프로필 이미지 URL", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private String profileImageUrl;
+
+    @Schema(description = "목소리", requiredMode = Schema.RequiredMode.REQUIRED)
+    private String voice;
     
     /**
      * 엔티티를 DTO로 변환
@@ -62,6 +65,7 @@ public class AIPersonaDto {
                 .userRole(aiPersona.getUserRole())
                 .description(aiPersona.getDescription())
                 .profileImageUrl(aiPersona.getProfileImageUrl())
+                .voice(aiPersona.getVoice())
                 .build();
     }
 }

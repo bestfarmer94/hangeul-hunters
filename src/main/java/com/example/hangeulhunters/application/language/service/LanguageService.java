@@ -37,6 +37,6 @@ public class LanguageService {
     @Transactional(readOnly = true)
     public byte[] convertTextToSpeech(TTSRequest request) {
         // 요청에 따라 적절한 TTS 메서드 호출
-        return gcpTTSService.synthesize(request.getText(), request.getGender());
+        return gcpTTSService.synthesize(request.getText(), request.getVoice());
     }
 }

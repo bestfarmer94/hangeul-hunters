@@ -49,4 +49,7 @@ public class AIPersona extends BaseTimeEntity {
 
     @Column(nullable = true)
     private String profileImageUrl;
+
+    @Column(nullable = false)
+    private String voice;
 }

@@ -1,6 +1,5 @@
 package com.example.hangeulhunters.application.language.dto;
 
-import com.example.hangeulhunters.domain.common.constant.Gender;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -23,6 +22,6 @@ public class TTSRequest {
     @Schema(description = "변환할 텍스트", example = "안녕하세요. 반갑습니다.")
     private String text;
 
-    @Schema(description = "성별")
-    private Gender gender;
+    @Schema(description = "목소리", example = "ko-KR-Chirp3-HD-Leda")
+    private String voice;
 }
