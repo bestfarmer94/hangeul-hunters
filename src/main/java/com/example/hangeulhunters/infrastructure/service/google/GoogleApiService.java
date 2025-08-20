@@ -1,6 +1,5 @@
 package com.example.hangeulhunters.infrastructure.service.google;
 
-import com.example.hangeulhunters.domain.persona.constant.PersonaVoice;
 import com.example.hangeulhunters.infrastructure.config.GCPConfig.GCPProperties;
 import com.google.cloud.texttospeech.v1.*;
 import com.google.protobuf.ByteString;
@@ -37,7 +36,7 @@ public class GoogleApiService {
             VoiceSelectionParams voice = VoiceSelectionParams.newBuilder()
                     .setLanguageCode(gcpProperties.getTts().getLanguageCode())
                     .setName(Optional.ofNullable(voiceName)
-                            .orElse(PersonaVoice.LEDA.getVoiceName()))
+                            .orElse(gcpProperties.getTts().getDefaultVoiceName()))
                     .build();
 
             // 오디오 설정
