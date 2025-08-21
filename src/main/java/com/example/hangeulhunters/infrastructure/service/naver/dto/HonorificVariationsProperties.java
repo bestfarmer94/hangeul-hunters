@@ -89,7 +89,7 @@ public class HonorificVariationsProperties {
                         .build())
                 .explain(StringProperty.builder()
                         .type("string")
-                        .description("가장 실용적인 3-4개 표현을 선별하여 영어로 설명")
+                        .description("가장 실용적인 3-4개의 표현을 선별하여 반드시 영어로만 설명하세요")
                         .build())
                 .build();
     }
