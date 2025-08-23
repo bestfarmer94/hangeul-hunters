@@ -70,9 +70,14 @@ public class MessageService {
             messageContent = sttResult.getText();
             audioUrl = fileService.saveAudioUrl(AudioType.MESSAGE_AUDIO, request.getAudioUrl());
             pronunciationScore = sttResult.getAssessment_score();
+
+            // STT 결과가 없거나 비어있으면 예외 처리
+            if (messageContent == null || messageContent.isBlank()) {
+                throw new ConflictException("STT resulted in empty text.");
+            }
         }
 
-        // STT 결과가 없거나 비어있으면 예외 처리
+        // 텍스트 메시지 비어있는 경우
         if (messageContent == null || messageContent.isBlank()) {
             throw new IllegalArgumentException("Message content is empty or STT conversion failed.");
         }
