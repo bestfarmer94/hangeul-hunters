@@ -233,60 +233,6 @@ public class NaverApiService {
                 .block();
     }
 
-//    /**
-//     * STT (Speech to Text) 변환 - 발음 평가용
-//     * @param audioUrl 음성 파일 URL (Presigned URL)
-//     * @param script 평가 기준 스크립트
-//     * @return STT 평가 결과
-//     */
-//    public ClovaSpeechEvaluationResponse evaluateSpeech(String audioUrl, String script) {
-//        // 1. Presigned URL에서 오디오 데이터를 byte[]로 다운로드
-//        byte[] audioBytes = webClient.get()
-//                .uri(audioUrl)
-//                .retrieve()
-//                .bodyToMono(byte[].class)
-//                .block();
-//
-//        if (audioBytes == null) {
-//            return null;
-//        }
-//
-//        // 2. 요청 DTO 생성
-//        ClovaSpeechSTTRequest requestDto = ClovaSpeechSTTRequest.builder()
-//                .lang("Kor")
-//                .script(script)
-//                .assessment("pronunciation")
-//                .build();
-//
-//        // 3. Multipart Body 생성
-//        MultipartBodyBuilder builder = new MultipartBodyBuilder();
-//        try {
-//            builder.part("params", objectMapper.writeValueAsString(requestDto), MediaType.APPLICATION_JSON);
-//        } catch (JsonProcessingException e) {
-//            throw new RuntimeException("Failed to serialize request DTO", e);
-//        }
-//        builder.part("media", audioBytes, MediaType.APPLICATION_OCTET_STREAM)
-//                .filename("audio.wav"); // 파일 이름은 중요하지 않음
-//
-//        // 4. CLOVA Speech API (평가) 호출
-//        String url = naverApiProperties.getClovaSpeech().getBaseUrl() + naverApiProperties.getClovaSpeech().getInvokePath();
-//
-//        try {
-//            return webClient.post()
-//                    .uri(url)
-//                    .header("X-CLOVASPEECH-API-KEY", naverApiProperties.getClovaSpeech().getSecretKey())
-//                    .contentType(MediaType.MULTIPART_FORM_DATA)
-//                    .body(BodyInserters.fromMultipartData(builder.build()))
-//                    .retrieve()
-//                    .bodyToMono(ClovaSpeechEvaluationResponse.class)
-//                    .onErrorResume(e -> Mono.empty())
-//                    .block();
-//        } catch (Exception ignore) {
-//        }
-//
-//        return null;
-//    }
-
     /**
      * Papago 번역
      */
