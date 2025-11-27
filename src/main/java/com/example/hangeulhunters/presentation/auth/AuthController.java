@@ -60,4 +60,11 @@ public class AuthController extends ControllerSupport {
         authService.logout(getCurrentUserId());
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/guest-login")
+    @Operation(summary = "게스트 로그인", description = "디바이스 ID를 사용하여 게스트로 로그인하고 JWT 토큰을 발급받습니다. 기존 게스트 사용자가 있으면 재사용하고, 없으면 새로 생성합니다.")
+    public ResponseEntity<AuthResponse> guestLogin(@Valid @RequestBody GuestLoginRequest guestLoginRequest) {
+        AuthResponse response = authService.guestLogin(guestLoginRequest);
+        return ResponseEntity.ok(response);
+    }
 }

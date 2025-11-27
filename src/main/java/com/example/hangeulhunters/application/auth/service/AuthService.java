@@ -13,6 +13,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 /**
  * 인증 관련 서비스
  */
@@ -120,5 +122,40 @@ public class AuthService {
         UserDto userDto = userService.getUserById(userId);
 
         jwtTokenProvider.invalidateRefreshToken(userDto.getEmail());
+    }
+
+    /**
+     * 게스트 로그인 처리
+     *
+     * @param guestLoginRequest 게스트 로그인 요청 정보
+     * @return 인증 응답 (토큰 및 사용자 정보)
+     */
+    @Transactional
+    public AuthResponse guestLogin(GuestLoginRequest guestLoginRequest) {
+        String deviceId = guestLoginRequest.getDeviceId();
+
+        // device_id로 기존 게스트 사용자 조회
+        Optional<UserDto> existingGuest = userService.findByDeviceId(deviceId);
+
+        // 기존 게스트 사용자 사용
+        UserDto userDto = existingGuest.orElseGet(
+                // 존재하지 않으면, 새 게스트 사용자 생성
+                () -> userService.createGuestUser(deviceId)
+        );
+
+        String email = userDto.getEmail();
+
+        // JWT 액세스 토큰 생성
+        String accessToken = jwtTokenProvider.createToken(email);
+
+        // 리프레시 토큰 생성
+        String refreshToken = jwtTokenProvider.createRefreshToken(email);
+
+        // 응답 생성
+        return AuthResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .user(userDto)
+                .build();
     }
 }
