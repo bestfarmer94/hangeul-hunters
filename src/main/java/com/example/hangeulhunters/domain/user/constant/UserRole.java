@@ -12,5 +12,8 @@ public enum UserRole {
     ROLE_ADMIN,
     
     @Schema(description = "일반 사용자")
-    ROLE_USER
+    ROLE_USER,
+
+    @Schema(description = "게스트 사용자")
+    ROLE_GUEST
 }
