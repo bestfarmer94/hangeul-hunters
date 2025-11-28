@@ -136,7 +136,6 @@ public class ConversationController extends ControllerSupport {
     }
 
     @PostMapping("/interview")
-    @PreAuthorize("hasRole('USER')")
     @Operation(
             summary = "면접 대화 생성",
             description = "면접 대화를 생성합니다. 면접관 페르소나는 자동으로 생성됩니다.",
