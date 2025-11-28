@@ -34,7 +34,6 @@ public class FileController extends ControllerSupport {
      * @return Presigned URL 정보
      */
     @PostMapping("/presigned-url")
-    @PreAuthorize("hasRole('USER')")
     @Operation(
         summary = "Presigned URL 생성",
         description = "S3 업로드를 위한 Presigned URL을 생성합니다",

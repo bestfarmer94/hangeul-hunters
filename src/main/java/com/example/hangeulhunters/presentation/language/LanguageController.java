@@ -24,7 +24,6 @@ public class LanguageController extends ControllerSupport {
     private final LanguageService languageService;
 
     @GetMapping("/honorific-variations")
-    @PreAuthorize("hasRole('USER')")
     @Operation(
             summary = "여러가지 존댓말 표현 생성",
             description = "주어진 원문에 대해 다양한 존댓말 표현을 생성합니다",
@@ -36,7 +35,6 @@ public class LanguageController extends ControllerSupport {
     }
     
     @PostMapping("/tts")
-    @PreAuthorize("hasRole('USER')")
     @Operation(
             summary = "텍스트를 음성으로 변환",
             description = "입력된 텍스트를 음성 데이터로 변환합니다",
@@ -50,7 +48,6 @@ public class LanguageController extends ControllerSupport {
     }
 
     @PostMapping("/stt")
-    @PreAuthorize("hasRole('USER')")
     @Operation(
             summary = "음성을 텍스트로 변환 (STT)",
             description = "Presigned URL을 통해 음성 파일을 받아 텍스트로 변환합니다",

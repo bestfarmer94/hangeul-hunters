@@ -26,7 +26,6 @@ public class AIPersonaController extends ControllerSupport {
     private final AIPersonaService aiPersonaService;
 
     @GetMapping("/my")
-    @PreAuthorize("hasRole('USER')")
     @Operation(
         summary = "내 AI 페르소나 목록 조회 (페이징)",
         description = "현재 로그인한 사용자의 AI 페르소나 목록을 페이징하여 조회합니다",
@@ -46,7 +45,6 @@ public class AIPersonaController extends ControllerSupport {
      * @return AI 페르소나 DTO
      */
     @GetMapping("/{personaId}")
-    @PreAuthorize("hasRole('USER')")
     @Operation(
         summary = "AI 페르소나 상세 조회",
         description = "특정 AI 페르소나의 상세 정보를 조회합니다 (본인의 페르소나만 조회 가능)",
@@ -64,7 +62,6 @@ public class AIPersonaController extends ControllerSupport {
      * @return 생성된 AI 페르소나 DTO
      */
     @PostMapping
-    @PreAuthorize("hasRole('USER')")
     @Operation(
         summary = "AI 페르소나 생성",
         description = "새로운 AI 페르소나를 생성합니다",
@@ -82,7 +79,6 @@ public class AIPersonaController extends ControllerSupport {
      * @return 응답 엔티티
      */
     @DeleteMapping("/{personaId}")
-    @PreAuthorize("hasRole('USER')")
     @Operation(
         summary = "AI 페르소나 삭제",
         description = "AI 페르소나를 삭제합니다 (본인의 페르소나만 삭제 가능)",
