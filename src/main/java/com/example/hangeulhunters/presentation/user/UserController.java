@@ -24,7 +24,6 @@ public class UserController extends ControllerSupport {
     private final MessageService messageService;
 
     @GetMapping("/me")
-    @PreAuthorize("hasRole('USER')")
     @Operation(
         summary = "현재 사용자 정보 조회",
         description = "로그인한 사용자의 정보를 조회합니다. 학습한 문장 수와 K-레벨 정보를 포함합니다.",
@@ -37,7 +36,6 @@ public class UserController extends ControllerSupport {
     }
     
     @PutMapping("/me/profile")
-    @PreAuthorize("hasRole('USER')")
     @Operation(
         summary = "사용자 프로필 정보 업데이트",
         description = "사용자의 프로필 정보(닉네임, 생년월일, 한국어 레벨, 프로필 이미지, 관심사)를 업데이트합니다",

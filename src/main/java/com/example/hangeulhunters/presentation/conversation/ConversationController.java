@@ -33,7 +33,6 @@ public class ConversationController extends ControllerSupport {
     private final FeedbackService feedbackService;
 
     @GetMapping("/{conversationId}")
-    @PreAuthorize("hasRole('USER')")
     @Operation(
             summary = "대화방 상세 조회",
             description = "특정 대화방의 정보를 조회합니다",
@@ -47,7 +46,6 @@ public class ConversationController extends ControllerSupport {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('USER')")
     @Operation(
         summary = "현재 사용자의 대화 목록 조회",
         description = "로그인한 사용자의 대화 목록을 필터링하여 페이징 조회합니다",
@@ -75,7 +73,6 @@ public class ConversationController extends ControllerSupport {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('USER')")
     @Operation(
         summary = "새 대화 생성",
         description = "AI 페르소나와의 새로운 대화를 시작합니다",
@@ -101,7 +98,6 @@ public class ConversationController extends ControllerSupport {
     }
 
     @DeleteMapping("/{conversationId}")
-    @PreAuthorize("hasRole('USER')")
     @Operation(
         summary = "대화 삭제",
         description = "대화를 삭제합니다. 실제로 데이터베이스에서 삭제되지 않고 삭제 상태로 변경됩니다.",
@@ -113,7 +109,6 @@ public class ConversationController extends ControllerSupport {
     }
     
     @GetMapping("/{conversationId}/feedback")
-    @PreAuthorize("hasRole('USER')")
     @Operation(
             summary = "대화 전체 피드백 조회",
             description = "대화 전체에 대한 피드백을 조회합니다.",

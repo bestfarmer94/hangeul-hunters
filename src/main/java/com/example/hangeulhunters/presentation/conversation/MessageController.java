@@ -28,7 +28,6 @@ public class MessageController extends ControllerSupport {
     private final FeedbackService feedbackService;
 
     @GetMapping
-    @PreAuthorize("hasRole('USER')")
     @Operation(
             summary = "대화방 메시지 조회",
             description = "특정 대화방의 메시지를 페이지 단위로 조회합니다",
@@ -43,7 +42,6 @@ public class MessageController extends ControllerSupport {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('USER')")
     @Operation(
             summary = "메시지 전송",
             description = "대화에 메시지를 전송합니다",
@@ -55,7 +53,6 @@ public class MessageController extends ControllerSupport {
     }
 
     @PostMapping("/ai-reply")
-    @PreAuthorize("hasRole('USER')")
     @Operation(
             summary = "메시지 생성 (AI 응답)",
             description = "AI를 사용하여 대화에 자동 응답 메시지를 생성합니다",
@@ -67,7 +64,6 @@ public class MessageController extends ControllerSupport {
     }
 
     @PutMapping("{messageId}/translate")
-    @PreAuthorize("hasRole('USER')")
     @Operation(
             summary = "메시지 번역",
             description = "특정 메시지를 번역합니다",
@@ -80,7 +76,6 @@ public class MessageController extends ControllerSupport {
     }
 
     @GetMapping("/{messageId}/honorific-variations")
-    @PreAuthorize("hasRole('USER')")
     @Operation(
             summary = "여러가지 존댓말 표현 생성",
             description = "주어진 원문에 대해 다양한 존댓말 표현을 생성합니다",
@@ -92,7 +87,6 @@ public class MessageController extends ControllerSupport {
     }
     
     @PostMapping("/{messageId}/feedback")
-    @PreAuthorize("hasRole('USER')")
     @Operation(
             summary = "메시지 피드백 생성",
             description = "특정 메시지에 대한 피드백을 생성합니다.",
@@ -106,7 +100,6 @@ public class MessageController extends ControllerSupport {
     }
 
     @PutMapping("{messageId}/tts")
-    @PreAuthorize("hasRole('USER')")
     @Operation(
             summary = "특정 메시지를 음성으로 변환",
             description = "특정 메세지를 음성 데이터로 변환합니다",
