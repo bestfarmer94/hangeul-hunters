@@ -59,8 +59,8 @@ springdoc:
 
 jwt:
   secret: ${JWT_SECRET:hangeulhunterssecretkey1234567890abcdefghijklmnopqrstuvwxyz}
-  access-token-expiration: 86400000 # 1 day in milliseconds
-  refresh-token-expiration: 604800000 # 7 days in milliseconds
+  access-token-expiration: ${JWT_EXP_ACCESS:86400000} # 1 day in milliseconds
+  refresh-token-expiration: ${JWT_EXP_REFRESH:604800000} # 7 days in milliseconds
 
 # Naver CLOVA Studio
 cloud:

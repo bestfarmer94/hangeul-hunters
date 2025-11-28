@@ -65,15 +65,16 @@ public class AuthService {
     }
 
     /**
-     * 회원가입 처리
+     * 회원가입 처리 (guest -> user)
      *
+     * @param userId guest 사용자 ID
      * @param signUpRequest 회원가입 요청 정보
      * @return 인증 응답 (토큰 및 사용자 정보)
      */
     @Transactional
-    public AuthResponse signup(SignUpRequest signUpRequest) {
+    public AuthResponse signup(Long userId, SignUpRequest signUpRequest) {
         // 사용자 생성
-        UserDto userDto = userService.createUser(signUpRequest);
+        UserDto userDto = userService.convertGuestToUser(userId, signUpRequest);
         
         String email = userDto.getEmail();
         
