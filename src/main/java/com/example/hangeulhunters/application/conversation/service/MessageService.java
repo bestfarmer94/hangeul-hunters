@@ -57,29 +57,27 @@ public class MessageService {
         }
 
         String messageContent = request.getContent();
-        String audioUrl = null;
+        String audioUrl = request.getAudioUrl();
         Integer pronunciationScore = null;
 
-        // 음성 파일 URL이 있을 경우 STT 수행
+        // 음성 파일 URL이 있을 경우 STT 수행 (발음 평가)
         if (request.getAudioUrl() != null && !request.getAudioUrl().isBlank()) {
 
-            // 1. STT 수행 (임시 URL 사용)
+            // 1. STT 수행
             ClovaSpeechSTTResponse sttResult = languageService.convertSpeechToText(request.getAudioUrl());
 
-            // 2. STT 결과 처리
-            messageContent = sttResult.getText();
-            audioUrl = fileService.saveAudioUrl(AudioType.MESSAGE_AUDIO, request.getAudioUrl());
+            // 2. STT 결과 처리 (발음 점수)
             pronunciationScore = sttResult.getAssessment_score();
 
             // STT 결과가 없거나 비어있으면 예외 처리
-            if (messageContent == null || messageContent.isBlank()) {
+            if (sttResult.getText() == null || sttResult.getText().isBlank()) {
                 throw new ConflictException("STT resulted in empty text.");
             }
         }
 
         // 텍스트 메시지 비어있는 경우
         if (messageContent == null || messageContent.isBlank()) {
-            throw new IllegalArgumentException("Message content is empty or STT conversion failed.");
+            throw new IllegalArgumentException("Message content is empty");
         }
 
         // AI 페르소나 정보 조회
