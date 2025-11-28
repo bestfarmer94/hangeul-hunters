@@ -2,6 +2,8 @@ package com.example.hangeulhunters.domain.conversation.entity;
 
 import com.example.hangeulhunters.domain.common.entity.BaseTimeEntity;
 import com.example.hangeulhunters.domain.conversation.constant.ConversationStatus;
+import com.example.hangeulhunters.domain.conversation.constant.ConversationType;
+import com.example.hangeulhunters.domain.conversation.constant.InterviewStyle;
 import com.example.hangeulhunters.infrastructure.util.DateTimeUtil;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -32,6 +34,11 @@ public class Conversation extends BaseTimeEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    @Builder.Default
+    private ConversationType conversationType = ConversationType.ROLE_PLAYING;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private ConversationStatus status;
 
     @Column(nullable = false, columnDefinition = "TEXT")
@@ -46,6 +53,20 @@ public class Conversation extends BaseTimeEntity {
     @Builder.Default
     @Column(nullable = false)
     private OffsetDateTime lastActivityAt = DateTimeUtil.now();
+
+    // Interview-specific fields
+    @Column(nullable = true)
+    private String interviewCompanyName;
+
+    @Column(nullable = true)
+    private String interviewJobTitle;
+
+    @Column(nullable = true, columnDefinition = "TEXT")
+    private String interviewJobPosting;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = true)
+    private InterviewStyle interviewStyle;
 
     /**
      * 대화 종료
