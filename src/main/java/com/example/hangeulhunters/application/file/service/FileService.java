@@ -1,13 +1,23 @@
 package com.example.hangeulhunters.application.file.service;
 
+import com.example.hangeulhunters.application.common.dto.FileDto;
+import com.example.hangeulhunters.application.common.dto.FileRequest;
+import com.example.hangeulhunters.application.conversation.dto.InterviewRequest;
 import com.example.hangeulhunters.application.file.dto.PresignedUrlRequest;
 import com.example.hangeulhunters.domain.common.constant.AudioType;
+import com.example.hangeulhunters.domain.common.constant.FileObjectType;
 import com.example.hangeulhunters.domain.common.constant.ImageType;
+import com.example.hangeulhunters.domain.common.entity.File;
+import com.example.hangeulhunters.domain.conversation.entity.Conversation;
+import com.example.hangeulhunters.domain.conversation.repository.FileRepository;
 import com.example.hangeulhunters.infrastructure.service.aws.S3Service;
 import com.example.hangeulhunters.infrastructure.service.aws.dto.PresignedUrlDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 파일 서비스
@@ -17,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class FileService {
 
     private final S3Service s3Service;
+    private final FileRepository fileRepository;
 
     /**
      * Presigned URL 생성
@@ -67,5 +78,31 @@ public class FileService {
      */
     public String saveAudioUrl(AudioType audioType, String audioUrl) {
         return s3Service.moveFile(audioType.getPath(), audioUrl);
+    }
+
+    public List<FileDto> saveFiles(Long userId, FileObjectType objectType, Long objectId, List<FileRequest> fileRequests) {
+        // 파일 저장
+        List<FileDto> fileDtos = new ArrayList<>();
+
+        if (fileRequests != null && !fileRequests.isEmpty()) {
+            for (FileRequest fileRequest : fileRequests) {
+                // 파일명 추출 (URL의 마지막 부분)
+//                String fileName = fileRequest.getFileUrl().substring(fileRequest.getFileUrl().lastIndexOf('/') + 1);
+
+                File file = File.builder()
+                        .objectType(objectType)
+                        .objectId(objectId)
+                        .fileUrl(fileRequest.getFileUrl())
+                        .fileName(fileRequest.getFileName())
+                        .fileType(fileRequest.getFileType())
+                        .fileSize(fileRequest.getFileSize())
+                        .createdBy(userId)
+                        .build();
+                File savedFile = fileRepository.save(file);
+                fileDtos.add(FileDto.fromEntity(savedFile));
+            }
+        }
+
+        return fileDtos;
     }
 }

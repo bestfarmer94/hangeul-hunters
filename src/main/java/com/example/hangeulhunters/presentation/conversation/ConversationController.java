@@ -5,6 +5,7 @@ import com.example.hangeulhunters.application.conversation.dto.ConversationDto;
 import com.example.hangeulhunters.application.conversation.dto.ConversationFeedbackDto;
 import com.example.hangeulhunters.application.conversation.dto.ConversationFilterRequest;
 import com.example.hangeulhunters.application.conversation.dto.ConversationRequest;
+import com.example.hangeulhunters.application.conversation.dto.InterviewRequest;
 import com.example.hangeulhunters.application.conversation.service.ConversationService;
 import com.example.hangeulhunters.application.conversation.service.FeedbackService;
 import com.example.hangeulhunters.application.conversation.service.MessageService;
@@ -137,5 +138,17 @@ public class ConversationController extends ControllerSupport {
     ) {
         ConversationFeedbackDto feedback = feedbackService.feedbackConversation(getCurrentUserId(), conversationId);
         return ResponseEntity.ok(feedback);
+    }
+
+    @PostMapping("/interview")
+    @PreAuthorize("hasRole('USER')")
+    @Operation(
+            summary = "면접 대화 생성",
+            description = "면접 대화를 생성합니다. 면접관 페르소나는 자동으로 생성됩니다.",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    public ResponseEntity<ConversationDto> createInterview(@Valid @RequestBody InterviewRequest request) {
+        ConversationDto conversation = conversationService.createInterview(getCurrentUserId(), request);
+        return ResponseEntity.ok(conversation);
     }
 }
