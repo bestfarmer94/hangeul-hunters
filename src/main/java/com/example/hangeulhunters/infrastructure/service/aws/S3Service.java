@@ -167,6 +167,7 @@ public class S3Service {
             case "mp3" -> "audio/mpeg";
             case "wav" -> "audio/wav";
             case "flac" -> "audio/flac";
+            case "pdf" -> "application/pdf";
             default -> "application/octet-stream";
         };
     }
