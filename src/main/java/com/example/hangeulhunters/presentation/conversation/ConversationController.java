@@ -1,16 +1,13 @@
 package com.example.hangeulhunters.presentation.conversation;
 
 import com.example.hangeulhunters.application.common.dto.PageResponse;
-import com.example.hangeulhunters.application.conversation.dto.ConversationDto;
-import com.example.hangeulhunters.application.conversation.dto.ConversationFeedbackDto;
-import com.example.hangeulhunters.application.conversation.dto.ConversationFilterRequest;
-import com.example.hangeulhunters.application.conversation.dto.ConversationRequest;
-import com.example.hangeulhunters.application.conversation.dto.InterviewRequest;
+import com.example.hangeulhunters.application.conversation.dto.*;
 import com.example.hangeulhunters.application.conversation.service.ConversationService;
 import com.example.hangeulhunters.application.conversation.service.FeedbackService;
 import com.example.hangeulhunters.application.conversation.service.MessageService;
 import com.example.hangeulhunters.domain.conversation.constant.ConversationSortBy;
 import com.example.hangeulhunters.domain.conversation.constant.ConversationStatus;
+import com.example.hangeulhunters.domain.conversation.constant.SituationExample;
 import com.example.hangeulhunters.presentation.common.ControllerSupport;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -143,6 +140,7 @@ public class ConversationController extends ControllerSupport {
     )
     public ResponseEntity<ConversationDto> createInterview(@Valid @RequestBody InterviewRequest request) {
         ConversationDto conversation = conversationService.createInterview(getCurrentUserId(), request);
+        messageService.createFirstMessage(getCurrentUserId(), conversation, SituationExample.INTERVIEW);
         return ResponseEntity.ok(conversation);
     }
 }
