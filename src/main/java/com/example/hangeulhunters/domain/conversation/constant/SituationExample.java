@@ -56,6 +56,11 @@ public enum SituationExample {
     @Schema(description = "Complaining about incorrect food orders.")
     CLERK3("Complaining about incorrect food orders to clerk.",
             List.of("불편하게 해드려 죄송합니다. 어떤 문제로 찾아오셨나요?", "무엇을 도와드릴까요?", "혹시 어떤 점 때문에 그러실까요?"),
+            "vpcywszf"),
+
+    @Schema(description = "Interview")
+    INTERVIEW("Complaining about incorrect food orders to clerk.",
+           List.of("불편하게 해드려 죄송합니다. 어떤 문제로 찾아오셨나요?", "무엇을 도와드릴까요?", "혹시 어떤 점 때문에 그러실까요?"),
             "vpcywszf");
 
     private final String situation;
