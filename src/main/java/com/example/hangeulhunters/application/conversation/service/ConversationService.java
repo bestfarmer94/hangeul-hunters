@@ -1,10 +1,10 @@
 package com.example.hangeulhunters.application.conversation.service;
 
+import com.example.hangeulhunters.application.common.dto.FileDto;
 import com.example.hangeulhunters.application.common.dto.PageResponse;
 import com.example.hangeulhunters.application.conversation.dto.ConversationDto;
 import com.example.hangeulhunters.application.conversation.dto.ConversationFilterRequest;
 import com.example.hangeulhunters.application.conversation.dto.ConversationRequest;
-import com.example.hangeulhunters.application.common.dto.FileDto;
 import com.example.hangeulhunters.application.conversation.dto.InterviewRequest;
 import com.example.hangeulhunters.application.file.service.FileService;
 import com.example.hangeulhunters.application.persona.dto.AIPersonaDto;
@@ -17,6 +17,7 @@ import com.example.hangeulhunters.domain.conversation.constant.ConversationStatu
 import com.example.hangeulhunters.domain.conversation.entity.Conversation;
 import com.example.hangeulhunters.domain.conversation.repository.ConversationRepository;
 import com.example.hangeulhunters.domain.persona.constant.PersonaVoice;
+import com.example.hangeulhunters.domain.persona.constant.Relationship;
 import com.example.hangeulhunters.domain.persona.entity.AIPersona;
 import com.example.hangeulhunters.domain.persona.repository.AIPersonaRepository;
 import com.example.hangeulhunters.infrastructure.exception.ForbiddenException;
@@ -166,7 +167,7 @@ public class ConversationService {
     public ConversationDto createInterview(Long userId, InterviewRequest request) {
         // 면접관 페르소나 자동 생성
         String interviewerName = request.getCompanyName() + INTERVIEW.getAiNamePostFix();
-        String voice = PersonaVoice.getPersonaVoice(null, Gender.NONE);
+        String voice = PersonaVoice.getPersonaVoice(Relationship.INTERVIEW, Gender.NONE);
 
         AIPersona interviewer = AIPersona.builder()
                 .userId(userId)
