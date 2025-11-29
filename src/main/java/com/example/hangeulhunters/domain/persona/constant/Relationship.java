@@ -8,7 +8,8 @@ import lombok.RequiredArgsConstructor;
 public enum Relationship {
     BOSS("boss", "employee", "Distant"),
     GF_PARENTS("girlfriend's parents","daughter's boyfriend", "Distant"),
-    CLERK("cafe clerk","customer", "medium");
+    CLERK("cafe clerk","customer", "medium"),
+    INTERVIEW("interviewer","applicant", "Distant");
 
     private final String aiRole;
     private final String userRole;

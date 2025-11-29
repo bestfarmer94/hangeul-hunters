@@ -21,7 +21,7 @@ public enum ConversationType {
      * 면접 대화
      */
     @Schema(description = "면접")
-    INTERVIEW(" 면접관", 35, "면접관", "지원자", "%s의 %s 면접관입니다.", "면접");
+    INTERVIEW(" 면접관", 35, "interviewer", "applicant", "%s의 %s 면접관입니다.", "interview");
 
     private final String aiNamePostFix;
     private final Integer defaultAge;
