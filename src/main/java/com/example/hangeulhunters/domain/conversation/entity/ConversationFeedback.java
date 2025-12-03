@@ -1,13 +1,14 @@
 package com.example.hangeulhunters.domain.conversation.entity;
 
 import com.example.hangeulhunters.domain.common.entity.BaseTimeEntity;
-import com.example.hangeulhunters.domain.conversation.converter.ImprovementListConverter;
 import com.example.hangeulhunters.domain.conversation.vo.ImprovementItem;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.util.List;
 
@@ -51,7 +52,6 @@ public class ConversationFeedback extends BaseTimeEntity {
      * 개선점 목록 (JSON 배열: [{point, tip}, ...])
      * 최대 3개
      */
-    @Convert(converter = ImprovementListConverter.class)
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @JdbcTypeCode(SqlTypes.JSON)
     private List<ImprovementItem> improvementPoints;
 }
