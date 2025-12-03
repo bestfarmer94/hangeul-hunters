@@ -83,3 +83,13 @@ cloud:
     tts:
       language-code: ko-KR
       default-voice-name: ko-KR-Chirp3-HD-Leda
+  noonchi-ai:
+    base-url: https://noonchi-ai-724638789140.asia-northeast3.run.app
+    api-key: ${CLOVA_STUDIO_API_KEY:}
+    endpoints:
+      role-playing-start: /chat/role-playing/start
+      role-playing-chat: /chat/role-playing
+      interview-start: /chat/interview/start
+      interview-chat: /chat/interview
+      translation: /translate
+      report: /report
