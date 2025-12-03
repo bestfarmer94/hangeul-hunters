@@ -65,6 +65,13 @@ public class ConversationDto {
     @Schema(description = "면접 스타일 (면접용)", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private InterviewStyle interviewStyle;
 
+    // Task tracking fields
+    @Schema(description = "현재 진행 중인 task 레벨", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    private Integer taskCurrentLevel;
+
+    @Schema(description = "모든 task 완료 여부", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    private Boolean taskAllCompleted;
+
     @Schema(description = "파일 목록", requiredMode = Schema.RequiredMode.REQUIRED)
     private List<FileDto> files;
 
@@ -84,6 +91,8 @@ public class ConversationDto {
                 .interviewJobTitle(conversation.getInterviewJobTitle())
                 .interviewJobPosting(conversation.getInterviewJobPosting())
                 .interviewStyle(conversation.getInterviewStyle())
+                .taskCurrentLevel(conversation.getTaskCurrentLevel())
+                .taskAllCompleted(conversation.getTaskAllCompleted())
                 .files(files)
                 .build();
     }
