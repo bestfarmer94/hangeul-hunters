@@ -9,10 +9,7 @@ CREATE TABLE conversation_topic (
     task_count INT NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL,
     updated_at TIMESTAMPTZ,
-    deleted_at TIMESTAMPTZ,
-    created_by BIGINT,
-    updated_by BIGINT,
-    deleted_by BIGINT
+    deleted_at TIMESTAMPTZ
 );
 
 CREATE INDEX idx_conversation_topic_type_track ON conversation_topic(conversation_type, track);
@@ -25,10 +22,7 @@ CREATE TABLE conversation_topic_task (
     name TEXT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL,
     updated_at TIMESTAMPTZ,
-    deleted_at TIMESTAMPTZ,
-    created_by BIGINT,
-    updated_by BIGINT,
-    deleted_by BIGINT
+    deleted_at TIMESTAMPTZ
 );
 
 CREATE INDEX idx_topic_task_topic_id ON conversation_topic_task(topic_id);
