@@ -69,6 +69,9 @@ public class ConversationDto {
     @Schema(description = "현재 진행 중인 task 레벨", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private Integer taskCurrentLevel;
 
+    @Schema(description = "현재 진행 중인 task 이름", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    private String taskCurrentName;
+
     @Schema(description = "모든 task 완료 여부", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private Boolean taskAllCompleted;
 
@@ -92,6 +95,7 @@ public class ConversationDto {
                 .interviewJobPosting(conversation.getInterviewJobPosting())
                 .interviewStyle(conversation.getInterviewStyle())
                 .taskCurrentLevel(conversation.getTaskCurrentLevel())
+                .taskCurrentName(conversation.getTaskCurrentName())
                 .taskAllCompleted(conversation.getTaskAllCompleted())
                 .files(files)
                 .build();

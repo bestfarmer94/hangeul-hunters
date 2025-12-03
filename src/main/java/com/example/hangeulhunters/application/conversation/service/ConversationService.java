@@ -20,6 +20,7 @@ import com.example.hangeulhunters.domain.persona.constant.PersonaVoice;
 import com.example.hangeulhunters.domain.persona.constant.Relationship;
 import com.example.hangeulhunters.domain.persona.entity.AIPersona;
 import com.example.hangeulhunters.domain.persona.repository.AIPersonaRepository;
+import com.example.hangeulhunters.domain.topic.repository.ConversationTopicTaskRepository;
 import com.example.hangeulhunters.infrastructure.exception.ForbiddenException;
 import com.example.hangeulhunters.infrastructure.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +41,7 @@ public class ConversationService {
 
     private final ConversationRepository conversationRepository;
     private final AIPersonaRepository aiPersonaRepository;
+    private final ConversationTopicTaskRepository conversationTopicTaskRepository;
     private final UserService userService;
     private final AIPersonaService aIPersonaService;
     private final FileService fileService;

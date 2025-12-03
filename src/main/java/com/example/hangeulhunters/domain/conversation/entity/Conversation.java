@@ -76,6 +76,12 @@ public class Conversation extends BaseTimeEntity {
     private Integer taskCurrentLevel;
 
     /**
+     * 현재 진행 중인 task 내용
+     */
+    @Column(nullable = true, columnDefinition = "TEXT")
+    private String taskCurrentName;
+
+    /**
      * 모든 task 완료 여부
      */
     @Column(nullable = true)
