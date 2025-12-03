@@ -54,6 +54,31 @@ public class Message extends BaseTimeEntity {
     @Column(nullable = true)
     private Integer pronunciationScore;
 
+    // AI Response fields (from ChatResponse)
+    /**
+     * AI 반응 이모지
+     */
+    @Column(nullable = true)
+    private String reactionEmoji;
+
+    /**
+     * AI 반응 설명
+     */
+    @Column(nullable = true, columnDefinition = "TEXT")
+    private String reactionDescription;
+
+    /**
+     * AI 반응 이유 (영어)
+     */
+    @Column(nullable = true, columnDefinition = "TEXT")
+    private String reactionReason;
+
+    /**
+     * 추천 응답 (한국어)
+     */
+    @Column(nullable = true, columnDefinition = "TEXT")
+    private String recommendation;
+
     /**
      * 번역문 저장
      */

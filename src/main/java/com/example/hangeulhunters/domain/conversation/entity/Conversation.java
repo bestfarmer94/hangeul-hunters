@@ -68,6 +68,19 @@ public class Conversation extends BaseTimeEntity {
     @Column(nullable = true)
     private InterviewStyle interviewStyle;
 
+    // Task tracking fields
+    /**
+     * 현재 진행 중인 task 레벨
+     */
+    @Column(nullable = true)
+    private Integer taskCurrentLevel;
+
+    /**
+     * 모든 task 완료 여부
+     */
+    @Column(nullable = true)
+    private Boolean taskAllCompleted;
+
     /**
      * 대화 종료
      */
