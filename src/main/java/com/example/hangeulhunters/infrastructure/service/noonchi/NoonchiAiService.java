@@ -4,12 +4,10 @@ import com.example.hangeulhunters.infrastructure.config.NoonchiAiProperties;
 import com.example.hangeulhunters.infrastructure.service.noonchi.dto.NoonchiAiDto.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
-import reactor.core.publisher.Mono;
 
 import java.util.List;
 
@@ -21,7 +19,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class NoonchiAiService {
 
-    @Qualifier("noonchiAiWebClient")
     private final WebClient webClient;
 
     private final NoonchiAiProperties properties;
@@ -48,7 +45,8 @@ public class NoonchiAiService {
 
         try {
             ChatStartResponse response = webClient.post()
-                    .uri(properties.getEndpoints().getRolePlayingStart())
+                    .uri(properties.getBaseUrl() + properties.getEndpoints().getRolePlayingStart())
+                    .header("x-api-key", properties.getApiKey())
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(request)
                     .retrieve()
@@ -91,7 +89,8 @@ public class NoonchiAiService {
 
         try {
             ChatResponse response = webClient.post()
-                    .uri(properties.getEndpoints().getRolePlayingChat())
+                    .uri(properties.getBaseUrl() + properties.getEndpoints().getRolePlayingChat())
+                    .header("x-api-key", properties.getApiKey())
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(request)
                     .retrieve()
@@ -131,7 +130,8 @@ public class NoonchiAiService {
 
         try {
             ChatStartResponse response = webClient.post()
-                    .uri(properties.getEndpoints().getInterviewStart())
+                    .uri(properties.getBaseUrl() + properties.getEndpoints().getInterviewStart())
+                    .header("x-api-key", properties.getApiKey())
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(request)
                     .retrieve()
@@ -168,7 +168,8 @@ public class NoonchiAiService {
 
         try {
             ChatResponse response = webClient.post()
-                    .uri(properties.getEndpoints().getInterviewChat())
+                    .uri(properties.getBaseUrl() + properties.getEndpoints().getInterviewChat())
+                    .header("x-api-key", properties.getApiKey())
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(request)
                     .retrieve()
@@ -209,7 +210,8 @@ public class NoonchiAiService {
 
         try {
             TranslationResponse response = webClient.post()
-                    .uri(properties.getEndpoints().getTranslation())
+                    .uri(properties.getBaseUrl() + properties.getEndpoints().getTranslation())
+                    .header("x-api-key", properties.getApiKey())
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(request)
                     .retrieve()
@@ -248,7 +250,8 @@ public class NoonchiAiService {
 
         try {
             LearningReportResponse response = webClient.post()
-                    .uri(properties.getEndpoints().getReport())
+                    .uri(properties.getBaseUrl() + properties.getEndpoints().getReport())
+                    .header("x-api-key", properties.getApiKey())
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(request)
                     .retrieve()
