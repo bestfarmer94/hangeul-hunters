@@ -30,13 +30,22 @@ public class MessageFeedback extends BaseTimeEntity {
 
     @Column(nullable = false)
     private Integer naturalnessScore;
-    
+
     @Column(nullable = true)
     private Integer pronunciationScore;
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String appropriateExpression;
 
+    /**
+     * 문법/존댓말 피드백 (영어)
+     */
     @Column(nullable = false, columnDefinition = "TEXT")
-    private String explain;
+    private String contentsFeedback;
+
+    /**
+     * 맥락/눈치 피드백 (영어)
+     */
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String nuanceFeedback;
 }
