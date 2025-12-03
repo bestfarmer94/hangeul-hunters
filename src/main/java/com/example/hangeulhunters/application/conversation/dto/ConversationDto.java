@@ -65,7 +65,7 @@ public class ConversationDto {
     @Schema(description = "면접 스타일 (면접용)", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private InterviewStyle interviewStyle;
 
-    @Schema(description = "파일 목록", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    @Schema(description = "파일 목록", requiredMode = Schema.RequiredMode.REQUIRED)
     private List<FileDto> files;
 
     public static ConversationDto of(Conversation conversation, AIPersonaDto aiPersona, List<FileDto> files) {
@@ -90,6 +90,6 @@ public class ConversationDto {
 
     // Backward compatibility: method without files parameter
     public static ConversationDto of(Conversation conversation, AIPersonaDto aiPersona) {
-        return of(conversation, aiPersona, null);
+        return of(conversation, aiPersona, List.of());
     }
 }

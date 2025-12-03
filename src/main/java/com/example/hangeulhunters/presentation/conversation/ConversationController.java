@@ -140,7 +140,7 @@ public class ConversationController extends ControllerSupport {
     )
     public ResponseEntity<ConversationDto> createInterview(@Valid @RequestBody InterviewRequest request) {
         ConversationDto conversation = conversationService.createInterview(getCurrentUserId(), request);
-        messageService.createFirstMessage(getCurrentUserId(), conversation, SituationExample.INTERVIEW);
+        messageService.createInterviewFirstMessage(getCurrentUserId(), conversation);
         return ResponseEntity.ok(conversation);
     }
 }
