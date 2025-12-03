@@ -37,6 +37,9 @@ public class Conversation extends BaseTimeEntity {
     @Builder.Default
     private ConversationType conversationType = ConversationType.ROLE_PLAYING;
 
+    @Column(nullable = false)
+    private String conversationTopic;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ConversationStatus status;
