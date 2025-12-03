@@ -29,18 +29,21 @@ public class NoonchiAiService {
     // ==================== Role-Playing APIs ====================
 
     /**
-     * 롤플레잉 대화 시작
+     * 롬플레잉 대화 시작
      * 
      * @param conversationId 대화방 ID
-     * @param track          롤플레잉 트랙 (career, love, belonging, kpop)
+     * @param track          롬플레잉 트랙 (career, love, belonging, kpop)
+     * @param topic          시나리오 토픽
      * @return AI 첫 발화 응답
      */
-    public ChatStartResponse startRolePlayingChat(Long conversationId, String track) {
-        log.info("Starting role-playing chat - conversationId: {}, track: {}", conversationId, track);
+    public ChatStartResponse startRolePlayingChat(Long conversationId, String track, String topic) {
+        log.info("Starting role-playing chat - conversationId: {}, track: {}, topic: {}",
+                conversationId, track, topic);
 
         RolePlayingStartRequest request = RolePlayingStartRequest.builder()
                 .conversationId(conversationId)
                 .track(track)
+                .topic(topic)
                 .build();
 
         try {
@@ -66,23 +69,24 @@ public class NoonchiAiService {
     }
 
     /**
-     * 롤플레잉 대화 진행
+     * 롬플레잉 대화 진행
      * 
      * @param conversationId 대화방 ID
      * @param userMessage    사용자 메시지
-     * @param track          롤플레잉 트랙
-     * @param completedTasks 완료된 Task 상태 목록
+     * @param track          롬플레잉 트랙
+     * @param topic          시나리오 토픽
      * @return AI 응답
      */
-    public ChatResponse chatRolePlayingMessage(Long conversationId, String userMessage, String track,
-            List<Boolean> completedTasks) {
-        log.info("Sending role-playing message - conversationId: {}, track: {}", conversationId, track);
+    public ChatResponse chatRolePlayingMessage(Long conversationId, String userMessage,
+            String track, String topic) {
+        log.info("Sending role-playing message - conversationId: {}, track: {}, topic: {}",
+                conversationId, track, topic);
 
         RolePlayingChatRequest request = RolePlayingChatRequest.builder()
                 .conversationId(conversationId)
                 .userMessage(userMessage)
                 .track(track)
-                .completedTasks(completedTasks)
+                .topic(topic)
                 .build();
 
         try {
@@ -94,8 +98,7 @@ public class NoonchiAiService {
                     .bodyToMono(ChatResponse.class)
                     .block();
 
-            log.info("Role-playing message sent successfully - conversationId: {}, complete: {}",
-                    conversationId, response.getIsConversationComplete());
+            log.info("Role-playing message sent successfully - conversationId: {}", conversationId);
             return response;
 
         } catch (WebClientResponseException e) {
@@ -114,15 +117,16 @@ public class NoonchiAiService {
      * 면접 대화 시작
      * 
      * @param conversationId 대화방 ID
-     * @param resumeUrl      이력서 파일 URL (선택)
+     * @param resumeUrls     이력서 파일 URL 목록 (선택)
      * @return AI 첫 발화 응답
      */
-    public ChatStartResponse startInterviewChat(Long conversationId, String resumeUrl) {
-        log.info("Starting interview chat - conversationId: {}, hasResume: {}", conversationId, resumeUrl != null);
+    public ChatStartResponse startInterviewChat(Long conversationId, List<String> resumeUrls) {
+        log.info("Starting interview chat - conversationId: {}, resumeCount: {}",
+                conversationId, resumeUrls != null ? resumeUrls.size() : 0);
 
         InterviewStartRequest request = InterviewStartRequest.builder()
                 .conversationId(conversationId)
-                .resumeUrl(resumeUrl)
+                .resumeUrls(resumeUrls)
                 .build();
 
         try {
@@ -152,16 +156,14 @@ public class NoonchiAiService {
      * 
      * @param conversationId 대화방 ID
      * @param userMessage    사용자 메시지
-     * @param completedTasks 완료된 Task 상태 목록
      * @return AI 응답
      */
-    public ChatResponse chatInterviewMessage(Long conversationId, String userMessage, List<Boolean> completedTasks) {
+    public ChatResponse chatInterviewMessage(Long conversationId, String userMessage) {
         log.info("Sending interview message - conversationId: {}", conversationId);
 
         InterviewChatRequest request = InterviewChatRequest.builder()
                 .conversationId(conversationId)
                 .userMessage(userMessage)
-                .completedTasks(completedTasks)
                 .build();
 
         try {
@@ -173,8 +175,7 @@ public class NoonchiAiService {
                     .bodyToMono(ChatResponse.class)
                     .block();
 
-            log.info("Interview message sent successfully - conversationId: {}, complete: {}",
-                    conversationId, response.getIsConversationComplete());
+            log.info("Interview message sent successfully - conversationId: {}", conversationId);
             return response;
 
         } catch (WebClientResponseException e) {

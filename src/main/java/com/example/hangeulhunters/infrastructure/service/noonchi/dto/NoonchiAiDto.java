@@ -16,18 +16,6 @@ public class NoonchiAiDto {
     // ==================== Common DTOs ====================
 
     /**
-     * Task 상태
-     */
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class TaskStatus {
-        private String task;
-        private Boolean completed;
-    }
-
-    /**
      * 개선점 항목
      */
     @Data
@@ -53,6 +41,8 @@ public class NoonchiAiDto {
         private Long conversationId;
 
         private String track;
+
+        private String topic;
     }
 
     /**
@@ -71,8 +61,7 @@ public class NoonchiAiDto {
 
         private String track;
 
-        @JsonProperty("completed_tasks")
-        private List<Boolean> completedTasks;
+        private String topic;
     }
 
     // ==================== Interview DTOs ====================
@@ -88,8 +77,8 @@ public class NoonchiAiDto {
         @JsonProperty("conversation_id")
         private Long conversationId;
 
-        @JsonProperty("resume_url")
-        private String resumeUrl;
+        @JsonProperty("resume_urls")
+        private List<String> resumeUrls;
     }
 
     /**
@@ -105,9 +94,6 @@ public class NoonchiAiDto {
 
         @JsonProperty("user_message")
         private String userMessage;
-
-        @JsonProperty("completed_tasks")
-        private List<Boolean> completedTasks;
     }
 
     // ==================== Chat Response DTOs ====================
@@ -129,8 +115,6 @@ public class NoonchiAiDto {
         private String reactionDescription;
 
         private String recommendation;
-
-        private List<TaskStatus> tasks;
     }
 
     /**
@@ -169,7 +153,8 @@ public class NoonchiAiDto {
 
         private String recommendation;
 
-        private List<TaskStatus> tasks;
+        @JsonProperty("is_task_completed")
+        private Boolean isTaskCompleted;
 
         @JsonProperty("is_conversation_complete")
         private Boolean isConversationComplete;
