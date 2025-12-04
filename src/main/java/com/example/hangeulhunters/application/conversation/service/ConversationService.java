@@ -212,6 +212,9 @@ public class ConversationService {
                                 .interviewJobTitle(request.getJobTitle())
                                 .interviewJobPosting(request.getJobPosting())
                                 .interviewStyle(request.getInterviewStyle())
+                                .taskCurrentLevel(1)
+                                .taskCurrentName(getConversationTopicTaskByTopicName(INTERVIEW.getSituation(), 1).getName())
+                                .taskAllCompleted(false)
                                 .createdBy(userId)
                                 .build();
                 Conversation savedConversation = conversationRepository.save(conversation);
@@ -228,26 +231,19 @@ public class ConversationService {
         }
 
         /**
-         * ConversationTopic 정보 조회
+         * 면접 대화의 과제 완료 처리
+         *
+         * @param userId
+         * @param conversationId
          */
-        private ConversationTopic getConversationTopic(String conversationTopic) {
-                return conversationTopicRepository.findByNameAndDeletedAtNull(conversationTopic)
-                        .orElseThrow(() -> new ResourceNotFoundException("ConversationTopic", "name", conversationTopic));
-        }
-
-        /**
-         * ConversationTopic 정보 조회
-         */
-        private ConversationTopicTask getConversationTopicTask(Long topicId, Integer taskLevel) {
-                return conversationTopicTaskRepository.findByTopicIdAndLevelAndDeletedAtNull(topicId, taskLevel)
-                        .orElseThrow(() -> new ResourceNotFoundException("ConversationTopicTask", "topicId and level",
-                                topicId + " and " + taskLevel));
-        }
-
         @Transactional
         public void processConversationTaskCompletion(Long userId, Long conversationId) {
                 Conversation conversation = conversationRepository.findByIdAndUserId(conversationId, userId)
                                 .orElseThrow(() -> new ResourceNotFoundException("Conversation", "id", conversationId));
+
+                if(conversation.getTaskCurrentLevel() == null) {
+                        return;
+                }
 
                 ConversationTopic conversationTopic = getConversationTopic(conversation.getConversationTopic());
 
@@ -260,5 +256,32 @@ public class ConversationService {
                 }
 
                 conversationRepository.save(conversation);
+        }
+
+        /**
+         * ConversationTopic 정보 조회
+         */
+        private ConversationTopic getConversationTopic(String conversationTopic) {
+                return conversationTopicRepository.findByNameAndDeletedAtNull(conversationTopic)
+                        .orElseThrow(() -> new ResourceNotFoundException("ConversationTopic", "name", conversationTopic));
+        }
+
+        /**
+         * ConversationTopic 정보 조회 (TopicId)
+         */
+        private ConversationTopicTask getConversationTopicTask(Long topicId, Integer taskLevel) {
+                return conversationTopicTaskRepository.findByTopicIdAndLevelAndDeletedAtNull(topicId, taskLevel)
+                        .orElseThrow(() -> new ResourceNotFoundException("ConversationTopicTask", "topicId and level",
+                                topicId + " and " + taskLevel));
+        }
+
+        /**
+         * ConversationTopic 정보 조회 (TopicName)
+         */
+        private ConversationTopicTask getConversationTopicTaskByTopicName(String topicName, Integer taskLevel) {
+                ConversationTopic conversationTopic = getConversationTopic(topicName);
+                return conversationTopicTaskRepository.findByTopicIdAndLevelAndDeletedAtNull(conversationTopic.getId(), taskLevel)
+                        .orElseThrow(() -> new ResourceNotFoundException("ConversationTopicTask", "topicId and level",
+                                conversationTopic.getId() + " and " + taskLevel));
         }
 }
