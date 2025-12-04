@@ -81,7 +81,7 @@ public class ConversationController extends ControllerSupport {
     }
 
     @PutMapping("/{conversationId}/end")
-    @PreAuthorize("hasRole('USER')")
+//    @PreAuthorize("hasRole('USER')")
     @Operation(
         summary = "대화 종료",
         description = "진행 중인 대화를 종료합니다",
