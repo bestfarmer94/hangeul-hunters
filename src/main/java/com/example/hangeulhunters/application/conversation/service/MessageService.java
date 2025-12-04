@@ -54,7 +54,7 @@ public class MessageService {
     private final FeedbackService feedbackService;
 
     @Transactional
-    public MessageDto sendMessage(Long userId, MessageRequest request) {
+    public List<MessageDto> sendMessage(Long userId, MessageRequest request) {
         // 대화 정보 조회
         ConversationDto conversation = conversationService.getConversationById(userId, request.getConversationId());
 
@@ -129,8 +129,8 @@ public class MessageService {
         // 대화의 마지막 활동 시간 업데이트
         conversationService.updateLastActivity(conversation.getConversationId());
 
-        // AI 메시지 반환
-        return MessageDto.fromEntity(aiMessage);
+        // USER, AI 메시지 반환
+        return List.of(MessageDto.fromEntity(userMessage), MessageDto.fromEntity(aiMessage));
     }
 
     @Transactional(readOnly = true)

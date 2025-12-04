@@ -18,6 +18,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/messages")
 @RequiredArgsConstructor
@@ -44,12 +46,12 @@ public class MessageController extends ControllerSupport {
     @PostMapping
     @Operation(
             summary = "메시지 전송",
-            description = "대화에 메시지를 전송합니다",
+            description = "대화에 메시지를 전송합니다. 사용자가 보낸 메시지와 시스템이 생성한 응답 메시지를 모두 반환합니다",
             security = @SecurityRequirement(name = "bearerAuth")
     )
-    public ResponseEntity<MessageDto> sendMessage(@Valid @RequestBody MessageRequest request) {
-        MessageDto message = messageService.sendMessage(getCurrentUserId(), request);
-        return ResponseEntity.ok(message);
+    public ResponseEntity<List<MessageDto>> sendMessage(@Valid @RequestBody MessageRequest request) {
+        List<MessageDto> messages = messageService.sendMessage(getCurrentUserId(), request);
+        return ResponseEntity.ok(messages);
     }
 
     @PostMapping("/ai-reply")
