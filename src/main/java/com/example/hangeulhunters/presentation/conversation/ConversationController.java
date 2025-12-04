@@ -76,7 +76,7 @@ public class ConversationController extends ControllerSupport {
     )
     public ResponseEntity<ConversationDto> createConversation(@Valid @RequestBody ConversationRequest request) {
         ConversationDto conversation = conversationService.createRolePlaying(getCurrentUserId(), request);
-        messageService.createRolePlayingFirstMessage(getCurrentUserId(), conversation);
+        messageService.createRolePlayingFirstMessage(getCurrentUserId(), conversation, request.getConversationTopic());
         return ResponseEntity.ok(conversation);
     }
 
