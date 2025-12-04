@@ -24,9 +24,11 @@ import com.example.hangeulhunters.domain.topic.entity.ConversationTopic;
 import com.example.hangeulhunters.domain.topic.entity.ConversationTopicTask;
 import com.example.hangeulhunters.domain.topic.repository.ConversationTopicRepository;
 import com.example.hangeulhunters.domain.topic.repository.ConversationTopicTaskRepository;
+import com.example.hangeulhunters.infrastructure.exception.ConflictException;
 import com.example.hangeulhunters.infrastructure.exception.ForbiddenException;
 import com.example.hangeulhunters.infrastructure.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -40,6 +42,7 @@ import java.util.Optional;
 import static com.example.hangeulhunters.domain.conversation.constant.ConversationType.INTERVIEW;
 import static com.example.hangeulhunters.domain.conversation.constant.ConversationType.ROLE_PLAYING;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ConversationService {
@@ -51,6 +54,7 @@ public class ConversationService {
         private final UserService userService;
         private final AIPersonaService aIPersonaService;
         private final FileService fileService;
+        private final FeedbackService feedbackService;
 
         /**
          * 사용자의 대화 목록을 필터링하여 페이징 조회
@@ -76,10 +80,12 @@ public class ConversationService {
                                 conversations,
                                 conversations.stream()
                                                 .map(conversation -> ConversationDto.of(
-                                                        conversation,
-                                                        aIPersonaService.getPersonaByIdIncludeDeleted(userId, conversation.getPersonaId()),
-                                                        getConversationTopic(conversation.getConversationTopic()).getTrack()
-                                                ))
+                                                                conversation,
+                                                                aIPersonaService.getPersonaByIdIncludeDeleted(userId,
+                                                                                conversation.getPersonaId()),
+                                                                getConversationTopic(
+                                                                                conversation.getConversationTopic())
+                                                                                .getTrack()))
                                                 .toList());
         }
 
@@ -93,7 +99,7 @@ public class ConversationService {
                 ConversationTopic conversationTopic = getConversationTopic(conversation.getConversationTopic());
 
                 return ConversationDto.of(conversation, persona, conversationTopic.getTrack(),
-                        fileService.getFiles(FileObjectType.CONVERSATION, conversationId));
+                                fileService.getFiles(FileObjectType.CONVERSATION, conversationId));
         }
 
         @Transactional
@@ -107,19 +113,19 @@ public class ConversationService {
 
                 // 대화 생성
                 Conversation conversation = Conversation.builder()
-                        .userId(userId)
-                        .personaId(request.getPersonaId())
-                        .conversationType(ROLE_PLAYING)
-                        .conversationTopic(request.getConversationTopic())
-                        .status(ConversationStatus.ACTIVE)
-                        .situation(request.getSituation().getSituation())
-                        .createdBy(userId)
-                        .build();
+                                .userId(userId)
+                                .personaId(request.getPersonaId())
+                                .conversationType(ROLE_PLAYING)
+                                .conversationTopic(request.getConversationTopic())
+                                .status(ConversationStatus.ACTIVE)
+                                .situation(request.getSituation().getSituation())
+                                .createdBy(userId)
+                                .build();
                 Conversation savedConversation = conversationRepository.save(conversation);
 
                 return ConversationDto.of(savedConversation,
-                        aIPersonaService.getPersonaById(userId, savedConversation.getPersonaId()),
-                        getConversationTopic(request.getConversationTopic()).getTrack());
+                                aIPersonaService.getPersonaById(userId, savedConversation.getPersonaId()),
+                                getConversationTopic(request.getConversationTopic()).getTrack());
         }
 
         @Transactional
@@ -132,9 +138,13 @@ public class ConversationService {
                         throw new ForbiddenException("User does not own this conversation");
                 }
 
+                // 모든 과제 완료 여부 확인
+                if (Boolean.FALSE.equals(conversation.getTaskAllCompleted())) {
+                        throw new ConflictException("Cannot end conversation: all tasks must be completed first");
+                }
+
                 // 대화 종료 처리
                 conversation.endConversation();
-
                 conversationRepository.save(conversation);
         }
 
@@ -213,7 +223,8 @@ public class ConversationService {
                                 .interviewJobPosting(request.getJobPosting())
                                 .interviewStyle(request.getInterviewStyle())
                                 .taskCurrentLevel(1)
-                                .taskCurrentName(getConversationTopicTaskByTopicName(INTERVIEW.getSituation(), 1).getName())
+                                .taskCurrentName(getConversationTopicTaskByTopicName(INTERVIEW.getSituation(), 1)
+                                                .getName())
                                 .taskAllCompleted(false)
                                 .createdBy(userId)
                                 .build();
@@ -241,17 +252,17 @@ public class ConversationService {
                 Conversation conversation = conversationRepository.findByIdAndUserId(conversationId, userId)
                                 .orElseThrow(() -> new ResourceNotFoundException("Conversation", "id", conversationId));
 
-                if(conversation.getTaskCurrentLevel() == null) {
+                if (conversation.getTaskCurrentLevel() == null) {
                         return;
                 }
 
                 ConversationTopic conversationTopic = getConversationTopic(conversation.getConversationTopic());
 
-                if(Objects.equals(conversationTopic.getTaskCount(), conversation.getTaskCurrentLevel())) {
+                if (Objects.equals(conversationTopic.getTaskCount(), conversation.getTaskCurrentLevel())) {
                         conversation.completeTask();
                 } else {
                         ConversationTopicTask nextTask = getConversationTopicTask(conversationTopic.getId(),
-                                conversation.getTaskCurrentLevel() + 1);
+                                        conversation.getTaskCurrentLevel() + 1);
                         conversation.processTask(nextTask.getName());
                 }
 
@@ -263,7 +274,8 @@ public class ConversationService {
          */
         private ConversationTopic getConversationTopic(String conversationTopic) {
                 return conversationTopicRepository.findByNameAndDeletedAtNull(conversationTopic)
-                        .orElseThrow(() -> new ResourceNotFoundException("ConversationTopic", "name", conversationTopic));
+                                .orElseThrow(() -> new ResourceNotFoundException("ConversationTopic", "name",
+                                                conversationTopic));
         }
 
         /**
@@ -271,8 +283,9 @@ public class ConversationService {
          */
         private ConversationTopicTask getConversationTopicTask(Long topicId, Integer taskLevel) {
                 return conversationTopicTaskRepository.findByTopicIdAndLevelAndDeletedAtNull(topicId, taskLevel)
-                        .orElseThrow(() -> new ResourceNotFoundException("ConversationTopicTask", "topicId and level",
-                                topicId + " and " + taskLevel));
+                                .orElseThrow(() -> new ResourceNotFoundException("ConversationTopicTask",
+                                                "topicId and level",
+                                                topicId + " and " + taskLevel));
         }
 
         /**
@@ -280,8 +293,10 @@ public class ConversationService {
          */
         private ConversationTopicTask getConversationTopicTaskByTopicName(String topicName, Integer taskLevel) {
                 ConversationTopic conversationTopic = getConversationTopic(topicName);
-                return conversationTopicTaskRepository.findByTopicIdAndLevelAndDeletedAtNull(conversationTopic.getId(), taskLevel)
-                        .orElseThrow(() -> new ResourceNotFoundException("ConversationTopicTask", "topicId and level",
-                                conversationTopic.getId() + " and " + taskLevel));
+                return conversationTopicTaskRepository
+                                .findByTopicIdAndLevelAndDeletedAtNull(conversationTopic.getId(), taskLevel)
+                                .orElseThrow(() -> new ResourceNotFoundException("ConversationTopicTask",
+                                                "topicId and level",
+                                                conversationTopic.getId() + " and " + taskLevel));
         }
 }

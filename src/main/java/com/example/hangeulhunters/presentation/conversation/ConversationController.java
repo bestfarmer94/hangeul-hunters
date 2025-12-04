@@ -89,7 +89,9 @@ public class ConversationController extends ControllerSupport {
     )
     public ResponseEntity<Void> endConversation(@PathVariable Long conversationId) {
         conversationService.endConversation(getCurrentUserId(), conversationId);
-        feedbackService.feedbackConversation(getCurrentUserId(), conversationId);
+        feedbackService.saveConversationFeedback(getCurrentUserId(),
+                conversationService.getConversationById(getCurrentUserId(), conversationId),
+                messageService.getAllMessagesByConversationId(conversationId));
         return ResponseEntity.noContent().build();
     }
 
@@ -127,7 +129,9 @@ public class ConversationController extends ControllerSupport {
     public ResponseEntity<ConversationFeedbackDto> createConversationFeedback(
             @PathVariable Long conversationId
     ) {
-        ConversationFeedbackDto feedback = feedbackService.feedbackConversation(getCurrentUserId(), conversationId);
+        ConversationFeedbackDto feedback = feedbackService.saveConversationFeedback(getCurrentUserId(),
+                conversationService.getConversationById(getCurrentUserId(), conversationId),
+                messageService.getAllMessagesByConversationId(conversationId));
         return ResponseEntity.ok(feedback);
     }
 
