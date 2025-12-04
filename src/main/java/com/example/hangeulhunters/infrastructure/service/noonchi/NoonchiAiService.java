@@ -1,5 +1,6 @@
 package com.example.hangeulhunters.infrastructure.service.noonchi;
 
+import com.example.hangeulhunters.domain.conversation.constant.ConversationTopicExample;
 import com.example.hangeulhunters.infrastructure.config.NoonchiAiProperties;
 import com.example.hangeulhunters.infrastructure.service.noonchi.dto.NoonchiAiDto.*;
 import lombok.RequiredArgsConstructor;
@@ -33,14 +34,14 @@ public class NoonchiAiService {
      * @param topic          시나리오 토픽
      * @return AI 첫 발화 응답
      */
-    public ChatStartResponse startRolePlayingChat(Long conversationId, String track, String topic) {
+    public ChatStartResponse startRolePlayingChat(Long conversationId, String track, ConversationTopicExample topic) {
         log.info("Starting role-playing chat - conversationId: {}, track: {}, topic: {}",
                 conversationId, track, topic);
 
         RolePlayingStartRequest request = RolePlayingStartRequest.builder()
                 .conversationId(conversationId)
                 .track(track)
-                .topic(topic)
+                .topic(topic.name())
                 .build();
 
         try {

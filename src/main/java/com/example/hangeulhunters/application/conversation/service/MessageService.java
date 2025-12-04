@@ -12,6 +12,7 @@ import com.example.hangeulhunters.application.persona.dto.AIPersonaDto;
 import com.example.hangeulhunters.application.persona.service.AIPersonaService;
 import com.example.hangeulhunters.application.user.service.UserService;
 import com.example.hangeulhunters.domain.common.constant.AudioType;
+import com.example.hangeulhunters.domain.conversation.constant.ConversationTopicExample;
 import com.example.hangeulhunters.domain.conversation.constant.MessageType;
 import com.example.hangeulhunters.domain.conversation.constant.SituationExample;
 import com.example.hangeulhunters.domain.conversation.entity.Message;
@@ -193,7 +194,7 @@ public class MessageService {
     }
 
     @Transactional
-    public void createRolePlayingFirstMessage(Long userId, ConversationDto conversation) {
+    public void createRolePlayingFirstMessage(Long userId, ConversationDto conversation, ConversationTopicExample topic) {
 
         // AI 서버 호출하여 롤플레잉 첫 메시지 생성
         try {
@@ -201,7 +202,7 @@ public class MessageService {
             ChatStartResponse aiResponse = noonchiAiService.startRolePlayingChat(
                     conversation.getConversationId(),
                     conversation.getConversationTrack(),
-                    conversation.getConversationTopic());
+                    topic);
 
             // 2. AI 첫 메시지 저장
             Message message = Message.builder()

@@ -10,7 +10,6 @@ import com.example.hangeulhunters.application.file.service.FileService;
 import com.example.hangeulhunters.application.persona.dto.AIPersonaDto;
 import com.example.hangeulhunters.application.persona.dto.AIPersonaRequest;
 import com.example.hangeulhunters.application.persona.service.AIPersonaService;
-import com.example.hangeulhunters.application.user.dto.UserDto;
 import com.example.hangeulhunters.application.user.service.UserService;
 import com.example.hangeulhunters.domain.common.constant.FileObjectType;
 import com.example.hangeulhunters.domain.common.constant.Gender;
@@ -190,10 +189,11 @@ public class ConversationService {
                 // 롤플레잉 페르소나 생성
                 AIPersonaDto persona = aIPersonaService.createPersona(userId,
                         AIPersonaRequest.builder()
-                                .name(request.getAiRole())
+                                .name(request.getConversationTopic().getAiRole())
                                 .gender(Gender.NONE)
                                 .age(25)
-                                .description(request.getAiRole())
+                                .description(request.getConversationTopic().getTopicName())
+                                .userRole(request.getConversationTopic().getUserRole())
                                 .build());
 
                 // 롤플레잉 대화 생성
@@ -201,13 +201,13 @@ public class ConversationService {
                         .userId(userId)
                         .personaId(persona.getPersonaId())
                         .conversationType(ROLE_PLAYING)
-                        .conversationTopic(request.getConversationTopic())
+                        .conversationTopic(request.getConversationTopic().getTopicName())
                         .status(ConversationStatus.ACTIVE)
                         .situation(request.getDetails())
                         .taskCurrentLevel(1)
                         .taskCurrentName(
                                 getConversationTopicTaskByTopicName(
-                                        request.getConversationTopic(),
+                                        request.getConversationTopic().getTopicName(),
                                         1
                                 ).getName())
                         .taskAllCompleted(false)
