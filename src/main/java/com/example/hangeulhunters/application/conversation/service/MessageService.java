@@ -5,11 +5,11 @@ import com.example.hangeulhunters.application.common.dto.PageResponse;
 import com.example.hangeulhunters.application.conversation.dto.ConversationDto;
 import com.example.hangeulhunters.application.conversation.dto.MessageDto;
 import com.example.hangeulhunters.application.conversation.dto.MessageRequest;
+import com.example.hangeulhunters.application.conversation.dto.MessageSendResponse;
 import com.example.hangeulhunters.application.file.service.FileService;
 import com.example.hangeulhunters.application.language.service.LanguageService;
 import com.example.hangeulhunters.application.persona.dto.AIPersonaDto;
 import com.example.hangeulhunters.application.persona.service.AIPersonaService;
-import com.example.hangeulhunters.application.user.dto.UserDto;
 import com.example.hangeulhunters.application.user.service.UserService;
 import com.example.hangeulhunters.domain.common.constant.AudioType;
 import com.example.hangeulhunters.domain.conversation.constant.MessageType;
@@ -54,7 +54,7 @@ public class MessageService {
     private final FeedbackService feedbackService;
 
     @Transactional
-    public List<MessageDto> sendMessage(Long userId, MessageRequest request) {
+    public MessageSendResponse sendMessage(Long userId, MessageRequest request) {
         // 대화 정보 조회
         ConversationDto conversation = conversationService.getConversationById(userId, request.getConversationId());
 
@@ -86,9 +86,6 @@ public class MessageService {
         if (messageContent == null || messageContent.isBlank()) {
             throw new IllegalArgumentException("Message content is empty");
         }
-
-        // AI 페르소나 정보 조회
-        AIPersonaDto persona = aiPersonaService.getPersonaById(userId, conversation.getAiPersona().getPersonaId());
 
         // 1. AI 서버 호출
         ChatResponse aiResponse = processChatWithAi(conversation, messageContent);
@@ -123,14 +120,14 @@ public class MessageService {
         feedbackService.saveMessageFeedback(userId, userMessage, aiResponse);
 
         // 5. 대화 data 처리
-        if(!conversation.getTaskAllCompleted() && aiResponse.getIsTaskCompleted()) {
-            conversationService.processConversationTaskCompletion(userId, conversation.getConversationId());
-        }
-        // 대화의 마지막 활동 시간 업데이트
-        conversationService.updateLastActivity(conversation.getConversationId());
+        ConversationDto processedConversation = conversationService.processConversation(userId, conversation.getConversationId());
 
         // USER, AI 메시지 반환
-        return List.of(MessageDto.fromEntity(userMessage), MessageDto.fromEntity(aiMessage));
+        return MessageSendResponse.of(
+                aiResponse.getIsTaskCompleted(),
+                processedConversation,
+                List.of(MessageDto.fromEntity(userMessage), MessageDto.fromEntity(aiMessage))
+        );
     }
 
     @Transactional(readOnly = true)
@@ -189,9 +186,6 @@ public class MessageService {
                 .createdBy(userId)
                 .build();
         messageRepository.save(message);
-
-        // 대화의 마지막 활동 시간 업데이트
-        conversationService.updateLastActivity(conversation.getConversationId());
     }
 
     /**
@@ -238,9 +232,6 @@ public class MessageService {
                     .build();
             messageRepository.save(fallbackMessage);
         }
-
-        // 대화의 마지막 활동 시간 업데이트
-        conversationService.updateLastActivity(conversation.getConversationId());
     }
 
     /**
@@ -276,56 +267,6 @@ public class MessageService {
         messageRepository.save(message);
 
         return savedAudioUrl;
-    }
-
-    @Transactional
-    public MessageDto createAiReply(Long userId, Long conversationId) {
-        // 마지막 메시지 조회
-        Message lastMessage = messageRepository.findFirstByConversationIdOrderByCreatedAtDesc(conversationId)
-                .orElseThrow(() -> new ResourceNotFoundException("No messages found for this conversation"));
-
-        // 마지막 메시지가 사용자 메시지가 아닌 경우 예외 처리
-        if (lastMessage.getType() != MessageType.USER) {
-            throw new ConflictException("Ai reply can only be created after a user message");
-        }
-
-        // 유저 정보 조회
-        UserDto user = userService.getUserById(userId);
-
-        // 대화 정보 조회
-        ConversationDto conversation = conversationService.getConversationById(userId, conversationId);
-
-        // 대화 소유자 확인
-        if (!conversation.getUserId().equals(userId)) {
-            throw new ForbiddenException("User does not own this conversation");
-        }
-
-        // AI 페르소나 정보 조회
-        AIPersonaDto persona = aiPersonaService.getPersonaById(userId, conversation.getAiPersona().getPersonaId());
-
-        // 대화 내역 전체 조회
-        List<MessageDto> conversationMessages = getAllMessagesByConversationId(conversationId);
-
-        // AI 응답 생성
-        String aiReply = naverApiService.generateAiMessage(
-                persona,
-                user.getKoreanLevel(),
-                conversation,
-                conversationMessages);
-
-        // AI 메시지 저장
-        Message aiMessage = Message.builder()
-                .conversationId(conversation.getConversationId())
-                .type(MessageType.AI)
-                .content(aiReply)
-                .createdBy(userId)
-                .build();
-        messageRepository.save(aiMessage);
-
-        // 대화의 마지막 활동 시간 업데이트
-        conversationService.updateLastActivity(conversation.getConversationId());
-
-        return MessageDto.fromEntity(aiMessage);
     }
 
     /**

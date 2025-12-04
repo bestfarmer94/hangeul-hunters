@@ -4,9 +4,9 @@ import com.example.hangeulhunters.application.common.dto.PageResponse;
 import com.example.hangeulhunters.application.conversation.dto.MessageDto;
 import com.example.hangeulhunters.application.conversation.dto.MessageFeedbackDto;
 import com.example.hangeulhunters.application.conversation.dto.MessageRequest;
+import com.example.hangeulhunters.application.conversation.dto.MessageSendResponse;
 import com.example.hangeulhunters.application.conversation.service.FeedbackService;
 import com.example.hangeulhunters.application.conversation.service.MessageService;
-import com.example.hangeulhunters.infrastructure.service.naver.dto.HonorificVariationsResponse;
 import com.example.hangeulhunters.presentation.common.ControllerSupport;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -15,10 +15,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/messages")
@@ -49,20 +46,9 @@ public class MessageController extends ControllerSupport {
             description = "대화에 메시지를 전송합니다. 사용자가 보낸 메시지와 시스템이 생성한 응답 메시지를 모두 반환합니다",
             security = @SecurityRequirement(name = "bearerAuth")
     )
-    public ResponseEntity<List<MessageDto>> sendMessage(@Valid @RequestBody MessageRequest request) {
-        List<MessageDto> messages = messageService.sendMessage(getCurrentUserId(), request);
+    public ResponseEntity<MessageSendResponse> sendMessage(@Valid @RequestBody MessageRequest request) {
+        MessageSendResponse messages = messageService.sendMessage(getCurrentUserId(), request);
         return ResponseEntity.ok(messages);
-    }
-
-    @PostMapping("/ai-reply")
-    @Operation(
-            summary = "메시지 생성 (AI 응답)",
-            description = "AI를 사용하여 대화에 자동 응답 메시지를 생성합니다",
-            security = @SecurityRequirement(name = "bearerAuth")
-    )
-    public ResponseEntity<MessageDto> createAiReply(@Parameter(description = "대화 id") @RequestParam Long conversationId) {
-        MessageDto message = messageService.createAiReply(getCurrentUserId(), conversationId);
-        return ResponseEntity.ok(message);
     }
 
     @PutMapping("{messageId}/translate")
