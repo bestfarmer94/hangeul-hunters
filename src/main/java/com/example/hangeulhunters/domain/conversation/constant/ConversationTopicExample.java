@@ -14,4 +14,13 @@ public enum ConversationTopicExample {
     private final String topicName;
     private final String aiRole;
     private final String userRole;
+
+    public static ConversationTopicExample getTopicExampleByName(String topicName) {
+        for (ConversationTopicExample topic : ConversationTopicExample.values()) {
+            if (topic.getTopicName().equals(topicName)) {
+                return topic;
+            }
+        }
+        return null;
+    }
 }
