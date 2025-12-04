@@ -34,6 +34,13 @@ public class ConversationDto {
     @Schema(description = "대화 타입", requiredMode = Schema.RequiredMode.REQUIRED)
     private ConversationType conversationType;
 
+    // Role-playing specific fields
+    @Schema(description = "트랙 (career, love, belonging, kpop)", requiredMode = Schema.RequiredMode.REQUIRED)
+    private String conversationTrack;
+
+    @Schema(description = "토픽", requiredMode = Schema.RequiredMode.REQUIRED)
+    private String conversationTopic;
+
     @Schema(description = "대화 상태", requiredMode = Schema.RequiredMode.REQUIRED)
     private ConversationStatus status;
 
@@ -78,12 +85,15 @@ public class ConversationDto {
     @Schema(description = "파일 목록", requiredMode = Schema.RequiredMode.REQUIRED)
     private List<FileDto> files;
 
-    public static ConversationDto of(Conversation conversation, AIPersonaDto aiPersona, List<FileDto> files) {
+    public static ConversationDto of(Conversation conversation, AIPersonaDto aiPersona, String conversationTrack,
+            List<FileDto> files) {
         return ConversationDto.builder()
                 .conversationId(conversation.getId())
                 .userId(conversation.getUserId())
                 .aiPersona(aiPersona)
                 .conversationType(conversation.getConversationType())
+                .conversationTrack(conversationTrack)
+                .conversationTopic(conversation.getConversationTopic())
                 .status(conversation.getStatus())
                 .situation(conversation.getSituation())
                 .chatModelId(conversation.getChatModelId())
@@ -102,7 +112,7 @@ public class ConversationDto {
     }
 
     // Backward compatibility: method without files parameter
-    public static ConversationDto of(Conversation conversation, AIPersonaDto aiPersona) {
-        return of(conversation, aiPersona, List.of());
+    public static ConversationDto of(Conversation conversation, AIPersonaDto aiPersona, String conversationTrack) {
+        return of(conversation, aiPersona, conversationTrack, List.of());
     }
 }

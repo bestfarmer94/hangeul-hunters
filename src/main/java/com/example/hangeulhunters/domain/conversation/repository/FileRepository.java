@@ -9,5 +9,5 @@ import java.util.List;
 
 @Repository
 public interface FileRepository extends JpaRepository<File, Long> {
-    List<File> findByObjectTypeAndObjectId(FileObjectType objectType, Long objectId);
+    List<File> findAllByObjectTypeAndObjectIdAndDeletedAtNull(FileObjectType objectType, Long objectId);
 }

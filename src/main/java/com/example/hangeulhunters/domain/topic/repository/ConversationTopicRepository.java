@@ -19,4 +19,6 @@ public interface ConversationTopicRepository extends JpaRepository<ConversationT
      * 대화 타입으로 주제 조회 (면접용)
      */
     Optional<ConversationTopic> findByConversationTypeAndTrackIsNull(ConversationType conversationType);
+
+    Optional<ConversationTopic> findByNameAndDeletedAtNull(String topicName);
 }

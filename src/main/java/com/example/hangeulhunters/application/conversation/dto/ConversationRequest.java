@@ -17,6 +17,10 @@ public class ConversationRequest {
     @Schema(description = "AI 페르소나 ID", example = "1")
     private Long personaId;
 
+    @NotNull(message = "대화 주제는 필수입니다.")
+    @Schema(description = "대화 주제", example = "After Work 회식")
+    private String conversationTopic;
+
     @Schema(description = "대화 상황", example = "BOSS1")
     private SituationExample situation;
 }
