@@ -123,6 +123,7 @@ public class UserService {
                 .birthDate(LocalDate.of(1970, 1, 1))
                 .role(UserRole.ROLE_GUEST)
                 .deviceId(deviceId)
+                .creditPoint(250)
                 .build();
 
         User savedUser = userRepository.save(guestUser);
