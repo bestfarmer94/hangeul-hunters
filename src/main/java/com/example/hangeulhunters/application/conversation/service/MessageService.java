@@ -192,6 +192,44 @@ public class MessageService {
         messageRepository.save(message);
     }
 
+    @Transactional
+    public void createRolePlayingFirstMessage(Long userId, ConversationDto conversation) {
+
+        // AI 서버 호출하여 롤플레잉 첫 메시지 생성
+        try {
+            // 1. AI 서버 호출
+            ChatStartResponse aiResponse = noonchiAiService.startRolePlayingChat(
+                    conversation.getConversationId(),
+                    conversation.getConversationTrack(),
+                    conversation.getConversationTopic());
+
+            // 2. AI 첫 메시지 저장
+            Message message = Message.builder()
+                    .conversationId(conversation.getConversationId())
+                    .type(MessageType.AI)
+                    .content(aiResponse.getContent())
+                    .reactionEmoji(aiResponse.getReactionEmoji())
+                    .reactionDescription(aiResponse.getReactionDescription())
+                    .recommendation(aiResponse.getRecommendation())
+                    .createdBy(userId)
+                    .build();
+            messageRepository.save(message);
+
+        } catch (Exception e) {
+            // AI 서버 호출 실패 시 기본 메시지 사용
+            log.error("Failed to generate AI interview first message for conversation: {}, using fallback",
+                    conversation.getConversationId(), e);
+
+            Message fallbackMessage = Message.builder()
+                    .conversationId(conversation.getConversationId())
+                    .type(MessageType.AI)
+                    .content("안녕하세요, 반갑습니다. 먼저 간단하게 자기소개 부탁드립니다.")
+                    .createdBy(userId)
+                    .build();
+            messageRepository.save(fallbackMessage);
+        }
+    }
+
     /**
      * 면접 대화 시작 시 첫 번째 메시지를 생성합니다.
      */

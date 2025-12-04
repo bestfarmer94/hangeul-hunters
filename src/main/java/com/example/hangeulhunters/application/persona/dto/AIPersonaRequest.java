@@ -25,24 +25,24 @@ public class AIPersonaRequest {
     @NotBlank(message = "이름은 필수입니다")
     @Schema(description = "이름", example = "한글이")
     private String name;
-    
+
     @NotNull(message = "성별은 필수입니다")
     @Schema(description = "성별", example = "FEMALE")
     private Gender gender;
-    
+
     @NotNull(message = "나이는 필수입니다")
     @Min(value = 1, message = "나이는 1세 이상이어야 합니다")
     @Max(value = 120, message = "나이는 120세 이하여야 합니다")
     @Schema(description = "나이", example = "25")
     private Integer age;
-    
-    @NotNull(message = "관계는 필수입니다")
-    @Schema(description = "관계", example = "BOSS")
-    private Relationship relationship;
 
     @Schema(description = "설명", example = "회사 사장님")
     private String description;
     
     @Schema(description = "프로필 이미지 URL", example = "https://example.com/image.jpg")
     private String profileImageUrl;
+
+    @NotBlank(message = "유저 역할은 필수입니다")
+    @Schema(description = "유저 역할", example = "Junior employee in a Korean company")
+    private String userRole;
 }
