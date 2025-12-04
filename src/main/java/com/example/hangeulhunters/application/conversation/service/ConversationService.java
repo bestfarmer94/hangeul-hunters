@@ -175,12 +175,15 @@ public class ConversationService {
          * @param conversationId 대화 ID
          */
         @Transactional
-        public void updateLastActivity(Long conversationId) {
+        public ConversationDto processConversation(Long userId, Long conversationId) {
                 Conversation conversation = conversationRepository.findById(conversationId)
                                 .orElseThrow(() -> new ResourceNotFoundException("Conversation", "id", conversationId));
 
+                processConversationTaskCompletion(conversation);
                 conversation.updateLastActivity();
                 conversationRepository.save(conversation);
+
+                return getConversationById(userId, conversationId);
         }
 
         /**
@@ -243,14 +246,9 @@ public class ConversationService {
 
         /**
          * 면접 대화의 과제 완료 처리
-         *
-         * @param userId
-         * @param conversationId
          */
         @Transactional
-        public void processConversationTaskCompletion(Long userId, Long conversationId) {
-                Conversation conversation = conversationRepository.findByIdAndUserId(conversationId, userId)
-                                .orElseThrow(() -> new ResourceNotFoundException("Conversation", "id", conversationId));
+        public void processConversationTaskCompletion(Conversation conversation) {
 
                 if (conversation.getTaskCurrentLevel() == null) {
                         return;
@@ -265,8 +263,6 @@ public class ConversationService {
                                         conversation.getTaskCurrentLevel() + 1);
                         conversation.processTask(nextTask.getName());
                 }
-
-                conversationRepository.save(conversation);
         }
 
         /**
