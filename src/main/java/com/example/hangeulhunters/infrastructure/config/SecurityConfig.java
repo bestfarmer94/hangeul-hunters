@@ -81,6 +81,7 @@ public class SecurityConfig {
                 "http://localhost:3000",
                 "https://noonchi.ai.kr",
                 "https://www.noonchi.ai.kr",
+                "noonchi-ut.vercel.app",
                 "https://noonchi-ut.vercel.app",
                 "https://pangpang-one.vercel.app",
                 "https://www.pangpang-one.com"
