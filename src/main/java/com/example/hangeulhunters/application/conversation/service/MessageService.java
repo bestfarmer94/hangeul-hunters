@@ -37,6 +37,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -403,7 +404,7 @@ public class MessageService {
                         conversation.getConversationId(),
                         messageContent,
                         conversation.getConversationTrack(),
-                        conversation.getConversationTopic());
+                        Objects.requireNonNull(ConversationTopicExample.getTopicExampleByName(conversation.getConversationTopic())).name());
 
                 default -> throw new IllegalArgumentException(
                         "Unsupported conversation type: " + conversation.getConversationType());
