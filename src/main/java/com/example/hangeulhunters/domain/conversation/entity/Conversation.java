@@ -109,4 +109,13 @@ public class Conversation extends BaseTimeEntity {
         super.delete(userId);
         this.status = ConversationStatus.DELETED;
     }
+
+    public void processTask(String nextTaskName) {
+        this.taskCurrentLevel++;
+        this.taskCurrentName = nextTaskName;
+    }
+
+    public void completeTask() {
+        this.taskAllCompleted = true;
+    }
 }

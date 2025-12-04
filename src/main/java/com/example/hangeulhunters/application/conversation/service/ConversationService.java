@@ -21,7 +21,9 @@ import com.example.hangeulhunters.domain.persona.constant.Relationship;
 import com.example.hangeulhunters.domain.persona.entity.AIPersona;
 import com.example.hangeulhunters.domain.persona.repository.AIPersonaRepository;
 import com.example.hangeulhunters.domain.topic.entity.ConversationTopic;
+import com.example.hangeulhunters.domain.topic.entity.ConversationTopicTask;
 import com.example.hangeulhunters.domain.topic.repository.ConversationTopicRepository;
+import com.example.hangeulhunters.domain.topic.repository.ConversationTopicTaskRepository;
 import com.example.hangeulhunters.infrastructure.exception.ForbiddenException;
 import com.example.hangeulhunters.infrastructure.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +34,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import static com.example.hangeulhunters.domain.conversation.constant.ConversationType.INTERVIEW;
@@ -44,6 +47,7 @@ public class ConversationService {
         private final ConversationRepository conversationRepository;
         private final AIPersonaRepository aiPersonaRepository;
         private final ConversationTopicRepository conversationTopicRepository;
+        private final ConversationTopicTaskRepository conversationTopicTaskRepository;
         private final UserService userService;
         private final AIPersonaService aIPersonaService;
         private final FileService fileService;
@@ -90,14 +94,6 @@ public class ConversationService {
 
                 return ConversationDto.of(conversation, persona, conversationTopic.getTrack(),
                         fileService.getFiles(FileObjectType.CONVERSATION, conversationId));
-        }
-
-        /**
-         * ConversationTopic 정보 조회
-         */
-        private ConversationTopic getConversationTopic(String conversationTopic) {
-                return conversationTopicRepository.findByNameAndDeletedAtNull(conversationTopic)
-                        .orElseThrow(() -> new ResourceNotFoundException("ConversationTopic", "name", conversationTopic));
         }
 
         @Transactional
@@ -209,6 +205,7 @@ public class ConversationService {
                                 .userId(userId)
                                 .personaId(savedInterviewer.getId())
                                 .conversationType(INTERVIEW)
+                                .conversationTopic(INTERVIEW.getSituation())
                                 .status(ConversationStatus.ACTIVE)
                                 .situation(INTERVIEW.getSituation())
                                 .interviewCompanyName(request.getCompanyName())
@@ -228,5 +225,40 @@ public class ConversationService {
                                 AIPersonaDto.fromEntity(savedInterviewer),
                                 getConversationTopic(conversation.getConversationTopic()).getTrack(),
                                 fileDtos);
+        }
+
+        /**
+         * ConversationTopic 정보 조회
+         */
+        private ConversationTopic getConversationTopic(String conversationTopic) {
+                return conversationTopicRepository.findByNameAndDeletedAtNull(conversationTopic)
+                        .orElseThrow(() -> new ResourceNotFoundException("ConversationTopic", "name", conversationTopic));
+        }
+
+        /**
+         * ConversationTopic 정보 조회
+         */
+        private ConversationTopicTask getConversationTopicTask(Long topicId, Integer taskLevel) {
+                return conversationTopicTaskRepository.findByTopicIdAndLevelAndDeletedAtNull(topicId, taskLevel)
+                        .orElseThrow(() -> new ResourceNotFoundException("ConversationTopicTask", "topicId and level",
+                                topicId + " and " + taskLevel));
+        }
+
+        @Transactional
+        public void processConversationTaskCompletion(Long userId, Long conversationId) {
+                Conversation conversation = conversationRepository.findByIdAndUserId(conversationId, userId)
+                                .orElseThrow(() -> new ResourceNotFoundException("Conversation", "id", conversationId));
+
+                ConversationTopic conversationTopic = getConversationTopic(conversation.getConversationTopic());
+
+                if(Objects.equals(conversationTopic.getTaskCount(), conversation.getTaskCurrentLevel())) {
+                        conversation.completeTask();
+                } else {
+                        ConversationTopicTask nextTask = getConversationTopicTask(conversationTopic.getId(),
+                                conversation.getTaskCurrentLevel() + 1);
+                        conversation.processTask(nextTask.getName());
+                }
+
+                conversationRepository.save(conversation);
         }
 }

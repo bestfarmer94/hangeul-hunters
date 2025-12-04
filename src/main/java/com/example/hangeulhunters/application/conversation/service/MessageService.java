@@ -3,7 +3,6 @@ package com.example.hangeulhunters.application.conversation.service;
 import com.example.hangeulhunters.application.common.dto.FileDto;
 import com.example.hangeulhunters.application.common.dto.PageResponse;
 import com.example.hangeulhunters.application.conversation.dto.ConversationDto;
-import com.example.hangeulhunters.application.conversation.dto.EvaluateResult;
 import com.example.hangeulhunters.application.conversation.dto.MessageDto;
 import com.example.hangeulhunters.application.conversation.dto.MessageRequest;
 import com.example.hangeulhunters.application.file.service.FileService;
@@ -25,6 +24,7 @@ import com.example.hangeulhunters.infrastructure.service.naver.NaverApiService;
 import com.example.hangeulhunters.infrastructure.service.naver.dto.ClovaSpeechSTTResponse;
 import com.example.hangeulhunters.infrastructure.service.naver.dto.HonorificVariationsResponse;
 import com.example.hangeulhunters.infrastructure.service.noonchi.NoonchiAiService;
+import com.example.hangeulhunters.infrastructure.service.noonchi.dto.NoonchiAiDto.ChatResponse;
 import com.example.hangeulhunters.infrastructure.service.noonchi.dto.NoonchiAiDto.ChatStartResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,6 +51,7 @@ public class MessageService {
     private final LanguageService languageService;
     private final FileService fileService;
     private final NoonchiAiService noonchiAiService;
+    private final FeedbackService feedbackService;
 
     @Transactional
     public MessageDto sendMessage(Long userId, MessageRequest request) {
@@ -89,36 +90,47 @@ public class MessageService {
         // AI 페르소나 정보 조회
         AIPersonaDto persona = aiPersonaService.getPersonaById(userId, conversation.getAiPersona().getPersonaId());
 
-        // 마지막 AI 메시지 조회
-        Message lastAiMessage = messageRepository.findFirstByConversationIdAndTypeOrderByCreatedAtDesc(
-                conversation.getConversationId(),
-                MessageType.AI)
-                .orElseThrow(() -> new IllegalArgumentException("No messages found for this conversation"));
+        // 1. AI 서버 호출
+        ChatResponse aiResponse = processChatWithAi(conversation, messageContent);
 
-        // 평가 수행
-        EvaluateResult eval = naverApiService.evaluateMessage(
-                persona,
-                conversation.getSituation(),
-                lastAiMessage.getContent(),
-                messageContent);
-
-        // 사용자 메시지 저장
+        // 2. 사용자 메시지 저장
         Message userMessage = Message.builder()
                 .conversationId(conversation.getConversationId())
                 .type(MessageType.USER)
                 .content(messageContent)
                 .audioUrl(audioUrl)
-                .politenessScore(eval.getPolitenessScore())
-                .naturalnessScore(eval.getNaturalnessScore())
+                .politenessScore(aiResponse.getPolitenessScore())
+                .naturalnessScore(aiResponse.getNaturalnessScore())
                 .pronunciationScore(pronunciationScore)
                 .createdBy(userId)
                 .build();
         messageRepository.save(userMessage);
 
+        // 3. AI 메시지 저장
+        Message aiMessage = Message.builder()
+                .conversationId(conversation.getConversationId())
+                .type(MessageType.AI)
+                .content(aiResponse.getContent())
+                .reactionEmoji(aiResponse.getReactionEmoji())
+                .reactionDescription(aiResponse.getReactionDescription())
+                .reactionReason(aiResponse.getReactionReason())
+                .recommendation(aiResponse.getRecommendation())
+                .createdBy(userId)
+                .build();
+        messageRepository.save(aiMessage);
+
+        // 4. 피드백 저장
+        feedbackService.saveMessageFeedback(userId, userMessage, aiResponse);
+
+        // 5. 대화 data 처리
+        if(!conversation.getTaskAllCompleted() && aiResponse.getIsTaskCompleted()) {
+            conversationService.processConversationTaskCompletion(userId, conversation.getConversationId());
+        }
         // 대화의 마지막 활동 시간 업데이트
         conversationService.updateLastActivity(conversation.getConversationId());
 
-        return MessageDto.fromEntity(userMessage);
+        // AI 메시지 반환
+        return MessageDto.fromEntity(aiMessage);
     }
 
     @Transactional(readOnly = true)
@@ -390,5 +402,33 @@ public class MessageService {
         messageRepository.save(message);
 
         return translatedContent;
+    }
+
+    /**
+     * 대화 AI 응답 생성
+     */
+    private ChatResponse processChatWithAi(ConversationDto conversation, String messageContent) {
+        try {
+            // AI 응답 생성 및 저장 (ConversationType에 따라 분기)
+            return switch (conversation.getConversationType()) {
+                case INTERVIEW -> noonchiAiService.chatInterviewMessage(
+                        conversation.getConversationId(),
+                        messageContent);
+
+                case ROLE_PLAYING -> noonchiAiService.chatRolePlayingMessage(
+                        conversation.getConversationId(),
+                        messageContent,
+                        conversation.getConversationTrack(),
+                        conversation.getConversationTopic());
+
+                default -> throw new IllegalArgumentException(
+                        "Unsupported conversation type: " + conversation.getConversationType());
+            };
+
+        } catch (Exception e) {
+            log.error("Failed to generate AI response for conversation: {}",
+                    conversation.getConversationId(), e);
+            throw new RuntimeException("Failed to generate AI response", e);
+        }
     }
 }
