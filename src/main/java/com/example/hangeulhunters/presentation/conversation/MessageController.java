@@ -77,15 +77,15 @@ public class MessageController extends ControllerSupport {
         return ResponseEntity.ok(translatedMessage);
     }
 
-    @GetMapping("/{messageId}/honorific-variations")
+    @GetMapping("/{messageId}/feedback")
     @Operation(
-            summary = "여러가지 존댓말 표현 생성",
-            description = "주어진 원문에 대해 다양한 존댓말 표현을 생성합니다",
+            summary = "메시지 피드백 조회",
+            description = "특정 메시지에 대한 피드백을 조회합니다",
             security = @SecurityRequirement(name = "bearerAuth")
     )
-    public ResponseEntity<HonorificVariationsResponse.ExpressionsByFormality> honorificVariations(
+    public ResponseEntity<MessageFeedbackDto> getMessageFeedback(
             @Parameter(description = "메시지 id") @PathVariable Long messageId) {
-        return ResponseEntity.ok(messageService.generateHonorificVariations(getCurrentUserId(), messageId));
+        return ResponseEntity.ok(feedbackService.getMessageFeedback(messageId));
     }
 
     @PutMapping("{messageId}/tts")

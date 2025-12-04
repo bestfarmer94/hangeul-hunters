@@ -3,6 +3,7 @@ package com.example.hangeulhunters.application.conversation.service;
 import com.example.hangeulhunters.application.conversation.dto.ConversationDto;
 import com.example.hangeulhunters.application.conversation.dto.ConversationFeedbackDto;
 import com.example.hangeulhunters.application.conversation.dto.MessageDto;
+import com.example.hangeulhunters.application.conversation.dto.MessageFeedbackDto;
 import com.example.hangeulhunters.domain.conversation.entity.ConversationFeedback;
 import com.example.hangeulhunters.domain.conversation.entity.Message;
 import com.example.hangeulhunters.domain.conversation.entity.MessageFeedback;
@@ -10,6 +11,7 @@ import com.example.hangeulhunters.domain.conversation.repository.ConversationFee
 import com.example.hangeulhunters.domain.conversation.repository.MessageFeedbackRepository;
 import com.example.hangeulhunters.domain.conversation.vo.ImprovementItem;
 import com.example.hangeulhunters.infrastructure.exception.ResourceNotFoundException;
+import com.example.hangeulhunters.infrastructure.service.naver.dto.HonorificVariationsResponse;
 import com.example.hangeulhunters.infrastructure.service.noonchi.NoonchiAiService;
 import com.example.hangeulhunters.infrastructure.service.noonchi.dto.NoonchiAiDto;
 import com.example.hangeulhunters.infrastructure.service.noonchi.dto.NoonchiAiDto.LearningReportResponse;
@@ -129,5 +131,14 @@ public class FeedbackService {
                                                 "Conversation feedback not found for conversation ID: "
                                                                 + conversationId));
                 return ConversationFeedbackDto.fromEntity(feedback);
+        }
+
+        @Transactional(readOnly = true)
+        public MessageFeedbackDto getMessageFeedback(Long messageId) {
+                MessageFeedback feedback = messageFeedbackRepository.findByMessageId(messageId)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "Message feedback not found for message ID: " + messageId));
+
+                return MessageFeedbackDto.fromEntity(feedback);
         }
 }
