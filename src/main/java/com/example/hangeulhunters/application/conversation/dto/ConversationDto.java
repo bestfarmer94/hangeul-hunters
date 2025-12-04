@@ -34,6 +34,13 @@ public class ConversationDto {
     @Schema(description = "대화 타입", requiredMode = Schema.RequiredMode.REQUIRED)
     private ConversationType conversationType;
 
+    // Role-playing specific fields
+    @Schema(description = "트랙 (career, love, belonging, kpop)", requiredMode = Schema.RequiredMode.REQUIRED)
+    private String conversationTrack;
+
+    @Schema(description = "토픽", requiredMode = Schema.RequiredMode.REQUIRED)
+    private String conversationTopic;
+
     @Schema(description = "대화 상태", requiredMode = Schema.RequiredMode.REQUIRED)
     private ConversationStatus status;
 
@@ -65,15 +72,28 @@ public class ConversationDto {
     @Schema(description = "면접 스타일 (면접용)", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private InterviewStyle interviewStyle;
 
-    @Schema(description = "파일 목록", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    // Task tracking fields
+    @Schema(description = "현재 진행 중인 task 레벨", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    private Integer taskCurrentLevel;
+
+    @Schema(description = "현재 진행 중인 task 이름", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    private String taskCurrentName;
+
+    @Schema(description = "모든 task 완료 여부", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    private Boolean taskAllCompleted;
+
+    @Schema(description = "파일 목록", requiredMode = Schema.RequiredMode.REQUIRED)
     private List<FileDto> files;
 
-    public static ConversationDto of(Conversation conversation, AIPersonaDto aiPersona, List<FileDto> files) {
+    public static ConversationDto of(Conversation conversation, AIPersonaDto aiPersona, String conversationTrack,
+            List<FileDto> files) {
         return ConversationDto.builder()
                 .conversationId(conversation.getId())
                 .userId(conversation.getUserId())
                 .aiPersona(aiPersona)
                 .conversationType(conversation.getConversationType())
+                .conversationTrack(conversationTrack)
+                .conversationTopic(conversation.getConversationTopic())
                 .status(conversation.getStatus())
                 .situation(conversation.getSituation())
                 .chatModelId(conversation.getChatModelId())
@@ -84,12 +104,15 @@ public class ConversationDto {
                 .interviewJobTitle(conversation.getInterviewJobTitle())
                 .interviewJobPosting(conversation.getInterviewJobPosting())
                 .interviewStyle(conversation.getInterviewStyle())
+                .taskCurrentLevel(conversation.getTaskCurrentLevel())
+                .taskCurrentName(conversation.getTaskCurrentName())
+                .taskAllCompleted(conversation.getTaskAllCompleted())
                 .files(files)
                 .build();
     }
 
     // Backward compatibility: method without files parameter
-    public static ConversationDto of(Conversation conversation, AIPersonaDto aiPersona) {
-        return of(conversation, aiPersona, null);
+    public static ConversationDto of(Conversation conversation, AIPersonaDto aiPersona, String conversationTrack) {
+        return of(conversation, aiPersona, conversationTrack, List.of());
     }
 }

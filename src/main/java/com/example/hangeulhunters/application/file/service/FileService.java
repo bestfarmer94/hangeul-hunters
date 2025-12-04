@@ -105,4 +105,11 @@ public class FileService {
 
         return fileDtos;
     }
+
+    public List<FileDto> getFiles(FileObjectType objectType, Long objectId) {
+        return fileRepository.findAllByObjectTypeAndObjectIdAndDeletedAtNull(objectType, objectId)
+                .stream()
+                .map(FileDto::fromEntity)
+                .toList();
+    }
 }

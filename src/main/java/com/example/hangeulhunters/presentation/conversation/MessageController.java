@@ -85,19 +85,6 @@ public class MessageController extends ControllerSupport {
             @Parameter(description = "메시지 id") @PathVariable Long messageId) {
         return ResponseEntity.ok(messageService.generateHonorificVariations(getCurrentUserId(), messageId));
     }
-    
-    @PostMapping("/{messageId}/feedback")
-    @Operation(
-            summary = "메시지 피드백 생성",
-            description = "특정 메시지에 대한 피드백을 생성합니다.",
-            security = @SecurityRequirement(name = "bearerAuth")
-    )
-    public ResponseEntity<MessageFeedbackDto> createMessageFeedback(
-            @PathVariable Long messageId
-    ) {
-        MessageFeedbackDto feedback = feedbackService.feedbackMessage(getCurrentUserId(), messageId);
-        return ResponseEntity.ok(feedback);
-    }
 
     @PutMapping("{messageId}/tts")
     @Operation(

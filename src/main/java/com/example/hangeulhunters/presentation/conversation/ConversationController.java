@@ -7,7 +7,6 @@ import com.example.hangeulhunters.application.conversation.service.FeedbackServi
 import com.example.hangeulhunters.application.conversation.service.MessageService;
 import com.example.hangeulhunters.domain.conversation.constant.ConversationSortBy;
 import com.example.hangeulhunters.domain.conversation.constant.ConversationStatus;
-import com.example.hangeulhunters.domain.conversation.constant.SituationExample;
 import com.example.hangeulhunters.presentation.common.ControllerSupport;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -69,14 +68,14 @@ public class ConversationController extends ControllerSupport {
         return ResponseEntity.ok(conversations);
     }
 
-    @PostMapping
+    @PostMapping("/role-playing")
     @Operation(
-        summary = "새 대화 생성",
-        description = "AI 페르소나와의 새로운 대화를 시작합니다",
+        summary = "새 롤플레잉 대화 생성",
+        description = "AI 페르소나와의 새로운 롤플레잉 대화를 시작합니다",
         security = @SecurityRequirement(name = "bearerAuth")
     )
     public ResponseEntity<ConversationDto> createConversation(@Valid @RequestBody ConversationRequest request) {
-        ConversationDto conversation = conversationService.createConversation(getCurrentUserId(), request);
+        ConversationDto conversation = conversationService.createRolePlaying(getCurrentUserId(), request);
         messageService.createFirstMessage(getCurrentUserId(), conversation, request.getSituation());
         return ResponseEntity.ok(conversation);
     }
@@ -90,7 +89,9 @@ public class ConversationController extends ControllerSupport {
     )
     public ResponseEntity<Void> endConversation(@PathVariable Long conversationId) {
         conversationService.endConversation(getCurrentUserId(), conversationId);
-        feedbackService.feedbackConversation(getCurrentUserId(), conversationId);
+        feedbackService.saveConversationFeedback(getCurrentUserId(),
+                conversationService.getConversationById(getCurrentUserId(), conversationId),
+                messageService.getAllMessagesByConversationId(conversationId));
         return ResponseEntity.noContent().build();
     }
 
@@ -128,7 +129,9 @@ public class ConversationController extends ControllerSupport {
     public ResponseEntity<ConversationFeedbackDto> createConversationFeedback(
             @PathVariable Long conversationId
     ) {
-        ConversationFeedbackDto feedback = feedbackService.feedbackConversation(getCurrentUserId(), conversationId);
+        ConversationFeedbackDto feedback = feedbackService.saveConversationFeedback(getCurrentUserId(),
+                conversationService.getConversationById(getCurrentUserId(), conversationId),
+                messageService.getAllMessagesByConversationId(conversationId));
         return ResponseEntity.ok(feedback);
     }
 
@@ -140,7 +143,7 @@ public class ConversationController extends ControllerSupport {
     )
     public ResponseEntity<ConversationDto> createInterview(@Valid @RequestBody InterviewRequest request) {
         ConversationDto conversation = conversationService.createInterview(getCurrentUserId(), request);
-        messageService.createFirstMessage(getCurrentUserId(), conversation, SituationExample.INTERVIEW);
+        messageService.createInterviewFirstMessage(getCurrentUserId(), conversation);
         return ResponseEntity.ok(conversation);
     }
 }

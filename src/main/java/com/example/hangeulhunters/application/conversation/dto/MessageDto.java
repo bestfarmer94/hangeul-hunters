@@ -44,6 +44,19 @@ public class MessageDto {
     @Schema(description = "발음 점수", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private Integer pronunciationScore;
 
+    // AI Response fields
+    @Schema(description = "AI 반응 이모지", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    private String reactionEmoji;
+
+    @Schema(description = "AI 반응 설명", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    private String reactionDescription;
+
+    @Schema(description = "AI 반응 이유 (영어)", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    private String reactionReason;
+
+    @Schema(description = "추천 응답 (한국어)", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    private String recommendation;
+
     @Schema(description = "메시지 생성일시", requiredMode = Schema.RequiredMode.REQUIRED, format = "date-time")
     private LocalDateTime createdAt;
 
@@ -58,6 +71,10 @@ public class MessageDto {
                 .politenessScore(message.getPolitenessScore())
                 .naturalnessScore(message.getNaturalnessScore())
                 .pronunciationScore(message.getPronunciationScore())
+                .reactionEmoji(message.getReactionEmoji())
+                .reactionDescription(message.getReactionDescription())
+                .reactionReason(message.getReactionReason())
+                .recommendation(message.getRecommendation())
                 .createdAt(DateTimeUtil.toLocalDateTime(message.getCreatedAt()))
                 .build();
     }

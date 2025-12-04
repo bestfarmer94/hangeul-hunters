@@ -37,6 +37,9 @@ public class Conversation extends BaseTimeEntity {
     @Builder.Default
     private ConversationType conversationType = ConversationType.ROLE_PLAYING;
 
+    @Column(nullable = false)
+    private String conversationTopic;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ConversationStatus status;
@@ -76,6 +79,12 @@ public class Conversation extends BaseTimeEntity {
     private Integer taskCurrentLevel;
 
     /**
+     * 현재 진행 중인 task 내용
+     */
+    @Column(nullable = true, columnDefinition = "TEXT")
+    private String taskCurrentName;
+
+    /**
      * 모든 task 완료 여부
      */
     @Column(nullable = true)
@@ -99,5 +108,14 @@ public class Conversation extends BaseTimeEntity {
     public void delete(Long userId) {
         super.delete(userId);
         this.status = ConversationStatus.DELETED;
+    }
+
+    public void processTask(String nextTaskName) {
+        this.taskCurrentLevel++;
+        this.taskCurrentName = nextTaskName;
+    }
+
+    public void completeTask() {
+        this.taskAllCompleted = true;
     }
 }

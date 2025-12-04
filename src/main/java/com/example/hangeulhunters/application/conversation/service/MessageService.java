@@ -1,8 +1,8 @@
 package com.example.hangeulhunters.application.conversation.service;
 
+import com.example.hangeulhunters.application.common.dto.FileDto;
 import com.example.hangeulhunters.application.common.dto.PageResponse;
 import com.example.hangeulhunters.application.conversation.dto.ConversationDto;
-import com.example.hangeulhunters.application.conversation.dto.EvaluateResult;
 import com.example.hangeulhunters.application.conversation.dto.MessageDto;
 import com.example.hangeulhunters.application.conversation.dto.MessageRequest;
 import com.example.hangeulhunters.application.file.service.FileService;
@@ -23,7 +23,11 @@ import com.example.hangeulhunters.infrastructure.exception.ResourceNotFoundExcep
 import com.example.hangeulhunters.infrastructure.service.naver.NaverApiService;
 import com.example.hangeulhunters.infrastructure.service.naver.dto.ClovaSpeechSTTResponse;
 import com.example.hangeulhunters.infrastructure.service.naver.dto.HonorificVariationsResponse;
+import com.example.hangeulhunters.infrastructure.service.noonchi.NoonchiAiService;
+import com.example.hangeulhunters.infrastructure.service.noonchi.dto.NoonchiAiDto.ChatResponse;
+import com.example.hangeulhunters.infrastructure.service.noonchi.dto.NoonchiAiDto.ChatStartResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -34,6 +38,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MessageService {
@@ -45,6 +50,8 @@ public class MessageService {
     private final UserService userService;
     private final LanguageService languageService;
     private final FileService fileService;
+    private final NoonchiAiService noonchiAiService;
+    private final FeedbackService feedbackService;
 
     @Transactional
     public MessageDto sendMessage(Long userId, MessageRequest request) {
@@ -83,38 +90,47 @@ public class MessageService {
         // AI 페르소나 정보 조회
         AIPersonaDto persona = aiPersonaService.getPersonaById(userId, conversation.getAiPersona().getPersonaId());
 
-        // 마지막 AI 메시지 조회
-        Message lastAiMessage = messageRepository.findFirstByConversationIdAndTypeOrderByCreatedAtDesc(
-                        conversation.getConversationId(),
-                        MessageType.AI
-                )
-                .orElseThrow(() -> new IllegalArgumentException("No messages found for this conversation"));
+        // 1. AI 서버 호출
+        ChatResponse aiResponse = processChatWithAi(conversation, messageContent);
 
-        // 평가 수행
-       EvaluateResult eval = naverApiService.evaluateMessage(
-               persona,
-               conversation.getSituation(),
-               lastAiMessage.getContent(),
-               messageContent
-       );
-
-        // 사용자 메시지 저장
+        // 2. 사용자 메시지 저장
         Message userMessage = Message.builder()
                 .conversationId(conversation.getConversationId())
                 .type(MessageType.USER)
                 .content(messageContent)
                 .audioUrl(audioUrl)
-                .politenessScore(eval.getPolitenessScore())
-                .naturalnessScore(eval.getNaturalnessScore())
+                .politenessScore(aiResponse.getPolitenessScore())
+                .naturalnessScore(aiResponse.getNaturalnessScore())
                 .pronunciationScore(pronunciationScore)
                 .createdBy(userId)
                 .build();
         messageRepository.save(userMessage);
-        
+
+        // 3. AI 메시지 저장
+        Message aiMessage = Message.builder()
+                .conversationId(conversation.getConversationId())
+                .type(MessageType.AI)
+                .content(aiResponse.getContent())
+                .reactionEmoji(aiResponse.getReactionEmoji())
+                .reactionDescription(aiResponse.getReactionDescription())
+                .reactionReason(aiResponse.getReactionReason())
+                .recommendation(aiResponse.getRecommendation())
+                .createdBy(userId)
+                .build();
+        messageRepository.save(aiMessage);
+
+        // 4. 피드백 저장
+        feedbackService.saveMessageFeedback(userId, userMessage, aiResponse);
+
+        // 5. 대화 data 처리
+        if(!conversation.getTaskAllCompleted() && aiResponse.getIsTaskCompleted()) {
+            conversationService.processConversationTaskCompletion(userId, conversation.getConversationId());
+        }
         // 대화의 마지막 활동 시간 업데이트
         conversationService.updateLastActivity(conversation.getConversationId());
 
-        return MessageDto.fromEntity(userMessage);
+        // AI 메시지 반환
+        return MessageDto.fromEntity(aiMessage);
     }
 
     @Transactional(readOnly = true)
@@ -152,27 +168,19 @@ public class MessageService {
                 .orElseThrow(() -> new ResourceNotFoundException("Message not found"));
 
         return messageRepository.findFirstByConversationIdAndCreatedAtBeforeOrderByCreatedAtDesc(
-                        targetMessage.getConversationId(),
-                        targetMessage.getCreatedAt()
-                )
+                targetMessage.getConversationId(),
+                targetMessage.getCreatedAt())
                 .map(MessageDto::fromEntity)
                 .orElseThrow(() -> new ResourceNotFoundException("Message not found"));
     }
 
     /**
      * 대화 시작 시 첫 번째 메시지를 생성합니다.
+     * 
      * @param conversation
      */
     @Transactional
     public void createFirstMessage(Long userId, ConversationDto conversation, SituationExample situationExample) {
-
-        // todo 대화 시작 메시지 생성 (AI) [현재는 수준 미달로 인해, 첫문장 따로 준비]
-//        String firstMessage = naverApiService.generateAiMessage(
-//                conversation.getAiPersona(),
-//                KoreanLevel.INTERMEDIATE,
-//                conversation,
-//                null
-//        );
 
         Message message = Message.builder()
                 .conversationId(conversation.getConversationId())
@@ -181,14 +189,64 @@ public class MessageService {
                 .createdBy(userId)
                 .build();
         messageRepository.save(message);
-        
+
+        // 대화의 마지막 활동 시간 업데이트
+        conversationService.updateLastActivity(conversation.getConversationId());
+    }
+
+    /**
+     * 면접 대화 시작 시 첫 번째 메시지를 생성합니다.
+     */
+    @Transactional
+    public void createInterviewFirstMessage(Long userId, ConversationDto conversation) {
+
+        // AI 서버 호출하여 면접 첫 메시지 생성
+        try {
+            // 1. 대화에 첨부된 이력서 파일 URL 추출
+            List<String> resumeUrls = conversation.getFiles()
+                    .stream()
+                    .map(FileDto::getFileUrl)
+                    .toList();
+
+            // 2. AI 서버 호출
+            ChatStartResponse aiResponse = noonchiAiService.startInterviewChat(
+                    conversation.getConversationId(),
+                    resumeUrls);
+
+            // 3. AI 첫 메시지 저장
+            Message message = Message.builder()
+                    .conversationId(conversation.getConversationId())
+                    .type(MessageType.AI)
+                    .content(aiResponse.getContent())
+                    .reactionEmoji(aiResponse.getReactionEmoji())
+                    .reactionDescription(aiResponse.getReactionDescription())
+                    .recommendation(aiResponse.getRecommendation())
+                    .createdBy(userId)
+                    .build();
+            messageRepository.save(message);
+
+        } catch (Exception e) {
+            // AI 서버 호출 실패 시 기본 메시지 사용
+            log.error("Failed to generate AI interview first message for conversation: {}, using fallback",
+                    conversation.getConversationId(), e);
+
+            Message fallbackMessage = Message.builder()
+                    .conversationId(conversation.getConversationId())
+                    .type(MessageType.AI)
+                    .content("안녕하세요, 반갑습니다. 먼저 간단하게 자기소개 부탁드립니다.")
+                    .createdBy(userId)
+                    .build();
+            messageRepository.save(fallbackMessage);
+        }
+
         // 대화의 마지막 활동 시간 업데이트
         conversationService.updateLastActivity(conversation.getConversationId());
     }
 
     /**
      * 메시지 번역 기능
-     * @param userId 사용자 ID
+     * 
+     * @param userId    사용자 ID
      * @param messageId 번역할 메시지 ID
      * @return TTS 변환된 오디오 URL
      */
@@ -199,7 +257,7 @@ public class MessageService {
                 .orElseThrow(() -> new ResourceNotFoundException("Message not found"));
 
         // 이미 오디오 URL이 있는 경우, 해당 URL 반환
-        if( message.getAudioUrl() != null) {
+        if (message.getAudioUrl() != null) {
             return message.getAudioUrl();
         }
 
@@ -207,7 +265,8 @@ public class MessageService {
         ConversationDto conversation = conversationService.getConversationById(userId, message.getConversationId());
 
         // TTS 변환
-        String tempAudioUrl = languageService.convertTextToSpeech(message.getContent(), conversation.getAiPersona().getVoice());
+        String tempAudioUrl = languageService.convertTextToSpeech(message.getContent(),
+                conversation.getAiPersona().getVoice());
 
         // 오디오 URL 저장
         String savedAudioUrl = fileService.saveAudioUrl(AudioType.MESSAGE_AUDIO, tempAudioUrl);
@@ -226,7 +285,7 @@ public class MessageService {
                 .orElseThrow(() -> new ResourceNotFoundException("No messages found for this conversation"));
 
         // 마지막 메시지가 사용자 메시지가 아닌 경우 예외 처리
-        if(lastMessage.getType() != MessageType.USER) {
+        if (lastMessage.getType() != MessageType.USER) {
             throw new ConflictException("Ai reply can only be created after a user message");
         }
 
@@ -252,8 +311,7 @@ public class MessageService {
                 persona,
                 user.getKoreanLevel(),
                 conversation,
-                conversationMessages
-        );
+                conversationMessages);
 
         // AI 메시지 저장
         Message aiMessage = Message.builder()
@@ -263,15 +321,16 @@ public class MessageService {
                 .createdBy(userId)
                 .build();
         messageRepository.save(aiMessage);
-        
+
         // 대화의 마지막 활동 시간 업데이트
         conversationService.updateLastActivity(conversation.getConversationId());
-        
+
         return MessageDto.fromEntity(aiMessage);
     }
 
     /**
      * 사용자가 작성한 메시지 수를 카운트합니다.
+     * 
      * @param userId 사용자 ID
      * @return 사용자가 작성한 메시지 수
      */
@@ -285,17 +344,19 @@ public class MessageService {
      * AI 페르소나의 역할에 맞는 표현을 추출하여 반환합니다.
      *
      * @param currentUserId 현재 사용자 ID
-     * @param messageId 메시지 ID
+     * @param messageId     메시지 ID
      * @return AI 역할에 맞는 존댓말 표현 응답
      */
     @Transactional(readOnly = true)
-    public HonorificVariationsResponse.ExpressionsByFormality generateHonorificVariations(Long currentUserId, Long messageId) {
+    public HonorificVariationsResponse.ExpressionsByFormality generateHonorificVariations(Long currentUserId,
+            Long messageId) {
         // 메시지 조회
         Message message = messageRepository.findById(messageId)
                 .orElseThrow(() -> new ResourceNotFoundException("Message not found"));
 
         // 대화 조회
-        ConversationDto conversation = conversationService.getConversationById(currentUserId, message.getConversationId());
+        ConversationDto conversation = conversationService.getConversationById(currentUserId,
+                message.getConversationId());
 
         // 대화 소유자 확인
         if (!conversation.getUserId().equals(currentUserId)) {
@@ -303,15 +364,15 @@ public class MessageService {
         }
 
         // AI 페르소나 정보 조회
-        AIPersonaDto persona = aiPersonaService.getPersonaById(currentUserId, conversation.getAiPersona().getPersonaId());
+        AIPersonaDto persona = aiPersonaService.getPersonaById(currentUserId,
+                conversation.getAiPersona().getPersonaId());
 
         // AI 역할 정보 조회
         Relationship aiRole = Relationship.ofAiRole(persona.getAiRole());
 
         // 존댓말 표형 생성
         HonorificVariationsResponse variations = naverApiService.generateHonorificVariations(
-                message.getContent()
-        );
+                message.getContent());
 
         // AI 역할에 따른 적절한 표현 추출
         return switch (aiRole.getIntimacyLevel()) {
@@ -323,6 +384,7 @@ public class MessageService {
 
     /**
      * 메시지 번역 기능
+     * 
      * @param messageId 번역할 메시지 ID
      * @return 번역된 메시지 DTO
      */
@@ -340,5 +402,33 @@ public class MessageService {
         messageRepository.save(message);
 
         return translatedContent;
+    }
+
+    /**
+     * 대화 AI 응답 생성
+     */
+    private ChatResponse processChatWithAi(ConversationDto conversation, String messageContent) {
+        try {
+            // AI 응답 생성 및 저장 (ConversationType에 따라 분기)
+            return switch (conversation.getConversationType()) {
+                case INTERVIEW -> noonchiAiService.chatInterviewMessage(
+                        conversation.getConversationId(),
+                        messageContent);
+
+                case ROLE_PLAYING -> noonchiAiService.chatRolePlayingMessage(
+                        conversation.getConversationId(),
+                        messageContent,
+                        conversation.getConversationTrack(),
+                        conversation.getConversationTopic());
+
+                default -> throw new IllegalArgumentException(
+                        "Unsupported conversation type: " + conversation.getConversationType());
+            };
+
+        } catch (Exception e) {
+            log.error("Failed to generate AI response for conversation: {}",
+                    conversation.getConversationId(), e);
+            throw new RuntimeException("Failed to generate AI response", e);
+        }
     }
 }
