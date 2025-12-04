@@ -120,7 +120,11 @@ public class MessageService {
         feedbackService.saveMessageFeedback(userId, userMessage, aiResponse);
 
         // 5. 대화 data 처리
-        ConversationDto processedConversation = conversationService.processConversation(userId, conversation.getConversationId());
+        if(aiResponse.getIsTaskCompleted() != null && aiResponse.getIsTaskCompleted()) {
+            conversationService.processConversationTaskCompletion(conversation.getConversationId());
+        }
+        conversationService.updateConversationLastActivity(conversation.getConversationId());
+        ConversationDto processedConversation = conversationService.getConversationById(userId, conversation.getConversationId());
 
         // USER, AI 메시지 반환
         return MessageSendResponse.of(
