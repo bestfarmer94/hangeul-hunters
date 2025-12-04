@@ -89,18 +89,17 @@ public class AIPersonaService {
      */
     @Transactional
     public AIPersonaDto createPersona(Long userId, AIPersonaRequest request) {
-        String voice = PersonaVoice.getPersonaVoice(request.getRelationship(), request.getGender());
 
         AIPersona persona = AIPersona.builder()
                 .userId(userId)
                 .name(request.getName())
                 .gender(request.getGender())
                 .age(request.getAge())
-                .aiRole(request.getRelationship().getAiRole())
-                .userRole(request.getRelationship().getUserRole())
+                .aiRole(request.getName())
+                .userRole(request.getUserRole())
                 .description(request.getDescription())
                 .profileImageUrl(request.getProfileImageUrl())
-                .voice(voice)
+                .voice(PersonaVoice.LEDA.getVoiceName())
                 .createdBy(userId)
                 .build();
         

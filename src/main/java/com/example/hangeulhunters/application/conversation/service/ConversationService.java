@@ -8,6 +8,7 @@ import com.example.hangeulhunters.application.conversation.dto.ConversationReque
 import com.example.hangeulhunters.application.conversation.dto.InterviewRequest;
 import com.example.hangeulhunters.application.file.service.FileService;
 import com.example.hangeulhunters.application.persona.dto.AIPersonaDto;
+import com.example.hangeulhunters.application.persona.dto.AIPersonaRequest;
 import com.example.hangeulhunters.application.persona.service.AIPersonaService;
 import com.example.hangeulhunters.application.user.dto.UserDto;
 import com.example.hangeulhunters.application.user.service.UserService;
@@ -102,31 +103,31 @@ public class ConversationService {
                                 fileService.getFiles(FileObjectType.CONVERSATION, conversationId));
         }
 
-        @Transactional
-        public ConversationDto createRolePlaying(Long userId, ConversationRequest request) {
-
-                // 유저 정보 조회
-                UserDto user = userService.getUserById(userId);
-
-                // AI 페르소나 조회
-                AIPersonaDto persona = aIPersonaService.getPersonaById(userId, request.getPersonaId());
-
-                // 대화 생성
-                Conversation conversation = Conversation.builder()
-                                .userId(userId)
-                                .personaId(request.getPersonaId())
-                                .conversationType(ROLE_PLAYING)
-                                .conversationTopic(request.getConversationTopic())
-                                .status(ConversationStatus.ACTIVE)
-                                .situation(request.getSituation().getSituation())
-                                .createdBy(userId)
-                                .build();
-                Conversation savedConversation = conversationRepository.save(conversation);
-
-                return ConversationDto.of(savedConversation,
-                                aIPersonaService.getPersonaById(userId, savedConversation.getPersonaId()),
-                                getConversationTopic(request.getConversationTopic()).getTrack());
-        }
+//        @Transactional
+//        public ConversationDto createRolePlaying(Long userId, ConversationRequest request) {
+//
+//                // 유저 정보 조회
+//                UserDto user = userService.getUserById(userId);
+//
+//                // AI 페르소나 조회
+//                AIPersonaDto persona = aIPersonaService.getPersonaById(userId, request.getPersonaId());
+//
+//                // 대화 생성
+//                Conversation conversation = Conversation.builder()
+//                                .userId(userId)
+//                                .personaId(request.getPersonaId())
+//                                .conversationType(ROLE_PLAYING)
+//                                .conversationTopic(request.getConversationTopic())
+//                                .status(ConversationStatus.ACTIVE)
+//                                .situation(request.getSituation().getSituation())
+//                                .createdBy(userId)
+//                                .build();
+//                Conversation savedConversation = conversationRepository.save(conversation);
+//
+//                return ConversationDto.of(savedConversation,
+//                                aIPersonaService.getPersonaById(userId, savedConversation.getPersonaId()),
+//                                getConversationTopic(request.getConversationTopic()).getTrack());
+//        }
 
         @Transactional
         public void endConversation(Long userId, Long conversationId) {
@@ -181,6 +182,43 @@ public class ConversationService {
 
                 conversation.updateLastActivity();
                 conversationRepository.save(conversation);
+        }
+
+        @Transactional
+        public ConversationDto createRolePlaying(Long userId, ConversationRequest request) {
+                
+                // 롤플레잉 페르소나 생성
+                AIPersonaDto persona = aIPersonaService.createPersona(userId,
+                        AIPersonaRequest.builder()
+                                .name(request.getAiRole())
+                                .gender(Gender.NONE)
+                                .age(25)
+                                .description(request.getAiRole())
+                                .build());
+
+                // 롤플레잉 대화 생성
+                Conversation conversation = Conversation.builder()
+                        .userId(userId)
+                        .personaId(persona.getPersonaId())
+                        .conversationType(ROLE_PLAYING)
+                        .conversationTopic(request.getConversationTopic())
+                        .status(ConversationStatus.ACTIVE)
+                        .situation(request.getDetails())
+                        .taskCurrentLevel(1)
+                        .taskCurrentName(
+                                getConversationTopicTaskByTopicName(
+                                        request.getConversationTopic(),
+                                        1
+                                ).getName())
+                        .taskAllCompleted(false)
+                        .createdBy(userId)
+                        .build();
+                Conversation savedConversation = conversationRepository.save(conversation);
+
+                return ConversationDto.of(
+                        savedConversation,
+                        persona,
+                        getConversationTopic(conversation.getConversationTopic()).getTrack());
         }
 
         /**
