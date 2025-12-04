@@ -7,6 +7,7 @@ import com.example.hangeulhunters.domain.user.constant.KoreanLevel;
 import com.example.hangeulhunters.domain.user.constant.UserRole;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
@@ -62,6 +63,10 @@ public class User extends BaseTimeEntity {
     @Column(nullable = true)
     private String deviceId;
 
+    @Builder.Default
+    @Column(nullable = false)
+    private Integer creditPoint = 0;
+
     public void updateProfile(Long userId, String nickname, LocalDate birthDate, KoreanLevel koreanLevel,
             String profileImageUrl) {
         super.update(userId);
@@ -78,5 +83,27 @@ public class User extends BaseTimeEntity {
         if (profileImageUrl != null) {
             this.profileImageUrl = profileImageUrl;
         }
+    }
+
+    public void chargeCreditPoint(Integer amount) {
+        if (amount <= 0) {
+            throw new IllegalArgumentException("Charge amount must be positive");
+        }
+        this.creditPoint += amount;
+    }
+
+    public void deductCreditPoint(Integer amount) {
+        if (amount <= 0) {
+            throw new IllegalArgumentException("Deduct amount must be positive");
+        }
+        if (this.creditPoint < amount) {
+            throw new com.example.hangeulhunters.infrastructure.exception.InsufficientCreditException(
+                    "Insufficient credit points. Required: " + amount + ", Available: " + this.creditPoint);
+        }
+        this.creditPoint -= amount;
+    }
+
+    public boolean hasEnoughCredit(Integer amount) {
+        return this.creditPoint >= amount;
     }
 }
