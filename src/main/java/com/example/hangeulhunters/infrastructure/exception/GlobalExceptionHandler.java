@@ -94,6 +94,15 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred", req);
     }
 
+    // 402 - Payment Required (Insufficient Credit)
+    @ExceptionHandler(com.example.hangeulhunters.infrastructure.exception.InsufficientCreditException.class)
+    public ResponseEntity<ErrorResponse> handleInsufficientCredit(
+            com.example.hangeulhunters.infrastructure.exception.InsufficientCreditException ex,
+            HttpServletRequest req) {
+        log.warn("Insufficient credit at {}: {}", req.getRequestURI(), ex.getMessage());
+        return build(HttpStatus.PAYMENT_REQUIRED, ex.getMessage(), req);
+    }
+
     private ResponseEntity<ErrorResponse> build(HttpStatus status, String message, HttpServletRequest req) {
         ErrorResponse error = new ErrorResponse(
                 status.value(),

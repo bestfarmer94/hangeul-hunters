@@ -22,10 +22,10 @@ import java.util.List;
 public class UserDto {
     @Schema(description = "사용자 ID", requiredMode = Schema.RequiredMode.REQUIRED)
     private Long id;
-    
+
     @Schema(description = "이메일", requiredMode = Schema.RequiredMode.REQUIRED)
     private String email;
-    
+
     @Schema(description = "닉네임", requiredMode = Schema.RequiredMode.REQUIRED)
     private String nickname;
 
@@ -34,10 +34,10 @@ public class UserDto {
 
     @Schema(description = "생년월일", format = "date", requiredMode = Schema.RequiredMode.REQUIRED)
     private LocalDate birthDate;
-    
+
     @Schema(description = "사용자 역할", requiredMode = Schema.RequiredMode.REQUIRED)
     private UserRole role;
-    
+
     @Schema(description = "인증 제공자 (소셜 로그인 등)", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private AuthProvider provider;
 
@@ -52,14 +52,17 @@ public class UserDto {
 
     @Schema(description = "프로필 이미지 URL", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private String profileImageUrl;
-    
+
+    @Schema(description = "크레딧 포인트", example = "250", requiredMode = Schema.RequiredMode.REQUIRED)
+    private Integer creditPoint;
+
     @Schema(description = "관심사 목록", requiredMode = Schema.RequiredMode.REQUIRED)
     private List<String> interests;
 
     /**
      * User 엔티티를 UserDto로 변환합니다.
      *
-     * @param user User 엔티티
+     * @param user      User 엔티티
      * @param interests 관심사 목록
      * @return UserDto 객체
      */
@@ -74,6 +77,7 @@ public class UserDto {
                 .provider(user.getProvider())
                 .koreanLevel(user.getKoreanLevel())
                 .profileImageUrl(user.getProfileImageUrl())
+                .creditPoint(user.getCreditPoint())
                 .interests(interests)
                 .build();
     }

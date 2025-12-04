@@ -56,8 +56,9 @@ public class UserService {
         }
 
         // 프로필 이미지 처리
-        String profileImageUrl = fileService.saveImageIfNeed(ImageType.USER_PROFILE, signUpRequest.getProfileImageUrl());
-        
+        String profileImageUrl = fileService.saveImageIfNeed(ImageType.USER_PROFILE,
+                signUpRequest.getProfileImageUrl());
+
         // 사용자 생성 및 저장
         User user = User.builder()
                 .email(signUpRequest.getEmail())
@@ -72,29 +73,28 @@ public class UserService {
         User savedUser = userRepository.save(user);
         return UserDto.fromEntity(savedUser);
     }
-    
+
     @Transactional
     public UserDto updateProfile(Long userId, ProfileUpdateRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
-        
+
         // 프로필 이미지 처리
         String profileImageUrl = fileService.saveImageIfNeed(ImageType.USER_PROFILE, request.getProfileImageUrl());
 
         // 기본 프로필 정보 업데이트
         user.updateProfile(
-            userId,
-            request.getNickname(),
-            request.getBirthDate(),
-            request.getKoreanLevel(),
-            profileImageUrl
-        );
-        
+                userId,
+                request.getNickname(),
+                request.getBirthDate(),
+                request.getKoreanLevel(),
+                profileImageUrl);
+
         // 관심사 업데이트
         if (request.getInterests() != null) {
             interestService.updateUserInterests(userId, request.getInterests());
         }
-        
+
         User savedUser = userRepository.save(user);
         List<String> interests = getInterestsForUser(userId);
         return UserDto.fromEntity(savedUser, interests);
@@ -162,6 +162,7 @@ public class UserService {
                 .providerId(user.getProviderId())
                 .koreanLevel(user.getKoreanLevel())
                 .deviceId(null) // device_id 제거
+                .creditPoint(250) // 신규 가입 시 250 포인트 지급
                 .build();
 
         User savedUser = userRepository.save(convertedUser);
