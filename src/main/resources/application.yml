@@ -84,7 +84,7 @@ cloud:
       language-code: ko-KR
       default-voice-name: ko-KR-Chirp3-HD-Leda
   noonchi-ai:
-    base-url: https://noonchi-ai-724638789140.asia-northeast3.run.app
+    base-url: ${NOONCHI_AI_BASE_URL:}
     api-key: ${NOONCHI_AI_API_KEY:}
     endpoints:
       role-playing-start: /chat/role-playing/start
