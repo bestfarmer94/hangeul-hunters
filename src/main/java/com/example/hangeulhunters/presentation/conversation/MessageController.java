@@ -47,8 +47,9 @@ public class MessageController extends ControllerSupport {
             security = @SecurityRequirement(name = "bearerAuth")
     )
     public ResponseEntity<MessageSendResponse> sendMessage(@Valid @RequestBody MessageRequest request) {
-        MessageSendResponse messages = messageService.sendMessage(getCurrentUserId(), request);
-        return ResponseEntity.ok(messages);
+        MessageDto userMessage = messageService.sendMessage(getCurrentUserId(), request);
+        MessageSendResponse aiProcessedResponse = messageService.processChatWithAi(getCurrentUserId(), userMessage.getMessageId(), request.getConversationId());
+        return ResponseEntity.ok(aiProcessedResponse);
     }
 
     @PutMapping("{messageId}/translate")

@@ -92,4 +92,12 @@ public class Message extends BaseTimeEntity {
     public void saveAudioUrl(String audioUrl) {
         this.audioUrl = audioUrl;
     }
+
+    /**
+     * 피드백 점수 저장
+     */
+    public void saveFeedbackScores(Integer politenessScore, Integer naturalnessScore) {
+        this.politenessScore = politenessScore;
+        this.naturalnessScore = naturalnessScore;
+    }
 }

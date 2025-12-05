@@ -15,6 +15,7 @@ import com.example.hangeulhunters.domain.common.constant.AudioType;
 import com.example.hangeulhunters.domain.conversation.constant.ConversationTopicExample;
 import com.example.hangeulhunters.domain.conversation.constant.MessageType;
 import com.example.hangeulhunters.domain.conversation.constant.SituationExample;
+import com.example.hangeulhunters.domain.conversation.entity.Conversation;
 import com.example.hangeulhunters.domain.conversation.entity.Message;
 import com.example.hangeulhunters.domain.conversation.repository.MessageRepository;
 import com.example.hangeulhunters.domain.persona.constant.Relationship;
@@ -56,7 +57,7 @@ public class MessageService {
     private final FeedbackService feedbackService;
 
     @Transactional
-    public MessageSendResponse sendMessage(Long userId, MessageRequest request) {
+    public MessageDto sendMessage(Long userId, MessageRequest request) {
         // 대화 정보 조회
         ConversationDto conversation = conversationService.getConversationById(userId, request.getConversationId());
 
@@ -89,25 +90,38 @@ public class MessageService {
             throw new IllegalArgumentException("Message content is empty");
         }
 
-        // 1. AI 서버 호출
-        ChatResponse aiResponse = processChatWithAi(conversation, messageContent);
-
-        // 2. 사용자 메시지 저장
+        // 사용자 메시지 저장
         Message userMessage = Message.builder()
                 .conversationId(conversation.getConversationId())
                 .type(MessageType.USER)
                 .content(messageContent)
                 .audioUrl(audioUrl)
-                .politenessScore(aiResponse.getPolitenessScore())
-                .naturalnessScore(aiResponse.getNaturalnessScore())
                 .pronunciationScore(pronunciationScore)
                 .createdBy(userId)
                 .build();
         messageRepository.save(userMessage);
 
+        return MessageDto.fromEntity(userMessage);
+    }
+
+    @Transactional
+    public MessageSendResponse processChatWithAi(Long userId, Long conversationId, Long userMessageId) {
+
+        ConversationDto conversation = conversationService.getConversationById(userId, conversationId);
+
+        Message userMessage = messageRepository.findById(userMessageId)
+                .orElseThrow(() -> new ResourceNotFoundException("User message not found"));
+
+        // 1. AI 서버 호출
+        ChatResponse aiResponse = processChatWithAi(conversation, userMessage.getContent());
+
+        // 2. 사용자 메시지 반영
+        userMessage.saveFeedbackScores(aiResponse.getPolitenessScore(), aiResponse.getNaturalnessScore());
+        messageRepository.save(userMessage);
+
         // 3. AI 메시지 저장
         Message aiMessage = Message.builder()
-                .conversationId(conversation.getConversationId())
+                .conversationId(conversationId)
                 .type(MessageType.AI)
                 .content(aiResponse.getContent())
                 .reactionEmoji(aiResponse.getReactionEmoji())
