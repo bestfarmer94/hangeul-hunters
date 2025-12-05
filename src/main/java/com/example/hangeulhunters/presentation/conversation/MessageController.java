@@ -48,7 +48,7 @@ public class MessageController extends ControllerSupport {
     )
     public ResponseEntity<MessageSendResponse> sendMessage(@Valid @RequestBody MessageRequest request) {
         MessageDto userMessage = messageService.sendMessage(getCurrentUserId(), request);
-        MessageSendResponse aiProcessedResponse = messageService.processChatWithAi(getCurrentUserId(), userMessage.getMessageId(), request.getConversationId());
+        MessageSendResponse aiProcessedResponse = messageService.processChatWithAi(getCurrentUserId(), request.getConversationId(), userMessage.getMessageId());
         return ResponseEntity.ok(aiProcessedResponse);
     }
 
