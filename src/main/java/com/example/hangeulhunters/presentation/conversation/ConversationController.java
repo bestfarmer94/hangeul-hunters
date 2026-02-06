@@ -2,6 +2,7 @@ package com.example.hangeulhunters.presentation.conversation;
 
 import com.example.hangeulhunters.application.common.dto.PageResponse;
 import com.example.hangeulhunters.application.conversation.dto.*;
+import com.example.hangeulhunters.application.conversation.dto.AskRequest;
 import com.example.hangeulhunters.application.conversation.service.ConversationService;
 import com.example.hangeulhunters.application.conversation.service.FeedbackService;
 import com.example.hangeulhunters.application.conversation.service.MessageService;
@@ -80,8 +81,17 @@ public class ConversationController extends ControllerSupport {
         return ResponseEntity.ok(conversation);
     }
 
+    @PostMapping("/ask")
+    @Operation(summary = "ASK 타입 대화 생성",
+            description = "페르소나 없이 질문을 위한 대화를 생성합니다",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    public ResponseEntity<ConversationDto> createAsk(@Valid @RequestBody AskRequest request) {
+        ConversationDto conversation = conversationService.createAsk(getCurrentUserId(), request);
+        return ResponseEntity.ok(conversation);
+    }
+
     @PutMapping("/{conversationId}/end")
-//    @PreAuthorize("hasRole('USER')")
     @Operation(
         summary = "대화 종료",
         description = "진행 중인 대화를 종료합니다",

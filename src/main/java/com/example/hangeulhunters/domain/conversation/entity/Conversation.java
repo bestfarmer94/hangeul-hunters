@@ -71,6 +71,13 @@ public class Conversation extends BaseTimeEntity {
     @Column(nullable = true)
     private InterviewStyle interviewStyle;
 
+    // ASK-specific fields
+    @Column(nullable = true)
+    private String askTarget;
+
+    @Column(nullable = true)
+    private String askTargetCloseness;
+
     // Task tracking fields
     /**
      * 현재 진행 중인 task 레벨

@@ -35,7 +35,7 @@ public class AIPersona extends BaseTimeEntity {
     @Column(nullable = false)
     private Gender gender;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private Integer age;
 
     @Column(nullable = false)

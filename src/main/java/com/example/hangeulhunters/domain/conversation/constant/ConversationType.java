@@ -12,6 +12,12 @@ import lombok.RequiredArgsConstructor;
 @Schema(description = "대화 타입")
 public enum ConversationType {
     /**
+     * 질문
+     */
+    @Schema(description = "질문")
+    ASK(null, null, null, null, null, null),
+
+    /**
      * 롤플레잉 대화
      */
     @Schema(description = "롤플레잉")
