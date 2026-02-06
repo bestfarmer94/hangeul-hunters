@@ -87,9 +87,11 @@ cloud:
     base-url: ${NOONCHI_AI_BASE_URL:}
     api-key: ${NOONCHI_AI_API_KEY:}
     endpoints:
-      role-playing-start: /chat/role-playing/start
-      role-playing-chat: /chat/role-playing
-      interview-start: /chat/interview/start
-      interview-chat: /chat/interview
+      ask-start: /ask/conversations
+      ask-chat: /ask/conversations/{conversationId}/messages
+      role-playing-start: /role-playing/start
+      role-playing-chat: /role-playing
+      interview-start: /interview/start
+      interview-chat: /interview
       translation: /translate
       report: /report

@@ -10,6 +10,7 @@ import com.example.hangeulhunters.application.file.service.FileService;
 import com.example.hangeulhunters.application.language.service.LanguageService;
 import com.example.hangeulhunters.application.persona.dto.AIPersonaDto;
 import com.example.hangeulhunters.application.persona.service.AIPersonaService;
+import com.example.hangeulhunters.application.topic.service.TopicService;
 import com.example.hangeulhunters.application.user.service.UserService;
 import com.example.hangeulhunters.domain.common.constant.AudioType;
 import com.example.hangeulhunters.domain.conversation.constant.ConversationTopicExample;
@@ -26,6 +27,7 @@ import com.example.hangeulhunters.infrastructure.service.naver.NaverApiService;
 import com.example.hangeulhunters.infrastructure.service.naver.dto.ClovaSpeechSTTResponse;
 import com.example.hangeulhunters.infrastructure.service.naver.dto.HonorificVariationsResponse;
 import com.example.hangeulhunters.infrastructure.service.noonchi.NoonchiAiService;
+import com.example.hangeulhunters.infrastructure.service.noonchi.dto.NoonchiAiDto;
 import com.example.hangeulhunters.infrastructure.service.noonchi.dto.NoonchiAiDto.ChatResponse;
 import com.example.hangeulhunters.infrastructure.service.noonchi.dto.NoonchiAiDto.ChatStartResponse;
 import lombok.RequiredArgsConstructor;
@@ -50,11 +52,11 @@ public class MessageService {
     private final AIPersonaService aiPersonaService;
     private final NaverApiService naverApiService;
     private final ConversationService conversationService;
-    private final UserService userService;
     private final LanguageService languageService;
     private final FileService fileService;
     private final NoonchiAiService noonchiAiService;
     private final FeedbackService feedbackService;
+    private final TopicService topicService;
 
     @Transactional
     public MessageDto sendMessage(Long userId, MessageRequest request) {
@@ -209,27 +211,32 @@ public class MessageService {
     }
 
     @Transactional
-    public void createRolePlayingFirstMessage(Long userId, ConversationDto conversation, ConversationTopicExample topic) {
+    public void createRolePlayingFirstMessage(Long userId, ConversationDto conversation) {
 
         // AI 서버 호출하여 롤플레잉 첫 메시지 생성
         try {
             // 1. AI 서버 호출
             ChatStartResponse aiResponse = noonchiAiService.startRolePlayingChat(
-                    conversation.getConversationId(),
-                    conversation.getConversationTrack(),
-                    topic);
+                    NoonchiAiDto.RolePlayingStartRequest.builder()
+                            .conversationId(conversation.getConversationId())
+                            .scenarioId(topicService.getTopicByName(conversation.getConversationTopic()).getTopicId())
+                            .myRole(conversation.getAiPersona().getUserRole())
+                            .aiRole(conversation.getAiPersona().getAiRole())
+                            .closeness(conversation.getCloseness())
+                            .detail(conversation.getSituation())
+                            .build()
+            );
 
             // 2. AI 첫 메시지 저장
-            Message message = Message.builder()
+            Message aiMessage = Message.builder()
                     .conversationId(conversation.getConversationId())
                     .type(MessageType.AI)
-                    .content(aiResponse.getContent())
-                    .reactionEmoji(aiResponse.getReactionEmoji())
-                    .reactionDescription(aiResponse.getReactionDescription())
-                    .recommendation(aiResponse.getRecommendation())
+                    .content(aiResponse.getAiMessage())
+                    .hiddenMeaning(aiResponse.getAiHiddenMeaning())
+                    .visualAction(aiResponse.getVisualAction())
                     .createdBy(userId)
                     .build();
-            messageRepository.save(message);
+            messageRepository.save(aiMessage);
 
         } catch (Exception e) {
             // AI 서버 호출 실패 시 기본 메시지 사용
@@ -269,10 +276,7 @@ public class MessageService {
             Message message = Message.builder()
                     .conversationId(conversation.getConversationId())
                     .type(MessageType.AI)
-                    .content(aiResponse.getContent())
-                    .reactionEmoji(aiResponse.getReactionEmoji())
-                    .reactionDescription(aiResponse.getReactionDescription())
-                    .recommendation(aiResponse.getRecommendation())
+                    .content(aiResponse.getAiMessage())
                     .createdBy(userId)
                     .build();
             messageRepository.save(message);

@@ -40,9 +40,18 @@ public class NoonchiAiDto {
         @JsonProperty("conversation_id")
         private Long conversationId;
 
-        private String track;
+        @JsonProperty("scenario_id")
+        private Long scenarioId;
 
-        private String topic;
+        @JsonProperty("my_role")
+        private String myRole;
+
+        @JsonProperty("ai_role")
+        private String aiRole;
+
+        private String closeness;
+
+        private String detail;
     }
 
     /**
@@ -106,15 +115,20 @@ public class NoonchiAiDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class ChatStartResponse {
-        private String content;
+        @JsonProperty("ai_message")
+        private String aiMessage;
 
-        @JsonProperty("reaction_emoji")
-        private String reactionEmoji;
+        @JsonProperty("ai_hidden_meaning")
+        private String aiHiddenMeaning;
 
-        @JsonProperty("reaction_description")
-        private String reactionDescription;
+        @JsonProperty("visual_action")
+        private String visualAction;
 
-        private String recommendation;
+        @JsonProperty("situation_description")
+        private String situationDescription;
+
+        @JsonProperty("situation_context")
+        private String situationContext;
     }
 
     /**

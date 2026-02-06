@@ -1,5 +1,6 @@
 package com.example.hangeulhunters.application.topic.dto;
 
+import com.example.hangeulhunters.domain.topic.entity.ConversationTopic;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -33,4 +34,15 @@ public class ConversationTopicDto {
 
     @Schema(description = "즐겨찾기 여부", requiredMode = Schema.RequiredMode.REQUIRED)
     private Boolean isFavorite;
+
+    public static ConversationTopicDto fromEntity(ConversationTopic topic) {
+        return ConversationTopicDto.builder()
+                .topicId(topic.getId())
+                .name(topic.getName())
+                .category(topic.getTrack())
+                .description(topic.getDescription())
+                .imageUrl(topic.getImageUrl())
+                .isFavorite(false) // 기본값, 실제 값은 서비스 레이어에서 설정
+                .build();
+    }
 }
