@@ -1,6 +1,5 @@
 package com.example.hangeulhunters.application.topic.dto;
 
-import com.example.hangeulhunters.domain.topic.entity.Topic;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,7 +14,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 @Schema(description = "주제 정보 DTO")
-public class TopicDto {
+public class ConversationTopicDto {
 
     @Schema(description = "주제 ID", requiredMode = Schema.RequiredMode.REQUIRED)
     private Long topicId;

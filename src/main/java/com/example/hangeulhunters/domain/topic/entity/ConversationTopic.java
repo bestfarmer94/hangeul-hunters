@@ -30,7 +30,6 @@ public class ConversationTopic extends BaseTimeEntity {
 
     /**
      * 롤플레잉 트랙 (career, love, belonging, kpop)
-     * INTERVIEW 타입인 경우 null
      */
     @Column(nullable = false)
     private String track;
@@ -46,4 +45,16 @@ public class ConversationTopic extends BaseTimeEntity {
      */
     @Column(nullable = false)
     private Integer taskCount;
+
+    /**
+     * 주제를 나타내는 이미지 URL
+     */
+    @Column(nullable = true)
+    private String imageUrl;
+
+    /**
+     * 표시 순서
+     */
+    @Column(nullable = false)
+    private Integer displayOrder;
 }

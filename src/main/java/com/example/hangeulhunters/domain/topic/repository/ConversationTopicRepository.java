@@ -1,24 +1,50 @@
 package com.example.hangeulhunters.domain.topic.repository;
 
-import com.example.hangeulhunters.domain.conversation.constant.ConversationType;
+import com.example.hangeulhunters.application.topic.dto.ConversationTopicDto;
 import com.example.hangeulhunters.domain.topic.entity.ConversationTopic;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface ConversationTopicRepository extends JpaRepository<ConversationTopic, Long> {
 
-    /**
-     * 대화 타입과 트랙으로 주제 조회
-     */
-    Optional<ConversationTopic> findByConversationTypeAndTrack(ConversationType conversationType, String track);
-
-    /**
-     * 대화 타입으로 주제 조회 (면접용)
-     */
-    Optional<ConversationTopic> findByConversationTypeAndTrackIsNull(ConversationType conversationType);
-
     Optional<ConversationTopic> findByNameAndDeletedAtNull(String topicName);
+
+    /**
+     * 활성화된 주제 목록을 즐겨찾기 우선으로 정렬하여 조회
+     * 즐겨찾기한 주제가 먼저 나오고, 그 다음 display_order 순으로 정렬
+     */
+    @Query("""
+            SELECT
+                NEW com.example.hangeulhunters.application.topic.dto.ConversationTopicDto(
+                    t.id,
+                    t.name,
+                    t.track,
+                    t.description,
+                    t.imageUrl,
+                    CASE WHEN f.id IS NOT NULL THEN TRUE ELSE FALSE END
+                )
+            FROM
+                ConversationTopic t
+                LEFT JOIN UserFavoriteTopic f
+                    ON t.id = f.topicId
+                        AND f.userId = :userId
+                        AND f.deletedAt IS NULL
+            WHERE
+                t.deletedAt IS NULL
+                AND (:track IS Null OR t.track = :track)
+                AND (:favoritesOnly = FALSE OR f.id IS NOT NULL)
+            ORDER BY
+                CASE WHEN f.id IS NOT NULL THEN 0 ELSE 1 END, t.displayOrder ASC
+            """)
+    List<ConversationTopicDto> getTopics(
+            @Param("userId") Long userId,
+            @Param("track") String track,
+            @Param("favoritesOnly") Boolean favoritesOnly
+    );
 }

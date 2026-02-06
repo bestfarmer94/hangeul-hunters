@@ -12,6 +12,7 @@ import com.example.hangeulhunters.application.persona.dto.AIPersonaDto;
 import com.example.hangeulhunters.application.persona.dto.AIPersonaRequest;
 import com.example.hangeulhunters.application.persona.service.AIPersonaService;
 import com.example.hangeulhunters.application.user.service.UserService;
+import com.example.hangeulhunters.domain.common.constant.Closeness;
 import com.example.hangeulhunters.domain.common.constant.FileObjectType;
 import com.example.hangeulhunters.domain.common.constant.Gender;
 import com.example.hangeulhunters.domain.conversation.constant.ConversationStatus;
@@ -195,7 +196,6 @@ public class ConversationService {
                                 AIPersonaRequest.builder()
                                                 .name(request.getConversationTopic().getAiRole())
                                                 .gender(Gender.NONE)
-                                                .age(25)
                                                 .description(request.getConversationTopic().getTopicName())
                                                 .userRole(request.getConversationTopic().getUserRole())
                                                 .build());
@@ -208,12 +208,14 @@ public class ConversationService {
                                 .conversationTopic(request.getConversationTopic().getTopicName())
                                 .status(ConversationStatus.ACTIVE)
                                 .situation(request.getDetails())
-                                .taskCurrentLevel(1)
-                                .taskCurrentName(
-                                                getConversationTopicTaskByTopicName(
-                                                                request.getConversationTopic().getTopicName(),
-                                                                1).getName())
-                                .taskAllCompleted(false)
+//                                .taskCurrentLevel(1)
+//                                .taskCurrentName(
+//                                                getConversationTopicTaskByTopicName(
+//                                                                request.getConversationTopic().getTopicName(),
+//                                                                1
+//                                                ).getName()
+//                                )
+//                                .taskAllCompleted(false)
                                 .createdBy(userId)
                                 .build();
                 Conversation savedConversation = conversationRepository.save(conversation);
@@ -241,11 +243,9 @@ public class ConversationService {
                                 .userId(userId)
                                 .name(interviewerName)
                                 .gender(Gender.NONE)
-                                .age(INTERVIEW.getDefaultAge())
                                 .aiRole(INTERVIEW.getAiRole())
                                 .userRole(INTERVIEW.getUserRole())
-                                .description(String.format(INTERVIEW.getAiDescriptionFormat(), request.getCompanyName(),
-                                                request.getJobTitle()))
+                                .description(INTERVIEW.name())
                                 .voice(voice)
                                 .createdBy(userId)
                                 .build();
@@ -255,18 +255,20 @@ public class ConversationService {
                 Conversation conversation = Conversation.builder()
                                 .userId(userId)
                                 .personaId(savedInterviewer.getId())
-                                .conversationType(INTERVIEW)
-                                .conversationTopic(INTERVIEW.getSituation())
+                                // 일단 분류를 롤플레잉으로 통일함
+                                .conversationType(ROLE_PLAYING)
+                                .conversationTopic(INTERVIEW.name())
                                 .status(ConversationStatus.ACTIVE)
-                                .situation(INTERVIEW.getSituation())
+                                .situation(INTERVIEW.name())
                                 .interviewCompanyName(request.getCompanyName())
                                 .interviewJobTitle(request.getJobTitle())
                                 .interviewJobPosting(request.getJobPosting())
                                 .interviewStyle(request.getInterviewStyle())
-                                .taskCurrentLevel(1)
-                                .taskCurrentName(getConversationTopicTaskByTopicName(INTERVIEW.getSituation(), 1)
-                                                .getName())
-                                .taskAllCompleted(false)
+//                                .taskCurrentLevel(1)
+//                                .taskCurrentName(getConversationTopicTaskByTopicName(INTERVIEW.getSituation(), 1)
+//                                                .getName())
+//                                .taskAllCompleted(false)
+                                .closeness(Closeness.FORMAL.getDisplayName())
                                 .createdBy(userId)
                                 .build();
                 Conversation savedConversation = conversationRepository.save(conversation);
@@ -296,11 +298,11 @@ public class ConversationService {
                                 .userId(userId)
                                 .personaId(0L) // ASK 타입은 페르소나가 없으므로 0L 사용
                                 .conversationType(ASK)
-                                .conversationTopic("ASK") // ASK 타입은 고정 토픽
+                                .conversationTopic(ASK.name()) // ASK 타입은 고정 토픽
                                 .status(ConversationStatus.ACTIVE)
                                 .situation(request.getSituation())
+                                .closeness(request.getCloseness())
                                 .askTarget(request.getAskTarget())
-                                .askTargetCloseness(request.getAskTargetCloseness())
                                 .createdBy(userId)
                                 .build();
                 Conversation savedConversation = conversationRepository.save(conversation);
