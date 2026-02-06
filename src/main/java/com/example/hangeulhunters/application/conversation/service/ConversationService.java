@@ -16,6 +16,7 @@ import com.example.hangeulhunters.domain.common.constant.Closeness;
 import com.example.hangeulhunters.domain.common.constant.FileObjectType;
 import com.example.hangeulhunters.domain.common.constant.Gender;
 import com.example.hangeulhunters.domain.conversation.constant.ConversationStatus;
+import com.example.hangeulhunters.domain.conversation.constant.InterviewStyle;
 import com.example.hangeulhunters.domain.conversation.entity.Conversation;
 import com.example.hangeulhunters.domain.conversation.repository.ConversationRepository;
 import com.example.hangeulhunters.domain.persona.constant.PersonaVoice;
@@ -105,34 +106,6 @@ public class ConversationService {
                                 fileService.getFiles(FileObjectType.CONVERSATION, conversationId));
         }
 
-        // @Transactional
-        // public ConversationDto createRolePlaying(Long userId, ConversationRequest
-        // request) {
-        //
-        // // 유저 정보 조회
-        // UserDto user = userService.getUserById(userId);
-        //
-        // // AI 페르소나 조회
-        // AIPersonaDto persona = aIPersonaService.getPersonaById(userId,
-        // request.getPersonaId());
-        //
-        // // 대화 생성
-        // Conversation conversation = Conversation.builder()
-        // .userId(userId)
-        // .personaId(request.getPersonaId())
-        // .conversationType(ROLE_PLAYING)
-        // .conversationTopic(request.getConversationTopic())
-        // .status(ConversationStatus.ACTIVE)
-        // .situation(request.getSituation().getSituation())
-        // .createdBy(userId)
-        // .build();
-        // Conversation savedConversation = conversationRepository.save(conversation);
-        //
-        // return ConversationDto.of(savedConversation,
-        // aIPersonaService.getPersonaById(userId, savedConversation.getPersonaId()),
-        // getConversationTopic(request.getConversationTopic()).getTrack());
-        // }
-
         @Transactional
         public void endConversation(Long userId, Long conversationId) {
                 Conversation conversation = conversationRepository.findById(conversationId)
@@ -191,13 +164,19 @@ public class ConversationService {
         @Transactional
         public ConversationDto createRolePlaying(Long userId, ConversationRequest request) {
 
+                // ConversationTopic 조회
+                ConversationTopic conversationTopic = conversationTopicRepository
+                                .findById(request.getConversationTopicId())
+                                .orElseThrow(() -> new ResourceNotFoundException("ConversationTopic", "id",
+                                                request.getConversationTopicId()));
+
                 // 롤플레잉 페르소나 생성
                 AIPersonaDto persona = aIPersonaService.createPersona(userId,
                                 AIPersonaRequest.builder()
-                                                .name(request.getConversationTopic().getAiRole())
+                                                .name(request.getAiRole())
                                                 .gender(Gender.NONE)
-                                                .description(request.getConversationTopic().getTopicName())
-                                                .userRole(request.getConversationTopic().getUserRole())
+                                                .description(conversationTopic.getName())
+                                                .userRole(request.getUserRole())
                                                 .build());
 
                 // 롤플레잉 대화 생성
@@ -205,17 +184,10 @@ public class ConversationService {
                                 .userId(userId)
                                 .personaId(persona.getPersonaId())
                                 .conversationType(ROLE_PLAYING)
-                                .conversationTopic(request.getConversationTopic().getTopicName())
+                                .conversationTopic(conversationTopic.getName())
                                 .status(ConversationStatus.ACTIVE)
-                                .situation(request.getDetails())
-//                                .taskCurrentLevel(1)
-//                                .taskCurrentName(
-//                                                getConversationTopicTaskByTopicName(
-//                                                                request.getConversationTopic().getTopicName(),
-//                                                                1
-//                                                ).getName()
-//                                )
-//                                .taskAllCompleted(false)
+                                .situation(request.getSituation())
+                                .closeness(request.getCloseness())
                                 .createdBy(userId)
                                 .build();
                 Conversation savedConversation = conversationRepository.save(conversation);
@@ -223,7 +195,7 @@ public class ConversationService {
                 return ConversationDto.of(
                                 savedConversation,
                                 persona,
-                                getConversationTopic(conversation.getConversationTopic()).getTrack());
+                                conversationTopic.getTrack());
         }
 
         /**
@@ -263,11 +235,12 @@ public class ConversationService {
                                 .interviewCompanyName(request.getCompanyName())
                                 .interviewJobTitle(request.getJobTitle())
                                 .interviewJobPosting(request.getJobPosting())
-                                .interviewStyle(request.getInterviewStyle())
-//                                .taskCurrentLevel(1)
-//                                .taskCurrentName(getConversationTopicTaskByTopicName(INTERVIEW.getSituation(), 1)
-//                                                .getName())
-//                                .taskAllCompleted(false)
+                                .interviewStyle(InterviewStyle.STANDARD)
+//                                 .taskCurrentLevel(1)
+//                                 .taskCurrentName(getConversationTopicTaskByTopicName(INTERVIEW.getSituation(),
+//                                 1)
+//                                 .getName())
+//                                 .taskAllCompleted(false)
                                 .closeness(Closeness.FORMAL.getDisplayName())
                                 .createdBy(userId)
                                 .build();

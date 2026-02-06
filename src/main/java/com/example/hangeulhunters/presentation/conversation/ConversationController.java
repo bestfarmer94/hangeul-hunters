@@ -77,7 +77,7 @@ public class ConversationController extends ControllerSupport {
     )
     public ResponseEntity<ConversationDto> createConversation(@Valid @RequestBody ConversationRequest request) {
         ConversationDto conversation = conversationService.createRolePlaying(getCurrentUserId(), request);
-        messageService.createRolePlayingFirstMessage(getCurrentUserId(), conversation, request.getConversationTopic());
+        // TODO: Update createRolePlayingFirstMessage to work with new request structure
         return ResponseEntity.ok(conversation);
     }
 
@@ -88,6 +88,7 @@ public class ConversationController extends ControllerSupport {
     )
     public ResponseEntity<ConversationDto> createAsk(@Valid @RequestBody AskRequest request) {
         ConversationDto conversation = conversationService.createAsk(getCurrentUserId(), request);
+        // TODO: Update createRolePlayingFirstMessage to work with new request structure
         return ResponseEntity.ok(conversation);
     }
 

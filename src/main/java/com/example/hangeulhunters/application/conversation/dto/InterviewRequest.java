@@ -34,7 +34,6 @@ public class InterviewRequest {
     @Schema(description = "채용 공고", example = "Java/Spring 기반 백엔드 개발자를 모집합니다...")
     private String jobPosting;
 
-    @NotNull(message = "면접 스타일은 필수입니다")
     @Schema(description = "면접 스타일", example = "STANDARD")
     private InterviewStyle interviewStyle;
 
