@@ -31,6 +31,7 @@ public class ConversationRequest {
     @Schema(description = "친밀도", example = "격식")
     private String closeness;
 
+    @NotBlank(message = "상황 설명은 필수입니다")
     @Schema(description = "상황 설명", example = "학교에서 선생님과 대화합니다")
     private String situation;
 }
