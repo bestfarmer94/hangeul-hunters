@@ -46,4 +46,9 @@ public abstract class BaseTimeEntity {
         this.deletedAt = DateTimeUtil.now();
         this.deletedBy = userId;
     }
+
+    public void restore() {
+        this.deletedAt = null;
+        this.deletedBy = null;
+    }
 }
