@@ -34,6 +34,6 @@ public class ProfileUpdateRequest {
     @Schema(description = "프로필 이미지 URL", example = "https://example.com/profile.jpg")
     private String profileImageUrl;
     
-    @Schema(description = "관심사 목록", example = "[\"여행\", \"음식\", \"영화\"]")
+    @Schema(description = "관심사 목록")
     private List<String> interests;
 }
