@@ -2,6 +2,7 @@ package com.example.hangeulhunters.application.conversation.service;
 
 import com.example.hangeulhunters.application.common.dto.FileDto;
 import com.example.hangeulhunters.application.common.dto.PageResponse;
+import com.example.hangeulhunters.application.conversation.dto.AskRequest;
 import com.example.hangeulhunters.application.conversation.dto.ConversationDto;
 import com.example.hangeulhunters.application.conversation.dto.ConversationFilterRequest;
 import com.example.hangeulhunters.application.conversation.dto.ConversationRequest;
@@ -11,9 +12,11 @@ import com.example.hangeulhunters.application.persona.dto.AIPersonaDto;
 import com.example.hangeulhunters.application.persona.dto.AIPersonaRequest;
 import com.example.hangeulhunters.application.persona.service.AIPersonaService;
 import com.example.hangeulhunters.application.user.service.UserService;
+import com.example.hangeulhunters.domain.common.constant.Closeness;
 import com.example.hangeulhunters.domain.common.constant.FileObjectType;
 import com.example.hangeulhunters.domain.common.constant.Gender;
 import com.example.hangeulhunters.domain.conversation.constant.ConversationStatus;
+import com.example.hangeulhunters.domain.conversation.constant.InterviewStyle;
 import com.example.hangeulhunters.domain.conversation.entity.Conversation;
 import com.example.hangeulhunters.domain.conversation.repository.ConversationRepository;
 import com.example.hangeulhunters.domain.persona.constant.PersonaVoice;
@@ -39,6 +42,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import static com.example.hangeulhunters.domain.conversation.constant.ConversationType.ASK;
 import static com.example.hangeulhunters.domain.conversation.constant.ConversationType.INTERVIEW;
 import static com.example.hangeulhunters.domain.conversation.constant.ConversationType.ROLE_PLAYING;
 
@@ -102,32 +106,6 @@ public class ConversationService {
                                 fileService.getFiles(FileObjectType.CONVERSATION, conversationId));
         }
 
-//        @Transactional
-//        public ConversationDto createRolePlaying(Long userId, ConversationRequest request) {
-//
-//                // 유저 정보 조회
-//                UserDto user = userService.getUserById(userId);
-//
-//                // AI 페르소나 조회
-//                AIPersonaDto persona = aIPersonaService.getPersonaById(userId, request.getPersonaId());
-//
-//                // 대화 생성
-//                Conversation conversation = Conversation.builder()
-//                                .userId(userId)
-//                                .personaId(request.getPersonaId())
-//                                .conversationType(ROLE_PLAYING)
-//                                .conversationTopic(request.getConversationTopic())
-//                                .status(ConversationStatus.ACTIVE)
-//                                .situation(request.getSituation().getSituation())
-//                                .createdBy(userId)
-//                                .build();
-//                Conversation savedConversation = conversationRepository.save(conversation);
-//
-//                return ConversationDto.of(savedConversation,
-//                                aIPersonaService.getPersonaById(userId, savedConversation.getPersonaId()),
-//                                getConversationTopic(request.getConversationTopic()).getTrack());
-//        }
-
         @Transactional
         public void endConversation(Long userId, Long conversationId) {
                 Conversation conversation = conversationRepository.findById(conversationId)
@@ -185,40 +163,39 @@ public class ConversationService {
 
         @Transactional
         public ConversationDto createRolePlaying(Long userId, ConversationRequest request) {
-                
+
+                // ConversationTopic 조회
+                ConversationTopic conversationTopic = conversationTopicRepository
+                                .findById(request.getConversationTopicId())
+                                .orElseThrow(() -> new ResourceNotFoundException("ConversationTopic", "id",
+                                                request.getConversationTopicId()));
+
                 // 롤플레잉 페르소나 생성
                 AIPersonaDto persona = aIPersonaService.createPersona(userId,
-                        AIPersonaRequest.builder()
-                                .name(request.getConversationTopic().getAiRole())
-                                .gender(Gender.NONE)
-                                .age(25)
-                                .description(request.getConversationTopic().getTopicName())
-                                .userRole(request.getConversationTopic().getUserRole())
-                                .build());
+                                AIPersonaRequest.builder()
+                                                .name(request.getAiRole())
+                                                .gender(Gender.NONE)
+                                                .description(conversationTopic.getName())
+                                                .userRole(request.getUserRole())
+                                                .build());
 
                 // 롤플레잉 대화 생성
                 Conversation conversation = Conversation.builder()
-                        .userId(userId)
-                        .personaId(persona.getPersonaId())
-                        .conversationType(ROLE_PLAYING)
-                        .conversationTopic(request.getConversationTopic().getTopicName())
-                        .status(ConversationStatus.ACTIVE)
-                        .situation(request.getDetails())
-                        .taskCurrentLevel(1)
-                        .taskCurrentName(
-                                getConversationTopicTaskByTopicName(
-                                        request.getConversationTopic().getTopicName(),
-                                        1
-                                ).getName())
-                        .taskAllCompleted(false)
-                        .createdBy(userId)
-                        .build();
+                                .userId(userId)
+                                .personaId(persona.getPersonaId())
+                                .conversationType(ROLE_PLAYING)
+                                .conversationTopic(conversationTopic.getName())
+                                .status(ConversationStatus.ACTIVE)
+                                .situation(request.getSituation())
+                                .closeness(request.getCloseness())
+                                .createdBy(userId)
+                                .build();
                 Conversation savedConversation = conversationRepository.save(conversation);
 
                 return ConversationDto.of(
-                        savedConversation,
-                        persona,
-                        getConversationTopic(conversation.getConversationTopic()).getTrack());
+                                savedConversation,
+                                persona,
+                                conversationTopic.getTrack());
         }
 
         /**
@@ -238,11 +215,9 @@ public class ConversationService {
                                 .userId(userId)
                                 .name(interviewerName)
                                 .gender(Gender.NONE)
-                                .age(INTERVIEW.getDefaultAge())
                                 .aiRole(INTERVIEW.getAiRole())
                                 .userRole(INTERVIEW.getUserRole())
-                                .description(String.format(INTERVIEW.getAiDescriptionFormat(), request.getCompanyName(),
-                                                request.getJobTitle()))
+                                .description(INTERVIEW.name())
                                 .voice(voice)
                                 .createdBy(userId)
                                 .build();
@@ -252,18 +227,21 @@ public class ConversationService {
                 Conversation conversation = Conversation.builder()
                                 .userId(userId)
                                 .personaId(savedInterviewer.getId())
-                                .conversationType(INTERVIEW)
-                                .conversationTopic(INTERVIEW.getSituation())
+                                // 일단 분류를 롤플레잉으로 통일함
+                                .conversationType(ROLE_PLAYING)
+                                .conversationTopic(INTERVIEW.name())
                                 .status(ConversationStatus.ACTIVE)
-                                .situation(INTERVIEW.getSituation())
+                                .situation(INTERVIEW.name())
                                 .interviewCompanyName(request.getCompanyName())
                                 .interviewJobTitle(request.getJobTitle())
                                 .interviewJobPosting(request.getJobPosting())
-                                .interviewStyle(request.getInterviewStyle())
-                                .taskCurrentLevel(1)
-                                .taskCurrentName(getConversationTopicTaskByTopicName(INTERVIEW.getSituation(), 1)
-                                                .getName())
-                                .taskAllCompleted(false)
+                                .interviewStyle(InterviewStyle.STANDARD)
+//                                 .taskCurrentLevel(1)
+//                                 .taskCurrentName(getConversationTopicTaskByTopicName(INTERVIEW.getSituation(),
+//                                 1)
+//                                 .getName())
+//                                 .taskAllCompleted(false)
+                                .closeness(Closeness.FORMAL.getDisplayName())
                                 .createdBy(userId)
                                 .build();
                 Conversation savedConversation = conversationRepository.save(conversation);
@@ -277,6 +255,35 @@ public class ConversationService {
                                 AIPersonaDto.fromEntity(savedInterviewer),
                                 getConversationTopic(conversation.getConversationTopic()).getTrack(),
                                 fileDtos);
+        }
+
+        /**
+         * ASK 타입 대화 생성 (페르소나 없이 생성)
+         *
+         * @param userId  사용자 ID
+         * @param request ASK 요청 정보
+         * @return 생성된 ASK 대화 DTO
+         */
+        @Transactional
+        public ConversationDto createAsk(Long userId, AskRequest request) {
+                // ASK 타입 대화 생성 (personaId는 임시로 0L 사용)
+                Conversation conversation = Conversation.builder()
+                                .userId(userId)
+                                .personaId(0L) // ASK 타입은 페르소나가 없으므로 0L 사용
+                                .conversationType(ASK)
+                                .conversationTopic(ASK.name()) // ASK 타입은 고정 토픽
+                                .status(ConversationStatus.ACTIVE)
+                                .situation(request.getSituation())
+                                .closeness(request.getCloseness())
+                                .askTarget(request.getAskTarget())
+                                .createdBy(userId)
+                                .build();
+                Conversation savedConversation = conversationRepository.save(conversation);
+
+                return ConversationDto.of(
+                                savedConversation,
+                                null, // ASK 타입은 페르소나가 없음
+                                null); // ASK 타입은 track이 없음
         }
 
         /**

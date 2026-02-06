@@ -1,6 +1,6 @@
 package com.example.hangeulhunters.presentation.topic;
 
-import com.example.hangeulhunters.application.topic.dto.TopicDto;
+import com.example.hangeulhunters.application.topic.dto.ConversationTopicDto;
 import com.example.hangeulhunters.application.topic.service.TopicService;
 import com.example.hangeulhunters.presentation.common.ControllerSupport;
 import io.swagger.v3.oas.annotations.Operation;
@@ -35,10 +35,10 @@ public class TopicController extends ControllerSupport {
     @Operation(summary = "주제 목록 조회",
             description = "주제 목록을 조회합니다. 카테고리 필터링 및 즐겨찾기 필터링이 가능하며, 즐겨찾기한 주제가 상단에 표시됩니다.",
             security = @SecurityRequirement(name = "bearerAuth"))
-    public ResponseEntity<List<TopicDto>> getTopics(
+    public ResponseEntity<List<ConversationTopicDto>> getTopics(
             @Parameter(description = "카테고리 (null이면 전체 조회)") @RequestParam(required = false) String category,
             @Parameter(description = "즐겨찾기만 조회 여부") @RequestParam(required = false, defaultValue = "false") Boolean favoritesOnly) {
-        List<TopicDto> topics = topicService.getTopics(getCurrentUserId(), category, favoritesOnly);
+        List<ConversationTopicDto> topics = topicService.getTopics(getCurrentUserId(), category, favoritesOnly);
         return ResponseEntity.ok(topics);
     }
 

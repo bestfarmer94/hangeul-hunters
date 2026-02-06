@@ -91,6 +91,16 @@ public class Conversation extends BaseTimeEntity {
     private Boolean taskAllCompleted;
 
     /**
+     * 친밀도
+     */
+    @Column(nullable = true)
+    private String closeness;
+
+    // ASK-specific fields
+    @Column(nullable = true)
+    private String askTarget;
+
+    /**
      * 대화 종료
      */
     public void endConversation() {

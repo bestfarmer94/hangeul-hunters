@@ -82,6 +82,12 @@ public class ConversationDto {
     @Schema(description = "모든 task 완료 여부", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private Boolean taskAllCompleted;
 
+    @Schema(description = "친밀도", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    private String closeness;
+
+    @Schema(description = "대상(ASK)", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    private String askTarget;
+
     @Schema(description = "파일 목록", requiredMode = Schema.RequiredMode.REQUIRED)
     private List<FileDto> files;
 
@@ -107,6 +113,8 @@ public class ConversationDto {
                 .taskCurrentLevel(conversation.getTaskCurrentLevel())
                 .taskCurrentName(conversation.getTaskCurrentName())
                 .taskAllCompleted(conversation.getTaskAllCompleted())
+                .closeness(conversation.getCloseness())
+                .askTarget(conversation.getAskTarget())
                 .files(files)
                 .build();
     }

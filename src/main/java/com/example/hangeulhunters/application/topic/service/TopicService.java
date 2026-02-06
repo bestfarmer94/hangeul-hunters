@@ -1,8 +1,8 @@
 package com.example.hangeulhunters.application.topic.service;
 
-import com.example.hangeulhunters.application.topic.dto.TopicDto;
+import com.example.hangeulhunters.application.topic.dto.ConversationTopicDto;
 import com.example.hangeulhunters.domain.topic.entity.UserFavoriteTopic;
-import com.example.hangeulhunters.domain.topic.repository.TopicRepository;
+import com.example.hangeulhunters.domain.topic.repository.ConversationTopicRepository;
 import com.example.hangeulhunters.domain.topic.repository.UserFavoriteTopicRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,19 +18,19 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class TopicService {
 
-    private final TopicRepository topicRepository;
+    private final ConversationTopicRepository conversationTopicRepository;
     private final UserFavoriteTopicRepository userFavoriteTopicRepository;
 
     /**
      * 주제 목록 조회
      * 
      * @param userId        사용자 ID
-     * @param category      카테고리 (null이면 전체 조회)
+     * @param track         트랙 (null이면 전체 조회)
      * @param favoritesOnly 즐겨찾기만 조회 여부
      * @return 주제 목록
      */
-    public List<TopicDto> getTopics(Long userId, String category, Boolean favoritesOnly) {
-        return topicRepository.getTopics(userId, category, favoritesOnly);
+    public List<ConversationTopicDto> getTopics(Long userId, String track, Boolean favoritesOnly) {
+        return conversationTopicRepository.getTopics(userId, track, favoritesOnly);
     }
 
     /**
