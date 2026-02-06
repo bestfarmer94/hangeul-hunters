@@ -3,7 +3,7 @@ package com.example.hangeulhunters.domain.common.constant;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public enum Subject {
+public enum SubjectCategory {
     DAILY_CONVERSATION("Daily Conversation"),
     BUSINESS("Business"),
     TRAVEL("Travel"),
