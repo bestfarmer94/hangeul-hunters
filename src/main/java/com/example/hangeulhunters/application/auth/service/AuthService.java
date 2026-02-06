@@ -65,16 +65,15 @@ public class AuthService {
     }
 
     /**
-     * 회원가입 처리 (guest -> user)
+     * 회원가입
      *
-     * @param userId guest 사용자 ID
      * @param signUpRequest 회원가입 요청 정보
      * @return 인증 응답 (토큰 및 사용자 정보)
      */
     @Transactional
-    public AuthResponse signup(Long userId, SignUpRequest signUpRequest) {
+    public AuthResponse signup(SignUpRequest signUpRequest) {
         // 사용자 생성
-        UserDto userDto = userService.convertGuestToUser(userId, signUpRequest);
+        UserDto userDto = userService.createUser(signUpRequest);
         
         String email = userDto.getEmail();
         
@@ -143,6 +142,34 @@ public class AuthService {
                 // 존재하지 않으면, 새 게스트 사용자 생성
                 () -> userService.createGuestUser(deviceId)
         );
+
+        String email = userDto.getEmail();
+
+        // JWT 액세스 토큰 생성
+        String accessToken = jwtTokenProvider.createToken(email);
+
+        // 리프레시 토큰 생성
+        String refreshToken = jwtTokenProvider.createRefreshToken(email);
+
+        // 응답 생성
+        return AuthResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .user(userDto)
+                .build();
+    }
+
+    /**
+     * 회원가입 처리 (guest -> user)
+     *
+     * @param userId guest 사용자 ID
+     * @param signUpRequest 회원가입 요청 정보
+     * @return 인증 응답 (토큰 및 사용자 정보)
+     */
+    @Transactional
+    public AuthResponse convertGuestToUser(Long userId, SignUpRequest signUpRequest) {
+        // 사용자 생성
+        UserDto userDto = userService.convertGuestToUser(userId, signUpRequest);
 
         String email = userDto.getEmail();
 
