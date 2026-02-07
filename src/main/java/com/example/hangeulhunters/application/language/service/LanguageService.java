@@ -1,15 +1,18 @@
 package com.example.hangeulhunters.application.language.service;
 
 import com.example.hangeulhunters.application.file.service.FileService;
+import com.example.hangeulhunters.application.language.dto.ScenarioContextRequest;
+import com.example.hangeulhunters.application.language.dto.ScenarioContextResponse;
 import com.example.hangeulhunters.infrastructure.service.google.GoogleApiService;
 import com.example.hangeulhunters.infrastructure.service.naver.NaverApiService;
 import com.example.hangeulhunters.infrastructure.service.naver.dto.ClovaSpeechSTTResponse;
 import com.example.hangeulhunters.infrastructure.service.naver.dto.HonorificVariationsResponse;
 import com.example.hangeulhunters.infrastructure.service.noonchi.NoonchiAiService;
-import com.example.hangeulhunters.infrastructure.service.noonchi.dto.NoonchiAiDto.HintResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -67,7 +70,18 @@ public class LanguageService {
      * @return 힌트 응답
      */
     @Transactional(readOnly = true)
-    public HintResponse generateRolePlayingHint(Long conversationId) {
-        return noonchiAiService.generateRolePlayingHint(conversationId);
+    public List<String> generateRolePlayingHint(Long conversationId) {
+        return noonchiAiService.generateRolePlayingHint(conversationId).getHints();
+    }
+
+    /**
+     * 시나리오 컨텍스트 생성
+     *
+     * @param request 시나리오 컨텍스트 요청
+     * @return 시나리오 컨텍스트 응답
+     */
+    @Transactional(readOnly = true)
+    public ScenarioContextResponse generateScenarioContext(ScenarioContextRequest request) {
+        return ScenarioContextResponse.of(noonchiAiService.generateScenarioContext(request));
     }
 }

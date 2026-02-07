@@ -1,10 +1,11 @@
 package com.example.hangeulhunters.presentation.language;
 
+import com.example.hangeulhunters.application.language.dto.ScenarioContextRequest;
+import com.example.hangeulhunters.application.language.dto.ScenarioContextResponse;
 import com.example.hangeulhunters.application.language.dto.SpeechToTextRequest;
 import com.example.hangeulhunters.application.language.dto.TTSRequest;
 import com.example.hangeulhunters.application.language.service.LanguageService;
 import com.example.hangeulhunters.infrastructure.service.naver.dto.HonorificVariationsResponse;
-import com.example.hangeulhunters.infrastructure.service.noonchi.dto.NoonchiAiDto.HintResponse;
 import com.example.hangeulhunters.presentation.common.ControllerSupport;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -14,6 +15,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/language")
@@ -60,9 +63,20 @@ public class LanguageController extends ControllerSupport {
             description = "롤플레잉 대화 중간에 AI 서버를 호출하여 답변 예시 힌트를 생성합니다",
             security = @SecurityRequirement(name = "bearerAuth")
     )
-    public ResponseEntity<HintResponse> generateRolePlayingHint(
+    public ResponseEntity<List<String>> generateRolePlayingHint(
             @Parameter(description = "대화방 ID") @RequestParam Long conversationId) {
-        HintResponse hint = languageService.generateRolePlayingHint(conversationId);
-        return ResponseEntity.ok(hint);
+        List<String> hints = languageService.generateRolePlayingHint(conversationId);
+        return ResponseEntity.ok(hints);
+    }
+
+    @GetMapping("/scenario-context")
+    @Operation(summary = "시나리오 컨텍스트 생성",
+            description = "시나리오 ID를 받아 AI 서버를 호출하여 시나리오 컨텍스트를 생성합니다",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    public ResponseEntity<ScenarioContextResponse> generateScenarioContext(
+            @Valid @RequestBody ScenarioContextRequest request) {
+        ScenarioContextResponse context = languageService.generateScenarioContext(request);
+        return ResponseEntity.ok(context);
     }
 }
