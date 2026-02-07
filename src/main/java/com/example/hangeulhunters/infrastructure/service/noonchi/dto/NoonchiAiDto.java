@@ -253,4 +253,19 @@ public class NoonchiAiDto {
         @JsonProperty("conversation_summary")
         private String conversationSummary;
     }
+
+    // ==================== Hint DTOs ====================
+
+    /**
+     * 힌트 생성 응답
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class HintResponse {
+        private List<String> hints;
+
+        private List<String> explanations;
+    }
 }
