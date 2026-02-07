@@ -57,6 +57,15 @@ public class MessageDto {
     @Schema(description = "추천 응답 (한국어)", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private String recommendation;
 
+    @Schema(description = "숨은 의미", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    private String hiddenMeaning;
+
+    @Schema(description = "행동 묘사", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    private String visualAction;
+
+    @Schema(description = "현재 장면 묘사 (시스템 메시지)", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    private String situationDescription;
+
     @Schema(description = "메시지 생성일시", requiredMode = Schema.RequiredMode.REQUIRED, format = "date-time")
     private LocalDateTime createdAt;
 
@@ -75,6 +84,9 @@ public class MessageDto {
                 .reactionDescription(message.getReactionDescription())
                 .reactionReason(message.getReactionReason())
                 .recommendation(message.getRecommendation())
+                .hiddenMeaning(message.getHiddenMeaning())
+                .visualAction(message.getVisualAction())
+                .situationDescription(message.getSituationDescription())
                 .createdAt(DateTimeUtil.toLocalDateTime(message.getCreatedAt()))
                 .build();
     }

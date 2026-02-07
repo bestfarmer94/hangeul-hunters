@@ -2,6 +2,7 @@ package com.example.hangeulhunters.application.conversation.dto;
 
 import com.example.hangeulhunters.domain.conversation.entity.ConversationFeedback;
 import com.example.hangeulhunters.domain.conversation.vo.ImprovementItem;
+import com.example.hangeulhunters.domain.conversation.vo.KeyExpression;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -46,6 +47,9 @@ public class ConversationFeedbackDto {
     @Schema(description = "한국어 능력 기준의 한줄평")
     private String overallEvaluation;
 
+    @Schema(description = "핵심 표현 목록")
+    private List<KeyExpression> keyExpressions;
+
     /**
      * 엔티티로부터 DTO 생성
      */
@@ -60,6 +64,7 @@ public class ConversationFeedbackDto {
                 .goodPoints(feedback.getGoodPoints())
                 .improvementPoints(feedback.getImprovementPoints())
                 .overallEvaluation(feedback.getOverallEvaluation())
+                .keyExpressions(feedback.getKeyExpressions())
                 .build();
     }
 }

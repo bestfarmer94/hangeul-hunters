@@ -14,6 +14,8 @@ public class NoonchiAiProperties {
 
     @Data
     public static class Endpoints {
+        private String askStart;
+        private String askChat;
         private String rolePlayingStart;
         private String rolePlayingChat;
         private String interviewStart;

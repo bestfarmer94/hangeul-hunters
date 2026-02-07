@@ -11,7 +11,6 @@ import com.example.hangeulhunters.application.file.service.FileService;
 import com.example.hangeulhunters.application.persona.dto.AIPersonaDto;
 import com.example.hangeulhunters.application.persona.dto.AIPersonaRequest;
 import com.example.hangeulhunters.application.persona.service.AIPersonaService;
-import com.example.hangeulhunters.application.user.service.UserService;
 import com.example.hangeulhunters.domain.common.constant.Closeness;
 import com.example.hangeulhunters.domain.common.constant.FileObjectType;
 import com.example.hangeulhunters.domain.common.constant.Gender;
@@ -55,10 +54,8 @@ public class ConversationService {
         private final AIPersonaRepository aiPersonaRepository;
         private final ConversationTopicRepository conversationTopicRepository;
         private final ConversationTopicTaskRepository conversationTopicTaskRepository;
-        private final UserService userService;
         private final AIPersonaService aIPersonaService;
         private final FileService fileService;
-        private final FeedbackService feedbackService;
 
         /**
          * 사용자의 대화 목록을 필터링하여 페이징 조회

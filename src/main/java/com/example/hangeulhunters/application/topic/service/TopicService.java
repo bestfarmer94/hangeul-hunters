@@ -29,8 +29,22 @@ public class TopicService {
      * @param favoritesOnly 즐겨찾기만 조회 여부
      * @return 주제 목록
      */
+    @Transactional(readOnly = true)
     public List<ConversationTopicDto> getTopics(Long userId, String track, Boolean favoritesOnly) {
         return conversationTopicRepository.getTopics(userId, track, favoritesOnly);
+    }
+
+    /**
+     * 주제 이름을 통한 정보 조회
+     *
+     * @param topicName 주제 이름
+     * @return 주제 정보
+     */
+    @Transactional(readOnly = true)
+    public ConversationTopicDto getTopicByName(String topicName) {
+        return conversationTopicRepository.findByNameAndDeletedAtNull(topicName)
+                .map(ConversationTopicDto::fromEntity)
+                .orElseThrow(() -> new IllegalArgumentException("Topic not found"));
     }
 
     /**

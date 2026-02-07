@@ -40,9 +40,18 @@ public class NoonchiAiDto {
         @JsonProperty("conversation_id")
         private Long conversationId;
 
-        private String track;
+        @JsonProperty("scenario_id")
+        private Long scenarioId;
 
-        private String topic;
+        @JsonProperty("my_role")
+        private String myRole;
+
+        @JsonProperty("ai_role")
+        private String aiRole;
+
+        private String closeness;
+
+        private String detail;
     }
 
     /**
@@ -106,15 +115,20 @@ public class NoonchiAiDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class ChatStartResponse {
-        private String content;
+        @JsonProperty("ai_message")
+        private String aiMessage;
 
-        @JsonProperty("reaction_emoji")
-        private String reactionEmoji;
+        @JsonProperty("ai_hidden_meaning")
+        private String aiHiddenMeaning;
 
-        @JsonProperty("reaction_description")
-        private String reactionDescription;
+        @JsonProperty("visual_action")
+        private String visualAction;
 
-        private String recommendation;
+        @JsonProperty("situation_description")
+        private String situationDescription;
+
+        @JsonProperty("situation_context")
+        private String situationContext;
     }
 
     /**
@@ -206,8 +220,6 @@ public class NoonchiAiDto {
     public static class LearningReportRequest {
         @JsonProperty("conversation_id")
         private Long conversationId;
-
-        private String track;
     }
 
     /**
@@ -218,18 +230,40 @@ public class NoonchiAiDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class LearningReportResponse {
-        @JsonProperty("politeness_score")
-        private Integer politenessScore;
+        @JsonProperty("total_turns")
+        private Integer totalTurns;
+
+        @JsonProperty("overall_assessment")
+        private String overallAssessment;
+
+        @JsonProperty("formality_score")
+        private Integer formalityScore;
 
         @JsonProperty("naturalness_score")
         private Integer naturalnessScore;
 
-        @JsonProperty("good_point")
-        private String goodPoint;
+        @JsonProperty("cultural_awareness_score")
+        private Integer culturalAwarenessScore;
 
-        private List<ImprovementItem> improvements;
+        private String strengths;
 
-        @JsonProperty("overall_evaluation")
-        private String overallEvaluation;
+        @JsonProperty("areas_to_improve")
+        private List<ImprovementItem> areasToImprove;
+
+        @JsonProperty("key_expressions")
+        private List<KeyExpression> keyExpressions;
+    }
+
+    /**
+     * 핵심 표현 DTO
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class KeyExpression {
+        private String korean;
+        private String english;
+        private String usage;
     }
 }

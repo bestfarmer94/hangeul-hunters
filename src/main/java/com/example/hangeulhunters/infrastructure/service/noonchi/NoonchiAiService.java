@@ -29,20 +29,10 @@ public class NoonchiAiService {
     /**
      * 롬플레잉 대화 시작
      * 
-     * @param conversationId 대화방 ID
-     * @param track          롬플레잉 트랙 (career, love, belonging, kpop)
-     * @param topic          시나리오 토픽
+     * @param request 롤플레잉 시작 요청 DTO
      * @return AI 첫 발화 응답
      */
-    public ChatStartResponse startRolePlayingChat(Long conversationId, String track, ConversationTopicExample topic) {
-        log.info("Starting role-playing chat - conversationId: {}, track: {}, topic: {}",
-                conversationId, track, topic);
-
-        RolePlayingStartRequest request = RolePlayingStartRequest.builder()
-                .conversationId(conversationId)
-                .track(track)
-                .topic(topic.name())
-                .build();
+    public ChatStartResponse startRolePlayingChat(RolePlayingStartRequest request) {
 
         try {
             ChatStartResponse response = webClient.post()
@@ -54,15 +44,15 @@ public class NoonchiAiService {
                     .bodyToMono(ChatStartResponse.class)
                     .block();
 
-            log.info("Role-playing chat started successfully - conversationId: {}", conversationId);
+            log.info("Role-playing chat started successfully - conversationId: {}", request.getConversationId());
             return response;
 
         } catch (WebClientResponseException e) {
             log.error("Failed to start role-playing chat - conversationId: {}, status: {}, body: {}",
-                    conversationId, e.getStatusCode(), e.getResponseBodyAsString());
+                    request.getConversationId(), e.getStatusCode(), e.getResponseBodyAsString());
             throw new RuntimeException("Failed to start role-playing chat: " + e.getMessage(), e);
         } catch (Exception e) {
-            log.error("Unexpected error starting role-playing chat - conversationId: {}", conversationId, e);
+            log.error("Unexpected error starting role-playing chat - conversationId: {}", request.getConversationId(), e);
             throw new RuntimeException("Unexpected error starting role-playing chat", e);
         }
     }
@@ -238,19 +228,17 @@ public class NoonchiAiService {
      * 학습 리포트 생성
      * 
      * @param conversationId 대화방 ID
-     * @param track          시나리오 트랙 (career, love, belonging, kpop, interview)
      * @return 학습 리포트
      */
-    public LearningReportResponse generateLearningReport(Long conversationId, String track) {
-        log.info("Generating learning report - conversationId: {}, track: {}", conversationId, track);
+    public LearningReportResponse generateLearningReport(Long conversationId) {
+        log.info("Generating learning report - conversationId: {}", conversationId);
 
         LearningReportRequest request = LearningReportRequest.builder()
                 .conversationId(conversationId)
-                .track(track)
                 .build();
 
         try {
-            LearningReportResponse response = webClient.post()
+            return webClient.post()
                     .uri(properties.getBaseUrl() + properties.getEndpoints().getReport())
                     .header("x-api-key", properties.getApiKey())
                     .contentType(MediaType.APPLICATION_JSON)
@@ -258,10 +246,6 @@ public class NoonchiAiService {
                     .retrieve()
                     .bodyToMono(LearningReportResponse.class)
                     .block();
-
-            log.info("Learning report generated successfully - conversationId: {}, politeness: {}, naturalness: {}",
-                    conversationId, response.getPolitenessScore(), response.getNaturalnessScore());
-            return response;
 
         } catch (WebClientResponseException e) {
             log.error("Failed to generate learning report - conversationId: {}, status: {}, body: {}",

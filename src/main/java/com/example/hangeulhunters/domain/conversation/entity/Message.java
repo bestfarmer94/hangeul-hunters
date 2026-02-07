@@ -80,6 +80,31 @@ public class Message extends BaseTimeEntity {
     private String recommendation;
 
     /**
+     * 숨은 의미
+     */
+    @Column(nullable = true, columnDefinition = "TEXT")
+    private String hiddenMeaning;
+
+    /**
+     * 행동 묘사
+     */
+    @Column(nullable = true, columnDefinition = "TEXT")
+    private String visualAction;
+
+    /**
+     * 현재 장면 묘사 (시스템 메시지)
+     */
+    @Column(nullable = true, columnDefinition = "TEXT")
+    private String situationDescription;
+
+    /**
+     * 전체 장면 묘사 (시스템 메시지)
+     * 일단 아직은 사용 X
+     */
+    @Column(nullable = true, columnDefinition = "TEXT")
+    private String situationContext;
+
+    /**
      * 번역문 저장
      */
     public void saveTranslatedContent(String translatedContent) {
