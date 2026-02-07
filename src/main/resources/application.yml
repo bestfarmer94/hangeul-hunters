@@ -89,6 +89,7 @@ cloud:
     endpoints:
       ask-start: /ask/conversations
       ask-chat: /ask/conversations/{conversationId}/messages
+      scenario-generate-context: /roleplay/scenarios/{scenario_id}/generate-context
       role-playing-start: /roleplay/conversations
       role-playing-chat: /roleplay/conversations/{conversationId}/messages
       role-playing-hint: /roleplay/conversations/{conversationId}/hints

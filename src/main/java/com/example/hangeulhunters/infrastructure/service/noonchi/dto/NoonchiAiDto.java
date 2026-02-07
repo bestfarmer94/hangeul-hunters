@@ -268,4 +268,40 @@ public class NoonchiAiDto {
 
         private List<String> explanations;
     }
+
+    // ==================== Scenario Context DTOs ====================
+
+    /**
+     * 시나리오 컨텍스트 생성 요청
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ScenarioContextAiRequest {
+        @JsonProperty("my_role")
+        private String myRole;
+
+        @JsonProperty("ai_role")
+        private String aiRole;
+
+        private String detail;
+    }
+
+    /**
+     * 시나리오 컨텍스트 생성 응답
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ScenarioContextAiResponse {
+        @JsonProperty("my_role")
+        private String myRole;
+
+        @JsonProperty("ai_role")
+        private String aiRole;
+
+        private String detail;
+    }
 }

@@ -1,5 +1,6 @@
 package com.example.hangeulhunters.infrastructure.service.noonchi;
 
+import com.example.hangeulhunters.application.language.dto.ScenarioContextRequest;
 import com.example.hangeulhunters.infrastructure.config.NoonchiAiProperties;
 import com.example.hangeulhunters.infrastructure.service.noonchi.dto.NoonchiAiDto.*;
 import lombok.RequiredArgsConstructor;
@@ -289,6 +290,49 @@ public class NoonchiAiService {
         } catch (Exception e) {
             log.error("Unexpected error generating role-playing hint - conversationId: {}", conversationId, e);
             throw new RuntimeException("Unexpected error generating role-playing hint", e);
+        }
+    }
+
+    // ==================== Scenario Context API ====================
+
+    /**
+     * 시나리오 컨텍스트 생성
+     *
+     * @param request 시나리오 컨텍스트 요청
+     * @return 시나리오 컨텍스트 응답
+     */
+    public ScenarioContextAiResponse generateScenarioContext(ScenarioContextRequest request) {
+        log.info("Generating scenario context - scenarioId: {}", request.getScenarioId());
+
+        ScenarioContextAiRequest aiRequest = ScenarioContextAiRequest.builder()
+                .myRole(request.getMyRole())
+                .aiRole(request.getAiRole())
+                .detail(request.getDetail())
+                .build();
+
+        try {
+            String uri = (properties.getBaseUrl() + properties.getEndpoints().getScenarioGenerateContext())
+                    .replace("{scenario_id}", request.getScenarioId().toString());
+
+            ScenarioContextAiResponse response = webClient.post()
+                    .uri(uri)
+                    .header("x-api-key", properties.getApiKey())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(aiRequest)
+                    .retrieve()
+                    .bodyToMono(ScenarioContextAiResponse.class)
+                    .block();
+
+            log.info("Scenario context generated successfully - scenarioId: {}", request.getScenarioId());
+            return response;
+
+        } catch (WebClientResponseException e) {
+            log.error("Failed to generate scenario context - scenarioId: {}, status: {}, body: {}",
+                    request.getScenarioId(), e.getStatusCode(), e.getResponseBodyAsString());
+            throw new RuntimeException("Failed to generate scenario context: " + e.getMessage(), e);
+        } catch (Exception e) {
+            log.error("Unexpected error generating scenario context - scenarioId: {}", request.getScenarioId(), e);
+            throw new RuntimeException("Unexpected error generating scenario context", e);
         }
     }
 }

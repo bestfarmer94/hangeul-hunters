@@ -16,6 +16,7 @@ public class NoonchiAiProperties {
     public static class Endpoints {
         private String askStart;
         private String askChat;
+        private String scenarioGenerateContext;
         private String rolePlayingStart;
         private String rolePlayingChat;
         private String rolePlayingHint;
