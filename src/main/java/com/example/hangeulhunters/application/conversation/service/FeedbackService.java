@@ -93,17 +93,6 @@ public class FeedbackService {
                                 ).toList()
                                 : List.of();
 
-                        List<KeyExpression> keyExpressions = reportResponse.getKeyExpressions() != null
-                                ? reportResponse.getKeyExpressions().stream()
-                                .map(expression -> KeyExpression
-                                        .builder()
-                                        .korean(expression.getKorean())
-                                        .english(expression.getEnglish())
-                                        .usage(expression.getUsage())
-                                        .build()
-                                ).toList()
-                                : List.of();
-
                         Integer pronunciationScore = messages.stream()
                                 .filter(message -> message.getPronunciationScore() != null)
                                 .mapToInt(MessageDto::getPronunciationScore)
@@ -114,11 +103,10 @@ public class FeedbackService {
                                 .politenessScore(reportResponse.getFormalityScore())
                                 .naturalnessScore(reportResponse.getNaturalnessScore())
                                 .pronunciationScore(pronunciationScore)
-                                .summary(reportResponse.getOverallAssessment())
+                                .summary(reportResponse.getConversationSummary())
                                 .goodPoints(reportResponse.getStrengths())
                                 .overallEvaluation(reportResponse.getOverallAssessment())
                                 .improvementPoints(improvementItems)
-                                .keyExpressions(keyExpressions)
                                 .createdBy(userId)
                                 .build();
                         conversationFeedbackRepository.save(feedback);
