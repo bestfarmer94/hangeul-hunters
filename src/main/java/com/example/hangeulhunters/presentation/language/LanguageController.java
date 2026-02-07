@@ -69,7 +69,7 @@ public class LanguageController extends ControllerSupport {
         return ResponseEntity.ok(hints);
     }
 
-    @GetMapping("/scenario-context")
+    @PostMapping("/scenario-context")
     @Operation(summary = "시나리오 컨텍스트 생성",
             description = "시나리오 ID를 받아 AI 서버를 호출하여 시나리오 컨텍스트를 생성합니다",
             security = @SecurityRequirement(name = "bearerAuth")
