@@ -47,9 +47,6 @@ public class ConversationFeedbackDto {
     @Schema(description = "한국어 능력 기준의 한줄평")
     private String overallEvaluation;
 
-    @Schema(description = "핵심 표현 목록")
-    private List<KeyExpression> keyExpressions;
-
     /**
      * 엔티티로부터 DTO 생성
      */
@@ -64,7 +61,6 @@ public class ConversationFeedbackDto {
                 .goodPoints(feedback.getGoodPoints())
                 .improvementPoints(feedback.getImprovementPoints())
                 .overallEvaluation(feedback.getOverallEvaluation())
-                .keyExpressions(feedback.getKeyExpressions())
                 .build();
     }
 }

@@ -250,20 +250,7 @@ public class NoonchiAiDto {
         @JsonProperty("areas_to_improve")
         private List<ImprovementItem> areasToImprove;
 
-        @JsonProperty("key_expressions")
-        private List<KeyExpression> keyExpressions;
-    }
-
-    /**
-     * 핵심 표현 DTO
-     */
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class KeyExpression {
-        private String korean;
-        private String english;
-        private String usage;
+        @JsonProperty("conversation_summary")
+        private String conversationSummary;
     }
 }

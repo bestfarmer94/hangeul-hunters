@@ -2,7 +2,6 @@ package com.example.hangeulhunters.domain.conversation.entity;
 
 import com.example.hangeulhunters.domain.common.entity.BaseTimeEntity;
 import com.example.hangeulhunters.domain.conversation.vo.ImprovementItem;
-import com.example.hangeulhunters.domain.conversation.vo.KeyExpression;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -55,10 +54,4 @@ public class ConversationFeedback extends BaseTimeEntity {
      */
     @JdbcTypeCode(SqlTypes.JSON)
     private List<ImprovementItem> improvementPoints;
-
-    /**
-     * 핵심 표현 목록 (JSON 배열: [{korean, english, usage}, ...])
-     */
-    @JdbcTypeCode(SqlTypes.JSON)
-    private List<KeyExpression> keyExpressions;
 }
