@@ -10,6 +10,7 @@ import com.example.hangeulhunters.domain.conversation.entity.MessageFeedback;
 import com.example.hangeulhunters.domain.conversation.repository.ConversationFeedbackRepository;
 import com.example.hangeulhunters.domain.conversation.repository.MessageFeedbackRepository;
 import com.example.hangeulhunters.domain.conversation.vo.ImprovementItem;
+import com.example.hangeulhunters.domain.conversation.vo.KeyExpression;
 import com.example.hangeulhunters.infrastructure.exception.ResourceNotFoundException;
 import com.example.hangeulhunters.infrastructure.service.naver.dto.HonorificVariationsResponse;
 import com.example.hangeulhunters.infrastructure.service.noonchi.NoonchiAiService;
@@ -77,18 +78,28 @@ public class FeedbackService {
 
                 // 2. AI 서버 호출 - 학습 리포트 생성
                 LearningReportResponse reportResponse = noonchiAiService.generateLearningReport(
-                                conversation.getConversationId(),
-                                conversation.getConversationTrack());
+                                conversation.getConversationId());
 
                 // 3. ConversationFeedback 저장
                 // ImprovementItem 변환 (DTO -> Domain)
                 try {
-                        List<ImprovementItem> improvementItems = reportResponse.getImprovements() != null
-                                ? reportResponse.getImprovements().stream()
+                        List<ImprovementItem> improvementItems = reportResponse.getAreasToImprove() != null
+                                ? reportResponse.getAreasToImprove().stream()
                                 .map(item -> ImprovementItem
                                         .builder()
                                         .point(item.getPoint())
                                         .tip(item.getTip())
+                                        .build()
+                                ).toList()
+                                : List.of();
+
+                        List<KeyExpression> keyExpressions = reportResponse.getKeyExpressions() != null
+                                ? reportResponse.getKeyExpressions().stream()
+                                .map(expression -> KeyExpression
+                                        .builder()
+                                        .korean(expression.getKorean())
+                                        .english(expression.getEnglish())
+                                        .usage(expression.getUsage())
                                         .build()
                                 ).toList()
                                 : List.of();
@@ -100,13 +111,14 @@ public class FeedbackService {
 
                         ConversationFeedback feedback = ConversationFeedback.builder()
                                 .conversationId(conversation.getConversationId())
-                                .politenessScore(reportResponse.getPolitenessScore())
+                                .politenessScore(reportResponse.getFormalityScore())
                                 .naturalnessScore(reportResponse.getNaturalnessScore())
                                 .pronunciationScore(pronunciationScore)
-                                .summary(reportResponse.getOverallEvaluation())
-                                .goodPoints(reportResponse.getGoodPoint())
-                                .overallEvaluation(reportResponse.getOverallEvaluation())
+                                .summary(reportResponse.getOverallAssessment())
+                                .goodPoints(reportResponse.getStrengths())
+                                .overallEvaluation(reportResponse.getOverallAssessment())
                                 .improvementPoints(improvementItems)
+                                .keyExpressions(keyExpressions)
                                 .createdBy(userId)
                                 .build();
                         conversationFeedbackRepository.save(feedback);

@@ -228,19 +228,17 @@ public class NoonchiAiService {
      * 학습 리포트 생성
      * 
      * @param conversationId 대화방 ID
-     * @param track          시나리오 트랙 (career, love, belonging, kpop, interview)
      * @return 학습 리포트
      */
-    public LearningReportResponse generateLearningReport(Long conversationId, String track) {
-        log.info("Generating learning report - conversationId: {}, track: {}", conversationId, track);
+    public LearningReportResponse generateLearningReport(Long conversationId) {
+        log.info("Generating learning report - conversationId: {}", conversationId);
 
         LearningReportRequest request = LearningReportRequest.builder()
                 .conversationId(conversationId)
-                .track(track)
                 .build();
 
         try {
-            LearningReportResponse response = webClient.post()
+            return webClient.post()
                     .uri(properties.getBaseUrl() + properties.getEndpoints().getReport())
                     .header("x-api-key", properties.getApiKey())
                     .contentType(MediaType.APPLICATION_JSON)
@@ -248,10 +246,6 @@ public class NoonchiAiService {
                     .retrieve()
                     .bodyToMono(LearningReportResponse.class)
                     .block();
-
-            log.info("Learning report generated successfully - conversationId: {}, politeness: {}, naturalness: {}",
-                    conversationId, response.getPolitenessScore(), response.getNaturalnessScore());
-            return response;
 
         } catch (WebClientResponseException e) {
             log.error("Failed to generate learning report - conversationId: {}, status: {}, body: {}",
