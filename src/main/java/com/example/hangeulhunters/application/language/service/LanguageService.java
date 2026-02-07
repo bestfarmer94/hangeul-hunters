@@ -5,6 +5,8 @@ import com.example.hangeulhunters.infrastructure.service.google.GoogleApiService
 import com.example.hangeulhunters.infrastructure.service.naver.NaverApiService;
 import com.example.hangeulhunters.infrastructure.service.naver.dto.ClovaSpeechSTTResponse;
 import com.example.hangeulhunters.infrastructure.service.naver.dto.HonorificVariationsResponse;
+import com.example.hangeulhunters.infrastructure.service.noonchi.NoonchiAiService;
+import com.example.hangeulhunters.infrastructure.service.noonchi.dto.NoonchiAiDto.HintResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +18,7 @@ public class LanguageService {
     private final NaverApiService naverApiService;
     private final GoogleApiService googleApiService;
     private final FileService fileService;
+    private final NoonchiAiService noonchiAiService;
 
     /**
      * 여러가지 존댓말 표현 생성
@@ -33,7 +36,7 @@ public class LanguageService {
     /**
      * 텍스트를 음성으로 변환하여 S3 임시 URL을 반환
      *
-     * @param text 변환할 텍스트
+     * @param text  변환할 텍스트
      * @param voice 음성 유형
      * @return S3에 업로드된 음성 파일의 URL
      */
@@ -55,5 +58,16 @@ public class LanguageService {
     @Transactional(readOnly = true)
     public ClovaSpeechSTTResponse convertSpeechToText(String audioUrl) {
         return naverApiService.convertSpeechToText(audioUrl);
+    }
+
+    /**
+     * 롤플레잉 힌트 생성
+     *
+     * @param conversationId 대화방 ID
+     * @return 힌트 응답
+     */
+    @Transactional(readOnly = true)
+    public HintResponse generateRolePlayingHint(Long conversationId) {
+        return noonchiAiService.generateRolePlayingHint(conversationId);
     }
 }

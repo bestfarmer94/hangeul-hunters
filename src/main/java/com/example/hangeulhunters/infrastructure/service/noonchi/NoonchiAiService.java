@@ -1,6 +1,5 @@
 package com.example.hangeulhunters.infrastructure.service.noonchi;
 
-import com.example.hangeulhunters.domain.conversation.constant.ConversationTopicExample;
 import com.example.hangeulhunters.infrastructure.config.NoonchiAiProperties;
 import com.example.hangeulhunters.infrastructure.service.noonchi.dto.NoonchiAiDto.*;
 import lombok.RequiredArgsConstructor;
@@ -52,7 +51,8 @@ public class NoonchiAiService {
                     request.getConversationId(), e.getStatusCode(), e.getResponseBodyAsString());
             throw new RuntimeException("Failed to start role-playing chat: " + e.getMessage(), e);
         } catch (Exception e) {
-            log.error("Unexpected error starting role-playing chat - conversationId: {}", request.getConversationId(), e);
+            log.error("Unexpected error starting role-playing chat - conversationId: {}", request.getConversationId(),
+                    e);
             throw new RuntimeException("Unexpected error starting role-playing chat", e);
         }
     }
@@ -239,7 +239,7 @@ public class NoonchiAiService {
 
         try {
             return webClient.post()
-                    .uri(properties.getBaseUrl() + properties.getEndpoints().getReport())
+                    .uri(properties.getBaseUrl() + properties.getEndpoints().getRolePlayingReport())
                     .header("x-api-key", properties.getApiKey())
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(request)
@@ -254,6 +254,41 @@ public class NoonchiAiService {
         } catch (Exception e) {
             log.error("Unexpected error generating learning report - conversationId: {}", conversationId, e);
             throw new RuntimeException("Unexpected error generating learning report", e);
+        }
+    }
+
+    // ==================== Hint API ====================
+
+    /**
+     * 롤플레잉 힌트 생성
+     *
+     * @param conversationId 대화방 ID
+     * @return 힌트 응답
+     */
+    public HintResponse generateRolePlayingHint(Long conversationId) {
+        log.info("Generating role-playing hint - conversationId: {}", conversationId);
+
+        try {
+            String uri = (properties.getBaseUrl() + properties.getEndpoints().getRolePlayingHint())
+                    .replace("{conversationId}", conversationId.toString());
+
+            HintResponse response = webClient.get()
+                    .uri(uri)
+                    .header("x-api-key", properties.getApiKey())
+                    .retrieve()
+                    .bodyToMono(HintResponse.class)
+                    .block();
+
+            log.info("Role-playing hint generated successfully - conversationId: {}", conversationId);
+            return response;
+
+        } catch (WebClientResponseException e) {
+            log.error("Failed to generate role-playing hint - conversationId: {}, status: {}, body: {}",
+                    conversationId, e.getStatusCode(), e.getResponseBodyAsString());
+            throw new RuntimeException("Failed to generate role-playing hint: " + e.getMessage(), e);
+        } catch (Exception e) {
+            log.error("Unexpected error generating role-playing hint - conversationId: {}", conversationId, e);
+            throw new RuntimeException("Unexpected error generating role-playing hint", e);
         }
     }
 }

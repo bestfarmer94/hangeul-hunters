@@ -18,9 +18,10 @@ public class NoonchiAiProperties {
         private String askChat;
         private String rolePlayingStart;
         private String rolePlayingChat;
+        private String rolePlayingHint;
+        private String rolePlayingReport;
         private String interviewStart;
         private String interviewChat;
         private String translation;
-        private String report;
     }
 }

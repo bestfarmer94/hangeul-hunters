@@ -4,6 +4,7 @@ import com.example.hangeulhunters.application.language.dto.SpeechToTextRequest;
 import com.example.hangeulhunters.application.language.dto.TTSRequest;
 import com.example.hangeulhunters.application.language.service.LanguageService;
 import com.example.hangeulhunters.infrastructure.service.naver.dto.HonorificVariationsResponse;
+import com.example.hangeulhunters.infrastructure.service.noonchi.dto.NoonchiAiDto.HintResponse;
 import com.example.hangeulhunters.presentation.common.ControllerSupport;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -12,7 +13,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -24,8 +24,7 @@ public class LanguageController extends ControllerSupport {
     private final LanguageService languageService;
 
     @GetMapping("/honorific-variations")
-    @Operation(
-            summary = "여러가지 존댓말 표현 생성",
+    @Operation(summary = "여러가지 존댓말 표현 생성",
             description = "주어진 원문에 대해 다양한 존댓말 표현을 생성합니다",
             security = @SecurityRequirement(name = "bearerAuth")
     )
@@ -33,28 +32,37 @@ public class LanguageController extends ControllerSupport {
             @Parameter(description = "원문") @RequestParam String sourceContent) {
         return ResponseEntity.ok(languageService.generateHonorificVariations(sourceContent));
     }
-    
+
     @PostMapping("/tts")
-    @Operation(
-            summary = "텍스트를 음성으로 변환",
+    @Operation(summary = "텍스트를 음성으로 변환",
             description = "입력된 텍스트를 음성 데이터로 변환합니다",
             security = @SecurityRequirement(name = "bearerAuth")
     )
     public ResponseEntity<String> convertTextToSpeech(@Valid @RequestBody TTSRequest request) {
         // TTS 서비스를 통해 음성 변환
         String audioUrl = languageService.convertTextToSpeech(request.getText(), null);
-        
+
         return ResponseEntity.ok(audioUrl);
     }
 
     @PostMapping("/stt")
-    @Operation(
-            summary = "음성을 텍스트로 변환 (STT)",
+    @Operation(summary = "음성을 텍스트로 변환 (STT)",
             description = "Presigned URL을 통해 음성 파일을 받아 텍스트로 변환합니다",
             security = @SecurityRequirement(name = "bearerAuth")
     )
     public ResponseEntity<String> convertSpeechToText(@Valid @RequestBody SpeechToTextRequest request) {
         String sttResult = languageService.convertSpeechToText(request.getAudioUrl()).getText();
         return ResponseEntity.ok(sttResult);
+    }
+
+    @GetMapping("/hint")
+    @Operation(summary = "롤플레잉 답변 힌트 생성",
+            description = "롤플레잉 대화 중간에 AI 서버를 호출하여 답변 예시 힌트를 생성합니다",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    public ResponseEntity<HintResponse> generateRolePlayingHint(
+            @Parameter(description = "대화방 ID") @RequestParam Long conversationId) {
+        HintResponse hint = languageService.generateRolePlayingHint(conversationId);
+        return ResponseEntity.ok(hint);
     }
 }
