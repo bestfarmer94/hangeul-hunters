@@ -2,6 +2,8 @@ package com.example.hangeulhunters.domain.topic.repository;
 
 import com.example.hangeulhunters.application.topic.dto.ConversationTopicDto;
 import com.example.hangeulhunters.domain.topic.entity.ConversationTopic;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -45,6 +47,38 @@ public interface ConversationTopicRepository extends JpaRepository<ConversationT
     List<ConversationTopicDto> getTopics(
             @Param("userId") Long userId,
             @Param("track") String track,
-            @Param("favoritesOnly") Boolean favoritesOnly
-    );
+            @Param("favoritesOnly") Boolean favoritesOnly);
+
+    /**
+     * 최근 사용한 주제 목록을 페이징 조회
+     * 사용자가 대화를 진행한 주제를 최근 활동 시간 기준으로 정렬하여 반환
+     */
+    @Query("""
+            SELECT
+                NEW com.example.hangeulhunters.application.topic.dto.ConversationTopicDto(
+                    t.id,
+                    t.name,
+                    t.track,
+                    t.description,
+                    t.imageUrl,
+                    CASE WHEN f.id IS NOT NULL THEN TRUE ELSE FALSE END
+                )
+            FROM
+                ConversationTopic t
+                INNER JOIN Conversation c
+                    ON t.name = c.conversationTopic
+                        AND c.userId = :userId
+                        AND c.deletedAt IS NULL
+                LEFT JOIN UserFavoriteTopic f
+                    ON t.id = f.topicId
+                        AND f.userId = :userId
+                        AND f.deletedAt IS NULL
+            WHERE
+                t.deletedAt IS NULL
+            GROUP BY
+                t.id, t.name, t.track, t.description, t.imageUrl, f.id
+            ORDER BY
+                MAX(c.lastActivityAt) DESC
+            """)
+    Page<ConversationTopicDto> getRecentlyUsedTopics(@Param("userId") Long userId, Pageable pageable);
 }

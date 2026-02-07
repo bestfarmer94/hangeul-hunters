@@ -1,10 +1,14 @@
 package com.example.hangeulhunters.application.topic.service;
 
+import com.example.hangeulhunters.application.common.dto.PageResponse;
 import com.example.hangeulhunters.application.topic.dto.ConversationTopicDto;
 import com.example.hangeulhunters.domain.topic.entity.UserFavoriteTopic;
 import com.example.hangeulhunters.domain.topic.repository.ConversationTopicRepository;
 import com.example.hangeulhunters.domain.topic.repository.UserFavoriteTopicRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -68,8 +72,7 @@ public class TopicService {
                 .orElseGet(() -> UserFavoriteTopic.builder()
                         .userId(userId)
                         .topicId(topicId)
-                        .build()
-                );
+                        .build());
 
         userFavoriteTopicRepository.save(favoriteTopic);
     }
@@ -89,5 +92,20 @@ public class TopicService {
         // Soft delete
         favoriteTopic.delete(userId);
         userFavoriteTopicRepository.save(favoriteTopic);
+    }
+
+    /**
+     * 최근 사용한 주제 목록 조회
+     *
+     * @param userId 사용자 ID
+     * @param page   페이지 번호 (1부터 시작)
+     * @param size   페이지 크기
+     * @return 최근 사용한 주제 목록
+     */
+    @Transactional(readOnly = true)
+    public PageResponse<ConversationTopicDto> getRecentlyUsedTopics(Long userId, int page, int size) {
+        Pageable pageable = PageRequest.of(page - 1, size);
+        Page<ConversationTopicDto> topicsPage = conversationTopicRepository.getRecentlyUsedTopics(userId, pageable);
+        return com.example.hangeulhunters.application.common.dto.PageResponse.of(topicsPage, topicsPage.getContent());
     }
 }
