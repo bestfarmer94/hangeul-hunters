@@ -137,10 +137,10 @@ public class MessageService {
         // 4. 피드백 저장
         feedbackService.saveMessageFeedback(userId, userMessage, aiResponse);
 
-        // 5. 대화 data 처리
-        if(aiResponse.getIsTaskCompleted() != null && aiResponse.getIsTaskCompleted()) {
-            conversationService.processConversationTaskCompletion(conversation.getConversationId());
-        }
+//        // 5. 대화 data 처리
+//        if(aiResponse.getIsTaskCompleted() != null && aiResponse.getIsTaskCompleted()) {
+//            conversationService.processConversationTaskCompletion(conversation.getConversationId());
+//        }
         conversationService.updateConversationLastActivity(conversation.getConversationId());
         ConversationDto processedConversation = conversationService.getConversationById(userId, conversation.getConversationId());
 

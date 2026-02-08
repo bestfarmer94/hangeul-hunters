@@ -48,7 +48,8 @@ public class TopicService {
     public ConversationTopicDto getTopicByName(String topicName) {
         return conversationTopicRepository.findByNameAndDeletedAtNull(topicName)
                 .map(ConversationTopicDto::fromEntity)
-                .orElseThrow(() -> new IllegalArgumentException("Topic not found"));
+                // ASK 등과 같이 ROLL-PLAYING 이 아닌 주제에 대한 기본 응답
+                .orElseGet(() -> ConversationTopicDto.ofNotRollPlaying(topicName));
     }
 
     /**

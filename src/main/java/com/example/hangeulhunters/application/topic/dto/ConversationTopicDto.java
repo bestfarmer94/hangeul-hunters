@@ -45,4 +45,13 @@ public class ConversationTopicDto {
                 .isFavorite(false) // 기본값, 실제 값은 서비스 레이어에서 설정
                 .build();
     }
+
+    public static ConversationTopicDto ofNotRollPlaying(String conversationType) {
+        return ConversationTopicDto.builder()
+                .topicId(-1L)
+                .name(conversationType)
+                .category(conversationType)
+                .isFavorite(false)
+                .build();
+    }
 }

@@ -11,6 +11,7 @@ import com.example.hangeulhunters.application.file.service.FileService;
 import com.example.hangeulhunters.application.persona.dto.AIPersonaDto;
 import com.example.hangeulhunters.application.persona.dto.AIPersonaRequest;
 import com.example.hangeulhunters.application.persona.service.AIPersonaService;
+import com.example.hangeulhunters.application.topic.service.TopicService;
 import com.example.hangeulhunters.domain.common.constant.Closeness;
 import com.example.hangeulhunters.domain.common.constant.FileObjectType;
 import com.example.hangeulhunters.domain.common.constant.Gender;
@@ -56,6 +57,7 @@ public class ConversationService {
         private final ConversationTopicTaskRepository conversationTopicTaskRepository;
         private final AIPersonaService aIPersonaService;
         private final FileService fileService;
+        private final TopicService topicService;
 
         /**
          * 사용자의 대화 목록을 필터링하여 페이징 조회
@@ -83,9 +85,9 @@ public class ConversationService {
                                                 .map(conversation -> ConversationDto.of(
                                                                 conversation,
                                                                 aIPersonaService.getPersonaByIdIncludeDeleted(conversation.getPersonaId()),
-                                                                getConversationTopic(
-                                                                                conversation.getConversationTopic())
-                                                                                .getTrack()))
+                                                                topicService.getTopicByName(conversation.getConversationTopic()).getCategory()
+                                                        )
+                                                )
                                                 .toList());
         }
 
@@ -96,10 +98,10 @@ public class ConversationService {
 
                 AIPersonaDto persona = aIPersonaService.getPersonaById(userId, conversation.getPersonaId());
 
-                ConversationTopic conversationTopic = getConversationTopic(conversation.getConversationTopic());
+                String track = topicService.getTopicByName(conversation.getConversationTopic()).getCategory();
 
-                return ConversationDto.of(conversation, persona, conversationTopic.getTrack(),
-                                fileService.getFiles(FileObjectType.CONVERSATION, conversationId));
+                return ConversationDto.of(conversation, persona, track,
+                        fileService.getFiles(FileObjectType.CONVERSATION, conversationId));
         }
 
         @Transactional
@@ -249,7 +251,7 @@ public class ConversationService {
                 return ConversationDto.of(
                                 savedConversation,
                                 AIPersonaDto.fromEntity(savedInterviewer),
-                                getConversationTopic(conversation.getConversationTopic()).getTrack(),
+                                topicService.getTopicByName(conversation.getConversationTopic()).getCategory(),
                                 fileDtos);
         }
 
@@ -282,59 +284,59 @@ public class ConversationService {
                                 null); // ASK 타입은 track이 없음
         }
 
-        /**
-         * 면접 대화의 과제 완료 처리
-         */
-        @Transactional
-        public void processConversationTaskCompletion(Long conversationId) {
-                Conversation conversation = conversationRepository.findById(conversationId)
-                                .orElseThrow(() -> new ResourceNotFoundException("Conversation", "id", conversationId));
+//        /**
+//         * 면접 대화의 과제 완료 처리
+//         */
+//        @Transactional
+//        public void processConversationTaskCompletion(Long conversationId) {
+//                Conversation conversation = conversationRepository.findById(conversationId)
+//                                .orElseThrow(() -> new ResourceNotFoundException("Conversation", "id", conversationId));
+//
+//                if (conversation.getTaskCurrentLevel() == null) {
+//                        return;
+//                }
+//
+//                ConversationTopic conversationTopic = topicService.getTopicByName((conversation.getConversationTopic());
+//
+//                if (Objects.equals(conversationTopic.getTaskCount(), conversation.getTaskCurrentLevel())) {
+//                        conversation.completeTask();
+//                } else {
+//                        ConversationTopicTask nextTask = getConversationTopicTask(conversationTopic.getId(),
+//                                        conversation.getTaskCurrentLevel() + 1);
+//                        conversation.processTask(nextTask.getName());
+//                }
+//
+//                conversationRepository.save(conversation);
+//        }
 
-                if (conversation.getTaskCurrentLevel() == null) {
-                        return;
-                }
+//        /**
+//         * ConversationTopic 정보 조회
+//         */
+//        private ConversationTopic getConversationTopic(String conversationTopic) {
+//                return conversationTopicRepository.findByNameAndDeletedAtNull(conversationTopic)
+//                                .orElseThrow(() -> new ResourceNotFoundException("ConversationTopic", "name",
+//                                                conversationTopic));
+//        }
 
-                ConversationTopic conversationTopic = getConversationTopic(conversation.getConversationTopic());
+//        /**
+//         * ConversationTopic 정보 조회 (TopicId)
+//         */
+//        private ConversationTopicTask getConversationTopicTask(Long topicId, Integer taskLevel) {
+//                return conversationTopicTaskRepository.findByTopicIdAndLevelAndDeletedAtNull(topicId, taskLevel)
+//                                .orElseThrow(() -> new ResourceNotFoundException("ConversationTopicTask",
+//                                                "topicId and level",
+//                                                topicId + " and " + taskLevel));
+//        }
 
-                if (Objects.equals(conversationTopic.getTaskCount(), conversation.getTaskCurrentLevel())) {
-                        conversation.completeTask();
-                } else {
-                        ConversationTopicTask nextTask = getConversationTopicTask(conversationTopic.getId(),
-                                        conversation.getTaskCurrentLevel() + 1);
-                        conversation.processTask(nextTask.getName());
-                }
-
-                conversationRepository.save(conversation);
-        }
-
-        /**
-         * ConversationTopic 정보 조회
-         */
-        private ConversationTopic getConversationTopic(String conversationTopic) {
-                return conversationTopicRepository.findByNameAndDeletedAtNull(conversationTopic)
-                                .orElseThrow(() -> new ResourceNotFoundException("ConversationTopic", "name",
-                                                conversationTopic));
-        }
-
-        /**
-         * ConversationTopic 정보 조회 (TopicId)
-         */
-        private ConversationTopicTask getConversationTopicTask(Long topicId, Integer taskLevel) {
-                return conversationTopicTaskRepository.findByTopicIdAndLevelAndDeletedAtNull(topicId, taskLevel)
-                                .orElseThrow(() -> new ResourceNotFoundException("ConversationTopicTask",
-                                                "topicId and level",
-                                                topicId + " and " + taskLevel));
-        }
-
-        /**
-         * ConversationTopic 정보 조회 (TopicName)
-         */
-        private ConversationTopicTask getConversationTopicTaskByTopicName(String topicName, Integer taskLevel) {
-                ConversationTopic conversationTopic = getConversationTopic(topicName);
-                return conversationTopicTaskRepository
-                                .findByTopicIdAndLevelAndDeletedAtNull(conversationTopic.getId(), taskLevel)
-                                .orElseThrow(() -> new ResourceNotFoundException("ConversationTopicTask",
-                                                "topicId and level",
-                                                conversationTopic.getId() + " and " + taskLevel));
-        }
+//        /**
+//         * ConversationTopic 정보 조회 (TopicName)
+//         */
+//        private ConversationTopicTask getConversationTopicTaskByTopicName(String topicName, Integer taskLevel) {
+//                ConversationTopic conversationTopic = getConversationTopic(topicName);
+//                return conversationTopicTaskRepository
+//                                .findByTopicIdAndLevelAndDeletedAtNull(conversationTopic.getId(), taskLevel)
+//                                .orElseThrow(() -> new ResourceNotFoundException("ConversationTopicTask",
+//                                                "topicId and level",
+//                                                conversationTopic.getId() + " and " + taskLevel));
+//        }
 }
