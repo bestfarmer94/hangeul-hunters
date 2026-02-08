@@ -19,14 +19,14 @@ import lombok.NoArgsConstructor;
 public class AskRequest {
 
     @NotBlank(message = "질문 대상은 필수입니다")
-    @Schema(description = "질문 대상", example = "친구")
+    @Schema(description = "질문 대상", example = "My manager")
     private String askTarget;
 
     @NotBlank(message = "질문 대상과의 친밀도는 필수입니다")
-    @Schema(description = "질문 대상과의 친밀도", example = "친한 친구")
+    @Schema(description = "질문 대상과의 친밀도", example = "Professional")
     private String closeness;
 
     @NotBlank(message = "상황 설명은 필수입니다")
-    @Schema(description = "상황 설명", example = "한국어 문법에 대해 질문하고 싶습니다")
+    @Schema(description = "상황 설명", example = "I'm late for our meeting and want to say sorry.")
     private String situation;
 }

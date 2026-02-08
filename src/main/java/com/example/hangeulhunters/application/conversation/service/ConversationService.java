@@ -234,11 +234,11 @@ public class ConversationService {
                                 .interviewJobTitle(request.getJobTitle())
                                 .interviewJobPosting(request.getJobPosting())
                                 .interviewStyle(InterviewStyle.STANDARD)
-//                                 .taskCurrentLevel(1)
-//                                 .taskCurrentName(getConversationTopicTaskByTopicName(INTERVIEW.getSituation(),
-//                                 1)
-//                                 .getName())
-//                                 .taskAllCompleted(false)
+                                // .taskCurrentLevel(1)
+                                // .taskCurrentName(getConversationTopicTaskByTopicName(INTERVIEW.getSituation(),
+                                // 1)
+                                // .getName())
+                                // .taskAllCompleted(false)
                                 .closeness(Closeness.FORMAL.getDisplayName())
                                 .createdBy(userId)
                                 .build();

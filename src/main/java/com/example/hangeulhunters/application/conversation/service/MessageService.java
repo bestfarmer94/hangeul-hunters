@@ -30,17 +30,22 @@ import com.example.hangeulhunters.infrastructure.service.noonchi.NoonchiAiServic
 import com.example.hangeulhunters.infrastructure.service.noonchi.dto.NoonchiAiDto;
 import com.example.hangeulhunters.infrastructure.service.noonchi.dto.NoonchiAiDto.ChatResponse;
 import com.example.hangeulhunters.infrastructure.service.noonchi.dto.NoonchiAiDto.ChatStartResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Flux;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -137,19 +142,20 @@ public class MessageService {
         // 4. 피드백 저장
         feedbackService.saveMessageFeedback(userId, userMessage, aiResponse);
 
-//        // 5. 대화 data 처리
-//        if(aiResponse.getIsTaskCompleted() != null && aiResponse.getIsTaskCompleted()) {
-//            conversationService.processConversationTaskCompletion(conversation.getConversationId());
-//        }
+        // // 5. 대화 data 처리
+        // if(aiResponse.getIsTaskCompleted() != null &&
+        // aiResponse.getIsTaskCompleted()) {
+        // conversationService.processConversationTaskCompletion(conversation.getConversationId());
+        // }
         conversationService.updateConversationLastActivity(conversation.getConversationId());
-        ConversationDto processedConversation = conversationService.getConversationById(userId, conversation.getConversationId());
+        ConversationDto processedConversation = conversationService.getConversationById(userId,
+                conversation.getConversationId());
 
         // USER, AI 메시지 반환
         return MessageSendResponse.of(
                 aiResponse.getIsTaskCompleted(),
                 processedConversation,
-                List.of(MessageDto.fromEntity(userMessage), MessageDto.fromEntity(aiMessage))
-        );
+                List.of(MessageDto.fromEntity(userMessage), MessageDto.fromEntity(aiMessage)));
     }
 
     @Transactional(readOnly = true)
@@ -224,8 +230,7 @@ public class MessageService {
                             .aiRole(conversation.getAiPersona().getAiRole())
                             .closeness(conversation.getCloseness())
                             .detail(conversation.getSituation())
-                            .build()
-            );
+                            .build());
 
             // 2. AI 첫 메시지 저장
             Message aiMessage = Message.builder()
@@ -422,7 +427,9 @@ public class MessageService {
                         conversation.getConversationId(),
                         messageContent,
                         conversation.getConversationTrack(),
-                        Objects.requireNonNull(ConversationTopicExample.getTopicExampleByName(conversation.getConversationTopic())).name());
+                        Objects.requireNonNull(
+                                ConversationTopicExample.getTopicExampleByName(conversation.getConversationTopic()))
+                                .name());
 
                 default -> throw new IllegalArgumentException(
                         "Unsupported conversation type: " + conversation.getConversationType());
@@ -433,5 +440,125 @@ public class MessageService {
                     conversation.getConversationId(), e);
             throw new RuntimeException("Failed to generate AI response", e);
         }
+    }
+
+    /**
+     * Ask 대화 시작 시 첫 번째 메시지를 SSE 스트림으로 생성합니다.
+     *
+     * @param userId       사용자 ID
+     * @param conversation 대화 정보
+     * @param askTarget    질문 대상
+     * @param closeness    친밀도
+     * @param situation    상황 설명
+     * @return SSE 스트림
+     */
+    public Flux<ServerSentEvent<String>> createAskFirstMessageStream(
+            Long userId, ConversationDto conversation, String askTarget, String closeness, String situation) {
+
+        log.info("Creating Ask first message stream for conversation: {}", conversation.getConversationId());
+
+        // AI 서버로부터 스트림 받기
+        Flux<String> aiStream = noonchiAiService
+                .startAskConversationStream(
+                        conversation.getConversationId(),
+                        askTarget,
+                        closeness,
+                        situation);
+
+        // DoneEventData를 저장하기 위한 AtomicReference
+        final AtomicReference<NoonchiAiDto.DoneEventData> doneDataRef = new AtomicReference<>();
+
+        return aiStream
+                .mapNotNull(chunk -> {
+                    // 각 청크를 파싱하여 done 이벤트인지 확인
+                    try {
+                        ObjectMapper mapper = new ObjectMapper();
+                        NoonchiAiDto.AskStreamEvent event = mapper.readValue(chunk, NoonchiAiDto.AskStreamEvent.class);
+
+                        // done 이벤트인 경우 데이터 저장
+                        if ("done".equals(event.getType()) && event.getData() != null) {
+                            doneDataRef.set(event.getData());
+                            log.info("Received done event with data for conversation: {}",
+                                    conversation.getConversationId());
+                        }
+
+                        // content가 있으면 반환 (chunk 이벤트)
+                        if (event.getContent() != null && !event.getContent().isEmpty()) {
+                            return ServerSentEvent.<String>builder()
+                                    .data(event.getContent())
+                                    .build();
+                        }
+                    } catch (Exception e) {
+                        log.warn("Failed to parse chunk as JSON, treating as plain text: {}", e.getMessage());
+                        // JSON 파싱 실패 시 그대로 전달
+                        return ServerSentEvent.<String>builder()
+                                .data(chunk)
+                                .build();
+                    }
+
+                    // content가 없으면 null 반환 (필터링됨)
+                    return null;
+                })
+                .filter(Objects::nonNull) // null 제거
+                .concatWith(Flux.defer(() -> {
+                    // 스트림 완료 후 DB 저장 및 done 이벤트 전송
+                    log.info("Ask stream completed, saving message to database");
+
+                    try {
+                        NoonchiAiDto.DoneEventData doneData = doneDataRef.get();
+                        if (doneData != null) {
+                            saveDoneEventData(userId, conversation.getConversationId(), doneData);
+                        } else {
+                            log.warn("No done event data received for conversation: {}",
+                                    conversation.getConversationId());
+                        }
+
+                        // done 이벤트 전송
+                        return Flux.just(ServerSentEvent.<String>builder()
+                                .event("done")
+                                .data("{\"status\": \"completed\"}")
+                                .build());
+                    } catch (Exception e) {
+                        log.error("Failed to save message after stream completion", e);
+                        return Flux.just(ServerSentEvent.<String>builder()
+                                .event("error")
+                                .data("{\"error\": \"Failed to save message\"}")
+                                .build());
+                    }
+                }))
+                .onErrorResume(error -> {
+                    // 모든 에러를 스트림 내에서 처리하여 비동기 디스패치 문제 방지
+                    log.error("Error in Ask stream for conversation: {}", conversation.getConversationId(), error);
+                    return Flux.just(ServerSentEvent.<String>builder()
+                            .event("error")
+                            .data("{\"error\": \"" + error.getMessage() + "\"}")
+                            .build());
+                });
+    }
+
+    /**
+     * 완료된 메시지 데이터를 DB에 저장
+     */
+    private void saveDoneEventData(Long userId, Long conversationId, NoonchiAiDto.DoneEventData doneData) {
+        if (doneData == null) {
+            log.warn("AI message is empty for conversation: {}", conversationId);
+            return;
+        }
+
+        log.info("Saving AI message for conversation: {}", conversationId);
+
+        // AI 메시지 저장
+        Message message = Message.builder()
+                .conversationId(conversationId)
+                .type(MessageType.AI)
+                .content(doneData.getKoreanPhrase())
+                .translatedContent(doneData.getEnglishMeaning())
+                .askApproachTip(doneData.getApproachTip())
+                .askCulturalInsight(doneData.getCulturalInsight())
+                .createdBy(userId)
+                .build();
+        messageRepository.save(message);
+
+        log.info("Saved AI message for conversation: {}", conversationId);
     }
 }

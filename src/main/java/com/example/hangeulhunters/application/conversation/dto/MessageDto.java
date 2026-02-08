@@ -66,6 +66,13 @@ public class MessageDto {
     @Schema(description = "현재 장면 묘사 (시스템 메시지)", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private String situationDescription;
 
+    // Ask conversation fields
+    @Schema(description = "접근 팁 (Ask 타입)", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    private String askApproachTip;
+
+    @Schema(description = "문화적 통찰 (Ask 타입)", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    private String askCulturalInsight;
+
     @Schema(description = "메시지 생성일시", requiredMode = Schema.RequiredMode.REQUIRED, format = "date-time")
     private LocalDateTime createdAt;
 
@@ -87,6 +94,8 @@ public class MessageDto {
                 .hiddenMeaning(message.getHiddenMeaning())
                 .visualAction(message.getVisualAction())
                 .situationDescription(message.getSituationDescription())
+                .askApproachTip(message.getAskApproachTip())
+                .askCulturalInsight(message.getAskCulturalInsight())
                 .createdAt(DateTimeUtil.toLocalDateTime(message.getCreatedAt()))
                 .build();
     }

@@ -105,6 +105,18 @@ public class Message extends BaseTimeEntity {
     private String situationContext;
 
     /**
+     * 접근 팁 (Ask 타입)
+     */
+    @Column(nullable = true, columnDefinition = "TEXT")
+    private String askApproachTip;
+
+    /**
+     * 문화적 통찰 (Ask 타입)
+     */
+    @Column(nullable = true, columnDefinition = "TEXT")
+    private String askCulturalInsight;
+
+    /**
      * 번역문 저장
      */
     public void saveTranslatedContent(String translatedContent) {

@@ -9,6 +9,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
+import reactor.core.publisher.Flux;
 
 import java.util.List;
 
@@ -333,6 +334,48 @@ public class NoonchiAiService {
         } catch (Exception e) {
             log.error("Unexpected error generating scenario context - scenarioId: {}", request.getScenarioId(), e);
             throw new RuntimeException("Unexpected error generating scenario context", e);
+        }
+    }
+
+    // ==================== Ask API (SSE Stream) ====================
+
+    /**
+     * Ask 대화 시작 (SSE 스트림)
+     *
+     * @param conversationId 대화방 ID
+     * @param askTarget      질문 대상
+     * @param closeness      친밀도
+     * @param situation      상황 설명
+     * @return SSE 스트림
+     */
+    public Flux<String> startAskConversationStream(
+            Long conversationId, String askTarget, String closeness, String situation) {
+        log.info("Starting Ask conversation stream - conversationId: {}", conversationId);
+
+        AskStartRequest request = AskStartRequest.builder()
+                .conversationId(conversationId)
+                .recipient(askTarget)
+                .closeness(closeness)
+                .detail(situation)
+                .build();
+
+        try {
+            return webClient.post()
+                    .uri(properties.getBaseUrl() + properties.getEndpoints().getAskStart())
+                    .header("x-api-key", properties.getApiKey())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(request)
+                    .retrieve()
+                    .bodyToFlux(String.class)
+                    .doOnNext(chunk -> log.debug("Received SSE chunk: {}", chunk))
+                    .doOnComplete(
+                            () -> log.info("Ask conversation stream completed - conversationId: {}", conversationId))
+                    .doOnError(error -> log.error("Error in Ask conversation stream - conversationId: {}",
+                            conversationId, error));
+
+        } catch (Exception e) {
+            log.error("Unexpected error starting Ask conversation stream - conversationId: {}", conversationId, e);
+            return Flux.error(new RuntimeException("Failed to start Ask conversation stream", e));
         }
     }
 }
