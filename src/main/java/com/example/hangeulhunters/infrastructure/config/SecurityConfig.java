@@ -32,7 +32,8 @@ public class SecurityConfig {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final UserDetailsServiceImpl userDetailsService;
-//    private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
+    // private final OAuth2AuthenticationSuccessHandler
+    // oAuth2AuthenticationSuccessHandler;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -55,20 +56,24 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(AbstractHttpConfigurer::disable)
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**", "/oauth2/**").permitAll()
-                .requestMatchers("/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-                .requestMatchers("/h2-console/**").permitAll()
-                .anyRequest().authenticated()
-            )
-//            .oauth2Login(oauth2 -> oauth2
-//                .successHandler(oAuth2AuthenticationSuccessHandler)
-//            )
-            .headers(headers -> headers.frameOptions().disable())
-            .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
+                .csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/auth/**", "/oauth2/**").permitAll()
+                        .requestMatchers("/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                        .requestMatchers("/h2-console/**").permitAll()
+                        .requestMatchers("/error").permitAll() // Allow error page for async dispatch
+                        .requestMatchers("/api/health").permitAll() // Allow health check
+                        .anyRequest().authenticated())
+                .authorizeHttpRequests(auth -> auth.shouldFilterAllDispatcherTypes(false)) // Allow async/error
+                                                                                           // dispatchers
+                // .oauth2Login(oauth2 -> oauth2
+                // .successHandler(oAuth2AuthenticationSuccessHandler)
+                // )
+                .headers(headers -> headers.frameOptions().disable())
+                .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider),
+                        UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -84,8 +89,7 @@ public class SecurityConfig {
                 "noonchi-ut.vercel.app",
                 "https://noonchi-ut.vercel.app",
                 "https://pangpang-one.vercel.app",
-                "https://www.pangpang-one.com"
-        ));
+                "https://www.pangpang-one.com"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
