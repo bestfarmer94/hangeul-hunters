@@ -561,4 +561,12 @@ public class MessageService {
 
         log.info("Saved AI message for conversation: {}", conversationId);
     }
+
+    // 임시
+    @Transactional(readOnly = true)
+    public MessageDto getLastMessageInConversation(Long conversationId) {
+        return messageRepository.findFirstByConversationIdOrderByCreatedAtDesc(conversationId)
+                .map(MessageDto::fromEntity)
+                .orElseThrow(() -> new ResourceNotFoundException("Message not found"));
+    }
 }

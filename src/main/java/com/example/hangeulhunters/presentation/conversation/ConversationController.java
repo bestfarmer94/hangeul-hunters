@@ -71,17 +71,23 @@ public class ConversationController extends ControllerSupport {
 
     @PostMapping("/ask")
     @Operation(summary = "ASK 타입 대화 생성 (SSE 스트림)", description = "페르소나 없이 질문을 위한 대화를 생성하고 AI 응답을 스트림으로 반환합니다", security = @SecurityRequirement(name = "bearerAuth"))
-    public Flux<ServerSentEvent<String>> createAsk(@Valid @RequestBody AskRequest request) {
+    public MessageDto createAsk(@Valid @RequestBody AskRequest request) {
         // 1. 대화 생성
         ConversationDto conversation = conversationService.createAsk(getCurrentUserId(), request);
 
-        // 2. AI 첫 메시지를 SSE 스트림으로 반환
-        return messageService.createAskFirstMessageStream(
+        // 2. AI 첫 메시지를 SSE 스트림으로 실행
+        Flux<ServerSentEvent<String>> stream = messageService.createAskFirstMessageStream(
                 getCurrentUserId(),
                 conversation,
                 request.getAskTarget(),
                 request.getCloseness(),
                 request.getSituation());
+
+        // 3. 스트림 완료까지 대기 (임시 코드)
+        stream.blockLast();
+
+        // 4. 저장된 메시지 조회 및 반환 (임시 코드)
+        return messageService.getLastMessageInConversation(conversation.getConversationId());
     }
 
     @PutMapping("/{conversationId}/end")
