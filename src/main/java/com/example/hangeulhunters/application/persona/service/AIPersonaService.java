@@ -64,16 +64,15 @@ public class AIPersonaService {
     /**
      * AI 페르소나 상세 조회 (삭제 포함)
      *
-     * @param userId 요청한 사용자 ID
      * @param personaId AI 페르소나 ID
      * @return AI 페르소나 DTO
      * @throws ResourceNotFoundException 페르소나가 존재하지 않는 경우
      * @throws AccessDeniedException 권한이 없는 경우
      */
     @Transactional(readOnly = true)
-    public AIPersonaDto getPersonaByIdIncludeDeleted(Long userId, Long personaId) {
+    public AIPersonaDto getPersonaByIdIncludeDeleted(Long personaId) {
         // 사용자 본인의 페르소나만 조회 가능
-        AIPersona persona = aiPersonaRepository.findByIdAndUserId(personaId, userId)
+        AIPersona persona = aiPersonaRepository.findById(personaId)
                 .orElseThrow(() -> new ResourceNotFoundException("AI Persona not found with id: " + personaId));
 
         return AIPersonaDto.fromEntity(persona);
