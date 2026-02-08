@@ -82,8 +82,7 @@ public class ConversationService {
                                 conversations.stream()
                                                 .map(conversation -> ConversationDto.of(
                                                                 conversation,
-                                                                aIPersonaService.getPersonaByIdIncludeDeleted(userId,
-                                                                                conversation.getPersonaId()),
+                                                                aIPersonaService.getPersonaByIdIncludeDeleted(conversation.getPersonaId()),
                                                                 getConversationTopic(
                                                                                 conversation.getConversationTopic())
                                                                                 .getTrack()))
