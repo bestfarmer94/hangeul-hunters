@@ -269,6 +269,85 @@ public class NoonchiAiDto {
         private List<String> explanations;
     }
 
+    // ==================== Ask DTOs ====================
+
+    /**
+     * Ask 대화 시작 요청
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AskStartRequest {
+        @JsonProperty("conversation_id")
+        private Long conversationId;
+
+        private String recipient;
+
+        private String closeness;
+
+        private String detail;
+    }
+
+    /**
+     * Ask SSE 스트림 이벤트
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AskStreamEvent {
+        private String type; // "session", "approach_tip", "chunk", "done"
+
+        @JsonProperty("conversation_id")
+        private Long conversationId;
+
+        private String content;
+
+        private DoneEventData data;
+    }
+
+    /**
+     * Ask SSE done 이벤트 데이터
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class DoneEventData {
+        @JsonProperty("conversation_id")
+        private Long conversationId;
+
+        @JsonProperty("ai_message")
+        private String aiMessage;
+
+        @JsonProperty("korean_phrase")
+        private String koreanPhrase;
+
+        @JsonProperty("english_meaning")
+        private String englishMeaning;
+
+        @JsonProperty("formality_level")
+        private String formalityLevel;
+
+        @JsonProperty("approach_tip")
+        private String approachTip;
+
+        @JsonProperty("cultural_insight")
+        private String culturalInsight;
+
+        private List<AlternativePhrase> alternatives;
+    }
+
+    /**
+     * 대안 표현
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AlternativePhrase {
+        private String phrase;
+        private String context;
+    }
+
     // ==================== Scenario Context DTOs ====================
 
     /**
