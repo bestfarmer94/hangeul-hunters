@@ -5,14 +5,13 @@ import com.example.hangeulhunters.application.conversation.dto.ConversationFeedb
 import com.example.hangeulhunters.application.conversation.dto.MessageDto;
 import com.example.hangeulhunters.application.conversation.dto.MessageFeedbackDto;
 import com.example.hangeulhunters.domain.conversation.entity.ConversationFeedback;
-import com.example.hangeulhunters.domain.conversation.entity.Message;
 import com.example.hangeulhunters.domain.conversation.entity.MessageFeedback;
 import com.example.hangeulhunters.domain.conversation.repository.ConversationFeedbackRepository;
 import com.example.hangeulhunters.domain.conversation.repository.MessageFeedbackRepository;
 import com.example.hangeulhunters.domain.conversation.vo.ImprovementItem;
 import com.example.hangeulhunters.domain.conversation.vo.KeyExpression;
+import com.example.hangeulhunters.infrastructure.exception.ConflictException;
 import com.example.hangeulhunters.infrastructure.exception.ResourceNotFoundException;
-import com.example.hangeulhunters.infrastructure.service.naver.dto.HonorificVariationsResponse;
 import com.example.hangeulhunters.infrastructure.service.noonchi.NoonchiAiService;
 import com.example.hangeulhunters.infrastructure.service.noonchi.dto.NoonchiAiDto;
 import com.example.hangeulhunters.infrastructure.service.noonchi.dto.NoonchiAiDto.LearningReportResponse;
@@ -49,14 +48,14 @@ public class FeedbackService {
 
                 // 피드백 저장
                 MessageFeedback feedback = MessageFeedback.builder()
-                        .messageId(messageId)
-                        .politenessScore(0)
-                        .naturalnessScore(0)
-                        .appropriateExpression(feedbackData.getSuggestedAlternatives().getFirst())
-                        .contentsFeedback(feedbackData.getFeedbackText())
-                        .nuanceFeedback(feedbackData.getFeedbackText())
-                        .createdBy(userId)
-                        .build();
+                                .messageId(messageId)
+                                .politenessScore(0)
+                                .naturalnessScore(0)
+                                .appropriateExpression(feedbackData.getSuggestedAlternatives().getFirst())
+                                .contentsFeedback(feedbackData.getFeedbackText())
+                                .nuanceFeedback(feedbackData.getFeedbackText())
+                                .createdBy(userId)
+                                .build();
                 messageFeedbackRepository.save(feedback);
         }
 
@@ -64,54 +63,63 @@ public class FeedbackService {
          * 대화 종료 시 학습 리포트 생성 및 저장
          */
         @Transactional
-        public ConversationFeedbackDto saveConversationFeedback(Long userId, ConversationDto conversation, List<MessageDto> messages) {
+        public ConversationFeedbackDto saveConversationFeedback(Long userId, ConversationDto conversation,
+                        List<MessageDto> messages) {
 
                 // 1. 이미 피드백이 존재하는지 확인
                 Optional<ConversationFeedback> existingFeedback = conversationFeedbackRepository
                                 .findByConversationId(conversation.getConversationId());
 
                 if (existingFeedback.isPresent()) {
-                        log.info("Conversation feedback already exists - conversationId: {}", conversation.getConversationId());
+                        log.info("Conversation feedback already exists - conversationId: {}",
+                                        conversation.getConversationId());
                         return getConversationFeedback(conversation.getConversationId());
                 }
 
-                // 2. AI 서버 호출 - 학습 리포트 생성
+                // 2. 최소 5턴 검증 (canGetReport 확인)
+                if (!conversation.getCanGetReport()) {
+                        log.error("Cannot generate report - less than 5 turns - conversationId: {}",
+                                        conversation.getConversationId());
+                        throw new ConflictException("Cannot generate report: minimum 5 turns required");
+                }
+
+                // 3. AI 서버 호출 - 학습 리포트 생성
                 LearningReportResponse reportResponse = noonchiAiService.generateLearningReport(
                                 conversation.getConversationId());
 
-                // 3. ConversationFeedback 저장
-                // ImprovementItem 변환 (DTO -> Domain)
+                // 4. ConversationFeedback 저장
                 try {
-                        List<ImprovementItem> improvementItems = reportResponse.getAreasToImprove() != null
-                                ? reportResponse.getAreasToImprove().stream()
-                                .map(item -> ImprovementItem
-                                        .builder()
-                                        .point(item.getPoint())
-                                        .tip(item.getTip())
-                                        .build()
-                                ).toList()
-                                : List.of();
+                        // ImprovementItem 변환 (DTO -> Domain)
+                        List<ImprovementItem> improvementItems = reportResponse.getImprovements() != null
+                                        ? reportResponse.getImprovements().stream()
+                                                        .map(item -> ImprovementItem
+                                                                        .builder()
+                                                                        .point(item.getPoint())
+                                                                        .tip(item.getTip())
+                                                                        .build())
+                                                        .toList()
+                                        : List.of();
 
                         Integer pronunciationScore = messages.stream()
-                                .filter(message -> message.getPronunciationScore() != null)
-                                .mapToInt(MessageDto::getPronunciationScore)
-                                .reduce(0, Integer::sum);
+                                        .filter(message -> message.getPronunciationScore() != null)
+                                        .mapToInt(MessageDto::getPronunciationScore)
+                                        .reduce(0, Integer::sum);
 
                         ConversationFeedback feedback = ConversationFeedback.builder()
-                                .conversationId(conversation.getConversationId())
-                                .politenessScore(reportResponse.getFormalityScore())
-                                .naturalnessScore(reportResponse.getNaturalnessScore())
-                                .pronunciationScore(pronunciationScore)
-                                .summary(reportResponse.getConversationSummary())
-                                .goodPoints(reportResponse.getStrengths())
-                                .overallEvaluation(reportResponse.getOverallAssessment())
-                                .improvementPoints(improvementItems)
-                                .createdBy(userId)
-                                .build();
+                                        .conversationId(conversation.getConversationId())
+                                        .politenessScore(reportResponse.getFormalityScore())
+                                        .naturalnessScore(reportResponse.getNaturalnessScore())
+                                        .pronunciationScore(pronunciationScore)
+                                        .summary(reportResponse.getConversationSummary())
+                                        .goodPoints(reportResponse.getStrengths())
+                                        .overallEvaluation(reportResponse.getOverallAssessment())
+                                        .improvementPoints(improvementItems)
+                                        .createdBy(userId)
+                                        .build();
                         conversationFeedbackRepository.save(feedback);
 
                         log.info("Conversation feedback saved - conversationId: {}, feedbackId: {}",
-                                conversation.getConversationId(), feedback.getId());
+                                        conversation.getConversationId(), feedback.getId());
 
                         return ConversationFeedbackDto.fromEntity(feedback);
 

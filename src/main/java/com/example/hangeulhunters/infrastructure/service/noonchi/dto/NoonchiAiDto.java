@@ -27,6 +27,19 @@ public class NoonchiAiDto {
         private String tip;
     }
 
+    /**
+     * 핵심 표현 항목
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class KeyExpressionDto {
+        private String korean;
+        private String english;
+        private String usage;
+    }
+
     // ==================== Role-Playing DTOs ====================
 
     /**
@@ -230,6 +243,12 @@ public class NoonchiAiDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class LearningReportResponse {
+        @JsonProperty("conversation_id")
+        private Integer conversationId;
+
+        @JsonProperty("scenario_title")
+        private String scenarioTitle;
+
         @JsonProperty("total_turns")
         private Integer totalTurns;
 
@@ -242,16 +261,12 @@ public class NoonchiAiDto {
         @JsonProperty("naturalness_score")
         private Integer naturalnessScore;
 
-        @JsonProperty("cultural_awareness_score")
-        private Integer culturalAwarenessScore;
+        @JsonProperty("conversation_summary")
+        private String conversationSummary;
 
         private String strengths;
 
-        @JsonProperty("areas_to_improve")
-        private List<ImprovementItem> areasToImprove;
-
-        @JsonProperty("conversation_summary")
-        private String conversationSummary;
+        private List<ImprovementItem> improvements;
     }
 
     // ==================== Hint DTOs ====================

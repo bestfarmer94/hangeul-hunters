@@ -2,7 +2,6 @@ package com.example.hangeulhunters.application.conversation.dto;
 
 import com.example.hangeulhunters.domain.conversation.entity.ConversationFeedback;
 import com.example.hangeulhunters.domain.conversation.vo.ImprovementItem;
-import com.example.hangeulhunters.domain.conversation.vo.KeyExpression;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
