@@ -50,6 +50,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -102,11 +104,17 @@ public class MessageService {
             throw new IllegalArgumentException("Message content is empty");
         }
 
+        // 메시지 파싱: *행동묘사* 분리
+        String[] parsed = parseMessageContent(messageContent);
+        String userVisualAction = parsed[0];
+        String actualContent = parsed[1];
+
         // 사용자 메시지 저장
         Message userMessage = Message.builder()
                 .conversationId(conversation.getConversationId())
                 .type(MessageType.USER)
-                .content(messageContent)
+                .content(actualContent)
+                .visualAction(userVisualAction)
                 .audioUrl(audioUrl)
                 .pronunciationScore(pronunciationScore)
                 .createdBy(userId)
@@ -114,53 +122,6 @@ public class MessageService {
         messageRepository.save(userMessage);
 
         return MessageDto.fromEntity(userMessage);
-    }
-
-    @Transactional
-    public MessageSendResponse processChatWithAi(Long userId, Long conversationId, Long userMessageId) {
-
-        ConversationDto conversation = conversationService.getConversationById(userId, conversationId);
-
-        Message userMessage = messageRepository.findById(userMessageId)
-                .orElseThrow(() -> new ResourceNotFoundException("User message not found"));
-
-        // 1. AI 서버 호출
-        ChatResponse aiResponse = processChatWithAi(conversation, userMessage.getContent());
-
-        // 2. 사용자 메시지 반영
-        userMessage.saveFeedbackScores(aiResponse.getPolitenessScore(), aiResponse.getNaturalnessScore());
-        messageRepository.save(userMessage);
-
-        // 3. AI 메시지 저장
-        Message aiMessage = Message.builder()
-                .conversationId(conversationId)
-                .type(MessageType.AI)
-                .content(aiResponse.getContent())
-                .reactionEmoji(aiResponse.getReactionEmoji())
-                .reactionDescription(aiResponse.getReactionDescription())
-                .reactionReason(aiResponse.getReactionReason())
-                .recommendation(aiResponse.getRecommendation())
-                .createdBy(userId)
-                .build();
-        messageRepository.save(aiMessage);
-
-        // 4. 피드백 저장
-        feedbackService.saveMessageFeedback(userId, userMessage, aiResponse);
-
-        // // 5. 대화 data 처리
-        // if(aiResponse.getIsTaskCompleted() != null &&
-        // aiResponse.getIsTaskCompleted()) {
-        // conversationService.processConversationTaskCompletion(conversation.getConversationId());
-        // }
-        conversationService.updateConversationLastActivity(conversation.getConversationId());
-        ConversationDto processedConversation = conversationService.getConversationById(userId,
-                conversation.getConversationId());
-
-        // USER, AI 메시지 반환
-        return MessageSendResponse.of(
-                aiResponse.getIsTaskCompleted(),
-                processedConversation,
-                List.of(MessageDto.fromEntity(userMessage), MessageDto.fromEntity(aiMessage)));
     }
 
     @Transactional(readOnly = true)
@@ -204,23 +165,6 @@ public class MessageService {
                 .orElseThrow(() -> new ResourceNotFoundException("Message not found"));
     }
 
-    /**
-     * 대화 시작 시 첫 번째 메시지를 생성합니다.
-     * 
-     * @param conversation
-     */
-    @Transactional
-    public void createFirstMessage(Long userId, ConversationDto conversation, SituationExample situationExample) {
-
-        Message message = Message.builder()
-                .conversationId(conversation.getConversationId())
-                .type(MessageType.AI)
-                .content(situationExample.getFirstMessage())
-                .createdBy(userId)
-                .build();
-        messageRepository.save(message);
-    }
-
     @Transactional
     public void createRolePlayingFirstMessage(Long userId, ConversationDto conversation) {
 
@@ -250,16 +194,8 @@ public class MessageService {
 
         } catch (Exception e) {
             // AI 서버 호출 실패 시 기본 메시지 사용
-            log.error("Failed to generate AI interview first message for conversation: {}, using fallback",
+            log.error("Failed to generate AI role-playing first message for conversation: {}, using fallback",
                     conversation.getConversationId(), e);
-
-            Message fallbackMessage = Message.builder()
-                    .conversationId(conversation.getConversationId())
-                    .type(MessageType.AI)
-                    .content("안녕하세요, 반갑습니다. 먼저 간단하게 자기소개 부탁드립니다.")
-                    .createdBy(userId)
-                    .build();
-            messageRepository.save(fallbackMessage);
         }
     }
 
@@ -417,35 +353,36 @@ public class MessageService {
         return translatedContent;
     }
 
-    /**
-     * 대화 AI 응답 생성
-     */
-    private ChatResponse processChatWithAi(ConversationDto conversation, String messageContent) {
-        try {
-            // AI 응답 생성 및 저장 (ConversationType에 따라 분기)
-            return switch (conversation.getConversationType()) {
-                case INTERVIEW -> noonchiAiService.chatInterviewMessage(
-                        conversation.getConversationId(),
-                        messageContent);
-
-                case ROLE_PLAYING -> noonchiAiService.chatRolePlayingMessage(
-                        conversation.getConversationId(),
-                        messageContent,
-                        conversation.getConversationTrack(),
-                        Objects.requireNonNull(
-                                ConversationTopicExample.getTopicExampleByName(conversation.getConversationTopic()))
-                                .name());
-
-                default -> throw new IllegalArgumentException(
-                        "Unsupported conversation type: " + conversation.getConversationType());
-            };
-
-        } catch (Exception e) {
-            log.error("Failed to generate AI response for conversation: {}",
-                    conversation.getConversationId(), e);
-            throw new RuntimeException("Failed to generate AI response", e);
-        }
-    }
+    // /**
+    // * 대화 AI 응답 생성
+    // */
+    // private ChatResponse processChatWithAi(ConversationDto conversation, String
+    // messageContent) {
+    // try {
+    // // AI 응답 생성 및 저장 (ConversationType에 따라 분기)
+    // return switch (conversation.getConversationType()) {
+    // case INTERVIEW -> noonchiAiService.chatInterviewMessage(
+    // conversation.getConversationId(),
+    // messageContent);
+    //
+    // case ROLE_PLAYING -> noonchiAiService.chatRolePlayingMessage(
+    // conversation.getConversationId(),
+    // messageContent,
+    // conversation.getConversationTrack(),
+    // Objects.requireNonNull(
+    // ConversationTopicExample.getTopicExampleByName(conversation.getConversationTopic()))
+    // .name());
+    //
+    // default -> throw new IllegalArgumentException(
+    // "Unsupported conversation type: " + conversation.getConversationType());
+    // };
+    //
+    // } catch (Exception e) {
+    // log.error("Failed to generate AI response for conversation: {}",
+    // conversation.getConversationId(), e);
+    // throw new RuntimeException("Failed to generate AI response", e);
+    // }
+    // }
 
     /**
      * Ask 대화 시작 시 첫 번째 메시지를 SSE 스트림으로 생성합니다.
@@ -723,13 +660,7 @@ public class MessageService {
         if (doneData.getFeedback() != null) {
             NoonchiAiDto.RolePlayFeedbackData feedbackData = doneData.getFeedback();
 
-            MessageFeedback feedback = MessageFeedback.builder()
-                    .messageId(userMessageId)
-                    .contentsFeedback(feedbackData.getFeedbackText())
-                    .nuanceFeedback(feedbackData.getFeedbackText())
-                    .appropriateExpression(feedbackData.getSuggestedAlternatives().getFirst())
-                    .build();
-            messageFeedbackRepository.save(feedback);
+            feedbackService.saveMessageFeedback(userId, userMessageId, feedbackData);
 
             log.info("Saved RolePlaying feedback for message: {}", userMessageId);
         }
@@ -747,7 +678,46 @@ public class MessageService {
             conversationService.endConversation(userId, conversationId);
         }
 
-        // 7. 저장된 AI 메시지 반환
+        // 7. 대화 마지막 활동 시간 업데이트
+        conversationService.updateConversationLastActivity(conversationId);
+
+        // 8. 저장된 AI 메시지 반환
         return messageList;
+    }
+
+    /**
+     * 메시지 내용에서 *행동묘사* 패턴 파싱
+     * 맨 앞 또는 맨 뒤에 위치한 *행동* 패턴을 추출
+     *
+     * @param rawContent 원본 메시지 내용
+     * @return [visualAction, actualContent]
+     */
+    private String[] parseMessageContent(String rawContent) {
+        String trimmed = rawContent.trim();
+        
+        // 패턴 1: 맨 앞에 *행동묘사* 있는 경우
+        // 예: "*긴장한 표정으로* 안녕하세요"
+        Pattern frontPattern = Pattern.compile("^\\*([^*]+)\\*\\s*(.*)$");
+        Matcher frontMatcher = frontPattern.matcher(trimmed);
+        
+        if (frontMatcher.matches()) {
+            String visualAction = frontMatcher.group(1).trim();
+            String actualContent = frontMatcher.group(2).trim();
+            return new String[]{visualAction, actualContent};
+        }
+        
+        // 패턴 2: 맨 뒤에 *행동묘사* 있는 경우
+        // 예: "안녕하세요 *웃으면서*"
+        Pattern backPattern = Pattern.compile("^(.*)\\s*\\*([^*]+)\\*$");
+        Matcher backMatcher = backPattern.matcher(trimmed);
+        
+        if (backMatcher.matches()) {
+            String actualContent = backMatcher.group(1).trim();
+            String visualAction = backMatcher.group(2).trim();
+            return new String[]{visualAction, actualContent};
+        }
+
+        // 패턴이 없으면 전체를 content로
+        return new String[]{null, rawContent};
     }
 }

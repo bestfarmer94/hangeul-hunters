@@ -37,10 +37,10 @@ public class FeedbackService {
          * 문장(메시지) 단위 피드백
          */
         @Transactional
-        public void saveMessageFeedback(Long userId, Message message, NoonchiAiDto.ChatResponse aiResponse) {
+        public void saveMessageFeedback(Long userId, Long messageId, NoonchiAiDto.RolePlayFeedbackData feedbackData) {
 
                 // 해당 메시지의 피드백이 이미 존재하는지 확인
-                Optional<MessageFeedback> existingFeedback = messageFeedbackRepository.findByMessageId(message.getId());
+                Optional<MessageFeedback> existingFeedback = messageFeedbackRepository.findByMessageId(messageId);
 
                 // 이미 피드백이 존재하면 해당 피드백 반환
                 if (existingFeedback.isPresent()) {
@@ -49,15 +49,14 @@ public class FeedbackService {
 
                 // 피드백 저장
                 MessageFeedback feedback = MessageFeedback.builder()
-                                .messageId(message.getId())
-                                .politenessScore(aiResponse.getPolitenessScore())
-                                .naturalnessScore(aiResponse.getNaturalnessScore())
-                                .pronunciationScore(message.getPronunciationScore())
-                                .appropriateExpression(aiResponse.getModelAnswer())
-                                .contentsFeedback(aiResponse.getContentsFeedback())
-                                .nuanceFeedback(aiResponse.getNuanceFeedback())
-                                .createdBy(userId)
-                                .build();
+                        .messageId(messageId)
+                        .politenessScore(0)
+                        .naturalnessScore(0)
+                        .appropriateExpression(feedbackData.getSuggestedAlternatives().getFirst())
+                        .contentsFeedback(feedbackData.getFeedbackText())
+                        .nuanceFeedback(feedbackData.getFeedbackText())
+                        .createdBy(userId)
+                        .build();
                 messageFeedbackRepository.save(feedback);
         }
 
