@@ -96,7 +96,7 @@ public class ConversationService {
                 Conversation conversation = conversationRepository.findByIdAndUserId(conversationId, userId)
                                 .orElseThrow(() -> new ResourceNotFoundException("Conversation", "id", conversationId));
 
-                AIPersonaDto persona = aIPersonaService.getPersonaById(userId, conversation.getPersonaId());
+                AIPersonaDto persona = aIPersonaService.getPersonaById(conversation.getPersonaId());
 
                 String track = topicService.getTopicByName(conversation.getConversationTopic()).getCategory();
 
