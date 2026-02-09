@@ -16,7 +16,10 @@ import com.example.hangeulhunters.domain.conversation.constant.MessageType;
 import com.example.hangeulhunters.domain.conversation.constant.SituationExample;
 import com.example.hangeulhunters.domain.conversation.entity.Conversation;
 import com.example.hangeulhunters.domain.conversation.entity.Message;
+import com.example.hangeulhunters.domain.conversation.entity.MessageFeedback;
+import com.example.hangeulhunters.domain.conversation.repository.ConversationRepository;
 import com.example.hangeulhunters.domain.conversation.repository.MessageRepository;
+import com.example.hangeulhunters.domain.conversation.repository.MessageFeedbackRepository;
 import com.example.hangeulhunters.domain.persona.constant.Relationship;
 import com.example.hangeulhunters.infrastructure.exception.ConflictException;
 import com.example.hangeulhunters.infrastructure.exception.ForbiddenException;
@@ -55,6 +58,7 @@ import java.util.stream.Collectors;
 public class MessageService {
 
     private final MessageRepository messageRepository;
+    private final MessageFeedbackRepository messageFeedbackRepository;
     private final AIPersonaService aiPersonaService;
     private final NaverApiService naverApiService;
     private final ConversationService conversationService;
@@ -573,7 +577,7 @@ public class MessageService {
 
     @Transactional
     public void createAskInitialMessages(Long currentUserId, Long conversationId, @Valid AskRequest request) {
-       // 일괄 저장용 메시지 리스트
+        // 일괄 저장용 메시지 리스트
         List<Message> messageList = new ArrayList<>();
 
         // 1-1. 시스템 메시지1
@@ -637,9 +641,113 @@ public class MessageService {
                 .createdBy(currentUserId)
                 .createdAt(OffsetDateTime.now())
                 .build();
-        messageList.add(systemMessage3);
+        messageList.add(userMessage3);
 
         // 4. 일괄 저장
         messageRepository.saveAll(messageList);
+    }
+
+    /**
+     * RolePlaying 메시지 생성 (스트리밍 수신 후 REST 응답 [임시])
+     */
+    @Transactional
+    public List<MessageDto> processRolePlayWithAi(Long userId, Long conversationId, Long userMessageId,
+            String userMessageContent) {
+        log.info("Processing RolePlaying AI response - conversationId: {}, userMessageId: {}", conversationId,
+                userMessageId);
+
+        // 1. AI 서버로부터 스트림 받기
+        Flux<String> aiStream = noonchiAiService.sendRolePlayMessageStream(conversationId, userMessageContent);
+
+        // 2. DoneEventData를 저장하기 위한 AtomicReference
+        final AtomicReference<NoonchiAiDto.RolePlayDoneEventData> doneDataRef = new AtomicReference<>();
+
+        // 3. 스트림 처리 (done 이벤트 데이터 추출)
+        aiStream
+                .mapNotNull(chunk -> {
+                    try {
+                        ObjectMapper mapper = new ObjectMapper();
+                        NoonchiAiDto.RolePlayStreamEvent event = mapper.readValue(chunk,
+                                NoonchiAiDto.RolePlayStreamEvent.class);
+
+                        // done 이벤트인 경우 데이터 저장
+                        if ("done".equals(event.getType()) && event.getData() != null) {
+                            doneDataRef.set(event.getData());
+                            log.info("Received done event with data for conversation: {}", conversationId);
+                        }
+
+                        return event;
+                    } catch (Exception e) {
+                        log.warn("Failed to parse chunk as JSON: {}", e.getMessage());
+                        return null;
+                    }
+                })
+                .blockLast(); // 스트림 완료까지 대기
+
+        // 4. Done 이벤트 데이터로 메시지 저장
+        List<MessageDto> messageList = new ArrayList<>();
+        NoonchiAiDto.RolePlayDoneEventData doneData = doneDataRef.get();
+        if (doneData == null) {
+            log.error("No done event data received for conversation: {}", conversationId);
+            throw new RuntimeException("Failed to receive AI response");
+        }
+
+        // 4-1. System 메시지 저장
+        if (!doneData.getSituationDescription().isBlank()) {
+            Message systemMessage = Message.builder()
+                    .conversationId(conversationId)
+                    .type(MessageType.SYSTEM)
+                    .content(doneData.getSituationDescription())
+                    .situationContext(doneData.getSituationDescription())
+                    .createdBy(userId)
+                    .build();
+            messageRepository.save(systemMessage);
+
+            messageList.add(MessageDto.fromEntity(systemMessage));
+        }
+
+        // 4-2. AI 메시지 저장
+        Message aiMsg = Message.builder()
+                .conversationId(conversationId)
+                .type(MessageType.AI)
+                .content(doneData.getAiMessage())
+                .hiddenMeaning(doneData.getAiHiddenMeaning())
+                .visualAction(doneData.getVisualAction())
+                .situationDescription(doneData.getSituationDescription())
+                .createdBy(userId)
+                .build();
+        messageRepository.save(aiMsg);
+        messageList.add(MessageDto.fromEntity(aiMsg));
+
+        // 5. 피드백 저장 (있는 경우)
+        if (doneData.getFeedback() != null) {
+            NoonchiAiDto.RolePlayFeedbackData feedbackData = doneData.getFeedback();
+
+            MessageFeedback feedback = MessageFeedback.builder()
+                    .messageId(userMessageId)
+                    .contentsFeedback(feedbackData.getFeedbackText())
+                    .nuanceFeedback(feedbackData.getFeedbackText())
+                    .appropriateExpression(feedbackData.getSuggestedAlternatives().getFirst())
+                    .build();
+            messageFeedbackRepository.save(feedback);
+
+            log.info("Saved RolePlaying feedback for message: {}", userMessageId);
+        }
+
+        log.info("Saved RolePlaying messages for conversation: {}", conversationId);
+
+        // 6. Conversation 상태 업데이트 (canGetReport, isConversationEnding)
+        // 6-1. canGetReport 업데이트
+        if (doneData.getCanGetReport() != null && doneData.getCanGetReport()) {
+            conversationService.updateCanGetReport(conversationId);
+        }
+
+        // 6-2. isConversationEnding이 true면 대화 종료
+        if (Boolean.TRUE.equals(doneData.getIsConversationEnding())) {
+            conversationService.endConversation(userId, conversationId);
+        }
+
+        // 7. 저장된 AI 메시지 반환
+        return messageList;
     }
 }

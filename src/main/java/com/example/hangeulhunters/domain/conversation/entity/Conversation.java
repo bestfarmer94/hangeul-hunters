@@ -101,6 +101,13 @@ public class Conversation extends BaseTimeEntity {
     private String askTarget;
 
     /**
+     * 리포트 생성 가능 여부
+     */
+    @Builder.Default
+    @Column(nullable = false)
+    private Boolean canGetReport = false;
+
+    /**
      * 대화 종료
      */
     public void endConversation() {
@@ -113,6 +120,13 @@ public class Conversation extends BaseTimeEntity {
      */
     public void updateLastActivity() {
         this.lastActivityAt = DateTimeUtil.now();
+    }
+
+    /**
+     * 리포트 생성 가능 여부 업데이트
+     */
+    public void updateCanGetReport() {
+        this.canGetReport = true;
     }
 
     public void delete(Long userId) {
