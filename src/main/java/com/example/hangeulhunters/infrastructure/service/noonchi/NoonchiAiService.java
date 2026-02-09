@@ -237,16 +237,14 @@ public class NoonchiAiService {
     public LearningReportResponse generateLearningReport(Long conversationId) {
         log.info("Generating learning report - conversationId: {}", conversationId);
 
-        LearningReportRequest request = LearningReportRequest.builder()
-                .conversationId(conversationId)
-                .build();
-
         try {
+            String uri = (properties.getBaseUrl() + properties.getEndpoints().getRolePlayingReport())
+                    .replace("{conversationId}", conversationId.toString());
+
             return webClient.post()
-                    .uri(properties.getBaseUrl() + properties.getEndpoints().getRolePlayingReport())
+                    .uri(uri)
                     .header("x-api-key", properties.getApiKey())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .bodyValue(request)
                     .retrieve()
                     .bodyToMono(LearningReportResponse.class)
                     .block();
