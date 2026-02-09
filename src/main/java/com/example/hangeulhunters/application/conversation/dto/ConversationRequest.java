@@ -16,22 +16,23 @@ import lombok.NoArgsConstructor;
 public class ConversationRequest {
 
     @NotNull(message = "대화 주제 ID는 필수입니다")
-    @Schema(description = "대화 주제 ID", example = "1")
+    @Schema(description = "대화 주제 ID", example = "2")
     private Long conversationTopicId;
 
     @NotBlank(message = "사용자 역할은 필수입니다")
-    @Schema(description = "사용자 역할", example = "학생")
+    @Schema(description = "사용자 역할", example = "A team member")
     private String userRole;
 
     @NotBlank(message = "AI 역할은 필수입니다")
-    @Schema(description = "AI 역할", example = "선생님")
+    @Schema(description = "AI 역할", example = "A colleague")
     private String aiRole;
 
     @NotBlank(message = "친밀도는 필수입니다")
-    @Schema(description = "친밀도", example = "격식")
+    @Schema(description = "친밀도", example = "Casual")
     private String closeness;
 
     @NotBlank(message = "상황 설명은 필수입니다")
-    @Schema(description = "상황 설명", example = "학교에서 선생님과 대화합니다")
+    @Schema(description = "상황 설명", example = "You are working on a task you don’t fully understand.\n" +
+            "The deadline is coming up, and you need to ask for clarification or support without sounding incompetent.")
     private String situation;
 }

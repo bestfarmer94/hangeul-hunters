@@ -51,7 +51,6 @@ public class FeedbackService {
                                 .messageId(messageId)
                                 .politenessScore(0)
                                 .naturalnessScore(0)
-                                .appropriateExpression(feedbackData.getSuggestedAlternatives().getFirst())
                                 .contentsFeedback(feedbackData.getFeedbackText())
                                 .nuanceFeedback(feedbackData.getFeedbackText())
                                 .createdBy(userId)

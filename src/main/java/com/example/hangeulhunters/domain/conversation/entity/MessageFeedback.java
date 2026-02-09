@@ -34,7 +34,7 @@ public class MessageFeedback extends BaseTimeEntity {
     @Column(nullable = true)
     private Integer pronunciationScore;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(nullable = true, columnDefinition = "TEXT")
     private String appropriateExpression;
 
     /**

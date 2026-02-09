@@ -27,19 +27,6 @@ public class NoonchiAiDto {
         private String tip;
     }
 
-    /**
-     * 핵심 표현 항목
-     */
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class KeyExpressionDto {
-        private String korean;
-        private String english;
-        private String usage;
-    }
-
     // ==================== Role-Playing DTOs ====================
 
     /**
@@ -346,17 +333,6 @@ public class NoonchiAiDto {
         private String culturalInsight;
     }
 
-    /**
-     * 대안 표현
-     */
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class AlternativePhrase {
-        private String phrase;
-        private String context;
-    }
-
     // ==================== Scenario Context DTOs ====================
 
     /**
@@ -426,6 +402,9 @@ public class NoonchiAiDto {
 
         @JsonProperty("ai_message")
         private String aiMessage;
+
+        @JsonProperty("ai_message_en")
+        private String aiMessageEn;
 
         @JsonProperty("ai_hidden_meaning")
         private String aiHiddenMeaning;

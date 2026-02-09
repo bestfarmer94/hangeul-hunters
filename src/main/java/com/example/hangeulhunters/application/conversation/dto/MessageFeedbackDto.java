@@ -31,7 +31,7 @@ public class MessageFeedbackDto {
     @Schema(description = "발음 점수 (0-100)")
     private Integer pronunciationScore;
 
-    @Schema(description = "적절한 표현")
+    @Schema(description = "적절한 표현 (optional)")
     private String appropriateExpression;
 
     @Schema(description = "문법/존댓말 피드백 (영어)")
