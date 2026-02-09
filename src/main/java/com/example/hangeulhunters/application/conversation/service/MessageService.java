@@ -630,7 +630,7 @@ public class MessageService {
         }
 
         // 4-1. System 메시지 저장
-        if (!doneData.getSituationDescription().isBlank()) {
+        if (doneData.getSituationDescription() != null && !doneData.getSituationDescription().isBlank()) {
             Message systemMessage = Message.builder()
                     .conversationId(conversationId)
                     .type(MessageType.SYSTEM)
@@ -648,6 +648,7 @@ public class MessageService {
                 .conversationId(conversationId)
                 .type(MessageType.AI)
                 .content(doneData.getAiMessage())
+                .translatedContent(doneData.getAiMessageEn())
                 .hiddenMeaning(doneData.getAiHiddenMeaning())
                 .visualAction(doneData.getVisualAction())
                 .situationDescription(doneData.getSituationDescription())
