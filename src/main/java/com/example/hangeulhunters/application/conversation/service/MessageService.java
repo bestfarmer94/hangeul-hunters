@@ -313,8 +313,7 @@ public class MessageService {
         }
 
         // AI 페르소나 정보 조회
-        AIPersonaDto persona = aiPersonaService.getPersonaById(currentUserId,
-                conversation.getAiPersona().getPersonaId());
+        AIPersonaDto persona = aiPersonaService.getPersonaById(conversation.getAiPersona().getPersonaId());
 
         // AI 역할 정보 조회
         Relationship aiRole = Relationship.ofAiRole(persona.getAiRole());
