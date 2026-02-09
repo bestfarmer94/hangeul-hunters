@@ -11,7 +11,9 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Flux;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Noonchi AI 서버 API 통신 서비스
@@ -376,6 +378,39 @@ public class NoonchiAiService {
         } catch (Exception e) {
             log.error("Unexpected error starting Ask conversation stream - conversationId: {}", conversationId, e);
             return Flux.error(new RuntimeException("Failed to start Ask conversation stream", e));
+        }
+    }
+
+    /**
+     * RolePlaying 메시지 전송 (SSE 스트림)
+     *
+     * @param conversationId 대화방 ID
+     * @param userMessage    사용자 메시지
+     * @return SSE 스트림
+     */
+    public Flux<String> sendRolePlayMessageStream(Long conversationId, String userMessage) {
+        log.info("Sending RolePlaying message stream - conversationId: {}", conversationId);
+
+        Map<String, Object> request = new HashMap<>();
+        request.put("user_message", userMessage);
+
+        try {
+            return webClient.post()
+                    .uri(properties.getBaseUrl() + "/roleplay/conversations/" + conversationId + "/messages")
+                    .header("x-api-key", properties.getApiKey())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(request)
+                    .retrieve()
+                    .bodyToFlux(String.class)
+                    .doOnNext(chunk -> log.debug("Received RolePlaying SSE chunk: {}", chunk))
+                    .doOnComplete(
+                            () -> log.info("RolePlaying message stream completed - conversationId: {}", conversationId))
+                    .doOnError(error -> log.error("Error in RolePlaying message stream - conversationId: {}",
+                            conversationId, error));
+
+        } catch (Exception e) {
+            log.error("Unexpected error sending RolePlaying message stream - conversationId: {}", conversationId, e);
+            return Flux.error(new RuntimeException("Failed to send RolePlaying message stream", e));
         }
     }
 }

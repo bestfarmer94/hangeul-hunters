@@ -383,4 +383,79 @@ public class NoonchiAiDto {
 
         private String detail;
     }
+
+    // ==================== RolePlaying Stream DTOs ====================
+
+    /**
+     * RolePlaying SSE 스트림 이벤트
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class RolePlayStreamEvent {
+        private String type; // "ai_chunk", "done", "error"
+
+        @JsonProperty("conversation_id")
+        private Long conversationId;
+
+        private String content; // for ai_chunk
+
+        private String message; // for error
+
+        private RolePlayDoneEventData data; // for done
+    }
+
+    /**
+     * RolePlaying done 이벤트 데이터
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class RolePlayDoneEventData {
+        @JsonProperty("conversation_id")
+        private Long conversationId;
+
+        @JsonProperty("ai_message")
+        private String aiMessage;
+
+        @JsonProperty("ai_hidden_meaning")
+        private String aiHiddenMeaning;
+
+        @JsonProperty("visual_action")
+        private String visualAction;
+
+        @JsonProperty("user_visual_action")
+        private String userVisualAction;
+
+        @JsonProperty("situation_description")
+        private String situationDescription;
+
+        private RolePlayFeedbackData feedback;
+
+        @JsonProperty("turn_count")
+        private Integer turnCount;
+
+        @JsonProperty("can_get_report")
+        private Boolean canGetReport;
+
+        @JsonProperty("is_conversation_ending")
+        private Boolean isConversationEnding;
+    }
+
+    /**
+     * RolePlaying 피드백 데이터
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class RolePlayFeedbackData {
+        @JsonProperty("feedback_text")
+        private String feedbackText;
+
+        @JsonProperty("is_appropriate")
+        private Boolean isAppropriate;
+
+        @JsonProperty("suggested_alternatives")
+        private List<String> suggestedAlternatives;
+    }
 }

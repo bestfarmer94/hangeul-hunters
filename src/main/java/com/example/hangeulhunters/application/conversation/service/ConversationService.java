@@ -284,59 +284,19 @@ public class ConversationService {
                                 null); // ASK 타입은 track이 없음
         }
 
-//        /**
-//         * 면접 대화의 과제 완료 처리
-//         */
-//        @Transactional
-//        public void processConversationTaskCompletion(Long conversationId) {
-//                Conversation conversation = conversationRepository.findById(conversationId)
-//                                .orElseThrow(() -> new ResourceNotFoundException("Conversation", "id", conversationId));
-//
-//                if (conversation.getTaskCurrentLevel() == null) {
-//                        return;
-//                }
-//
-//                ConversationTopic conversationTopic = topicService.getTopicByName((conversation.getConversationTopic());
-//
-//                if (Objects.equals(conversationTopic.getTaskCount(), conversation.getTaskCurrentLevel())) {
-//                        conversation.completeTask();
-//                } else {
-//                        ConversationTopicTask nextTask = getConversationTopicTask(conversationTopic.getId(),
-//                                        conversation.getTaskCurrentLevel() + 1);
-//                        conversation.processTask(nextTask.getName());
-//                }
-//
-//                conversationRepository.save(conversation);
-//        }
+        /**
+         * Conversation의 canGetReport 업데이트
+         *
+         * @param conversationId 대화 ID
+         */
+        @Transactional
+        public void updateCanGetReport(Long conversationId) {
+                Conversation conversation = conversationRepository.findById(conversationId)
+                                .orElseThrow(() -> new ResourceNotFoundException("Conversation", "id", conversationId));
 
-//        /**
-//         * ConversationTopic 정보 조회
-//         */
-//        private ConversationTopic getConversationTopic(String conversationTopic) {
-//                return conversationTopicRepository.findByNameAndDeletedAtNull(conversationTopic)
-//                                .orElseThrow(() -> new ResourceNotFoundException("ConversationTopic", "name",
-//                                                conversationTopic));
-//        }
+                conversation.updateCanGetReport();
+                conversationRepository.save(conversation);
 
-//        /**
-//         * ConversationTopic 정보 조회 (TopicId)
-//         */
-//        private ConversationTopicTask getConversationTopicTask(Long topicId, Integer taskLevel) {
-//                return conversationTopicTaskRepository.findByTopicIdAndLevelAndDeletedAtNull(topicId, taskLevel)
-//                                .orElseThrow(() -> new ResourceNotFoundException("ConversationTopicTask",
-//                                                "topicId and level",
-//                                                topicId + " and " + taskLevel));
-//        }
-
-//        /**
-//         * ConversationTopic 정보 조회 (TopicName)
-//         */
-//        private ConversationTopicTask getConversationTopicTaskByTopicName(String topicName, Integer taskLevel) {
-//                ConversationTopic conversationTopic = getConversationTopic(topicName);
-//                return conversationTopicTaskRepository
-//                                .findByTopicIdAndLevelAndDeletedAtNull(conversationTopic.getId(), taskLevel)
-//                                .orElseThrow(() -> new ResourceNotFoundException("ConversationTopicTask",
-//                                                "topicId and level",
-//                                                conversationTopic.getId() + " and " + taskLevel));
-//        }
+                log.info("Updated canGetReport for conversation: {}", conversationId);
+        }
 }

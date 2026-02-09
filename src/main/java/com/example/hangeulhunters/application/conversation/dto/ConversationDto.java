@@ -88,6 +88,9 @@ public class ConversationDto {
     @Schema(description = "대상(ASK)", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private String askTarget;
 
+    @Schema(description = "리포트 생성 가능 여부", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    private Boolean canGetReport;
+
     @Schema(description = "파일 목록", requiredMode = Schema.RequiredMode.REQUIRED)
     private List<FileDto> files;
 
@@ -115,6 +118,7 @@ public class ConversationDto {
                 .taskAllCompleted(conversation.getTaskAllCompleted())
                 .closeness(conversation.getCloseness())
                 .askTarget(conversation.getAskTarget())
+                .canGetReport(conversation.getCanGetReport())
                 .files(files)
                 .build();
     }
