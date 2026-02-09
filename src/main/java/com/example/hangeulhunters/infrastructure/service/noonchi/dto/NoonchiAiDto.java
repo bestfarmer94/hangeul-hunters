@@ -292,6 +292,18 @@ public class NoonchiAiDto {
     }
 
     /**
+     * Ask 후속 메시지 요청
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AskChatRequest {
+        @JsonProperty("user_message")
+        private String userMessage;
+    }
+
+    /**
      * Ask SSE 스트림 이벤트
      */
     @Data

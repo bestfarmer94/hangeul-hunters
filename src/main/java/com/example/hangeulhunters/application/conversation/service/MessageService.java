@@ -686,6 +686,69 @@ public class MessageService {
     }
 
     /**
+     * ASK 후속 메시지 생성 (스트리밍 수신 후 REST 응답 [임시])
+     */
+    @Transactional
+    public MessageDto processAskChatWithAi(Long userId, Long conversationId, String userMessageContent) {
+        log.info("Processing ASK chat AI response - conversationId: {}", conversationId);
+
+        // 1. AI 서버로부터 스트림 받기
+        Flux<String> aiStream = noonchiAiService.sendAskChatStream(conversationId, userMessageContent);
+
+        // 2. DoneEventData를 저장하기 위한 AtomicReference
+        final AtomicReference<NoonchiAiDto.DoneEventData> doneDataRef = new AtomicReference<>();
+
+        // 3. 스트림 처리 (done 이벤트 데이터 추출)
+        aiStream
+                .mapNotNull(chunk -> {
+                    try {
+                        ObjectMapper mapper = new ObjectMapper();
+                        NoonchiAiDto.AskStreamEvent event = mapper.readValue(chunk,
+                                NoonchiAiDto.AskStreamEvent.class);
+
+                        // done 이벤트인 경우 데이터 저장
+                        if ("done".equals(event.getType()) && event.getData() != null) {
+                            doneDataRef.set(event.getData());
+                            log.info("Received done event with data for conversation: {}", conversationId);
+                        }
+
+                        return event;
+                    } catch (Exception e) {
+                        log.warn("Failed to parse chunk as JSON: {}", e.getMessage());
+                        return null;
+                    }
+                })
+                .blockLast(); // 스트림 완료까지 대기
+
+        // 4. Done 이벤트 데이터로 메시지 저장
+        NoonchiAiDto.DoneEventData doneData = doneDataRef.get();
+        if (doneData == null) {
+            log.error("No done event data received for conversation: {}", conversationId);
+            throw new RuntimeException("Failed to receive AI response");
+        }
+
+        // 4-1. AI 메시지 저장
+        Message aiMsg = Message.builder()
+                .conversationId(conversationId)
+                .type(MessageType.AI)
+                .content(doneData.getAiMessage())
+                .translatedContent(doneData.getAiMessageEn())
+                .askApproachTip(doneData.getApproachTip())
+                .askCulturalInsight(doneData.getCulturalInsight())
+                .createdBy(userId)
+                .build();
+        messageRepository.save(aiMsg);
+
+        log.info("Saved ASK chat AI message for conversation: {}", conversationId);
+
+        // 5. 대화 마지막 활동 시간 업데이트
+        conversationService.updateConversationLastActivity(conversationId);
+
+        // 6. 저장된 AI 메시지 반환
+        return MessageDto.fromEntity(aiMsg);
+    }
+
+    /**
      * 메시지 내용에서 *행동묘사* 패턴 파싱
      * 맨 앞 또는 맨 뒤에 위치한 *행동* 패턴을 추출
      *
@@ -694,30 +757,30 @@ public class MessageService {
      */
     private String[] parseMessageContent(String rawContent) {
         String trimmed = rawContent.trim();
-        
+
         // 패턴 1: 맨 앞에 *행동묘사* 있는 경우
         // 예: "*긴장한 표정으로* 안녕하세요"
         Pattern frontPattern = Pattern.compile("^\\*([^*]+)\\*\\s*(.*)$");
         Matcher frontMatcher = frontPattern.matcher(trimmed);
-        
+
         if (frontMatcher.matches()) {
             String visualAction = frontMatcher.group(1).trim();
             String actualContent = frontMatcher.group(2).trim();
-            return new String[]{visualAction, actualContent};
+            return new String[] { visualAction, actualContent };
         }
-        
+
         // 패턴 2: 맨 뒤에 *행동묘사* 있는 경우
         // 예: "안녕하세요 *웃으면서*"
         Pattern backPattern = Pattern.compile("^(.*)\\s*\\*([^*]+)\\*$");
         Matcher backMatcher = backPattern.matcher(trimmed);
-        
+
         if (backMatcher.matches()) {
             String actualContent = backMatcher.group(1).trim();
             String visualAction = backMatcher.group(2).trim();
-            return new String[]{visualAction, actualContent};
+            return new String[] { visualAction, actualContent };
         }
 
         // 패턴이 없으면 전체를 content로
-        return new String[]{null, rawContent};
+        return new String[] { null, rawContent };
     }
 }
