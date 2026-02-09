@@ -75,7 +75,13 @@ public class ConversationController extends ControllerSupport {
         // 1. 대화 생성
         ConversationDto conversation = conversationService.createAsk(getCurrentUserId(), request);
 
-        // 2. AI 첫 메시지를 SSE 스트림으로 실행
+        // 2. 초기 메시지 생성
+        messageService.createAskInitialMessages(
+                getCurrentUserId(),
+                conversation.getConversationId(),
+                request);
+
+        // 3. AI 메시지를 SSE 스트림으로 실행
         Flux<ServerSentEvent<String>> stream = messageService.createAskFirstMessageStream(
                 getCurrentUserId(),
                 conversation,

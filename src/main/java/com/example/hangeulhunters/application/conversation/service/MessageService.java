@@ -2,10 +2,7 @@ package com.example.hangeulhunters.application.conversation.service;
 
 import com.example.hangeulhunters.application.common.dto.FileDto;
 import com.example.hangeulhunters.application.common.dto.PageResponse;
-import com.example.hangeulhunters.application.conversation.dto.ConversationDto;
-import com.example.hangeulhunters.application.conversation.dto.MessageDto;
-import com.example.hangeulhunters.application.conversation.dto.MessageRequest;
-import com.example.hangeulhunters.application.conversation.dto.MessageSendResponse;
+import com.example.hangeulhunters.application.conversation.dto.*;
 import com.example.hangeulhunters.application.file.service.FileService;
 import com.example.hangeulhunters.application.language.service.LanguageService;
 import com.example.hangeulhunters.application.persona.dto.AIPersonaDto;
@@ -14,6 +11,7 @@ import com.example.hangeulhunters.application.topic.service.TopicService;
 import com.example.hangeulhunters.application.user.service.UserService;
 import com.example.hangeulhunters.domain.common.constant.AudioType;
 import com.example.hangeulhunters.domain.conversation.constant.ConversationTopicExample;
+import com.example.hangeulhunters.domain.conversation.constant.ConversationType;
 import com.example.hangeulhunters.domain.conversation.constant.MessageType;
 import com.example.hangeulhunters.domain.conversation.constant.SituationExample;
 import com.example.hangeulhunters.domain.conversation.entity.Conversation;
@@ -31,6 +29,7 @@ import com.example.hangeulhunters.infrastructure.service.noonchi.dto.NoonchiAiDt
 import com.example.hangeulhunters.infrastructure.service.noonchi.dto.NoonchiAiDto.ChatResponse;
 import com.example.hangeulhunters.infrastructure.service.noonchi.dto.NoonchiAiDto.ChatStartResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -42,6 +41,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -568,5 +569,77 @@ public class MessageService {
         return messageRepository.findFirstByConversationIdOrderByCreatedAtDesc(conversationId)
                 .map(MessageDto::fromEntity)
                 .orElseThrow(() -> new ResourceNotFoundException("Message not found"));
+    }
+
+    @Transactional
+    public void createAskInitialMessages(Long currentUserId, Long conversationId, @Valid AskRequest request) {
+       // 일괄 저장용 메시지 리스트
+        List<Message> messageList = new ArrayList<>();
+
+        // 1-1. 시스템 메시지1
+        Message systemMessage1 = Message.builder()
+                .conversationId(conversationId)
+                .type(MessageType.SYSTEM)
+                .content(ConversationType.ASK.getAskSteps().getFirst().getContent())
+                .askApproachTip(ConversationType.ASK.getAskSteps().getFirst().getApproachTip())
+                .createdBy(currentUserId)
+                .createdAt(OffsetDateTime.now())
+                .build();
+        messageList.add(systemMessage1);
+
+        // 1-2. 유저 메시지1
+        Message userMessage1 = Message.builder()
+                .conversationId(conversationId)
+                .type(MessageType.USER)
+                .content(request.getAskTarget())
+                .createdBy(currentUserId)
+                .createdAt(OffsetDateTime.now())
+                .build();
+        messageList.add(userMessage1);
+
+        // 2-1. 시스템 메시지2
+        Message systemMessage2 = Message.builder()
+                .conversationId(conversationId)
+                .type(MessageType.SYSTEM)
+                .content(ConversationType.ASK.getAskSteps().get(1).getContent())
+                .askApproachTip(ConversationType.ASK.getAskSteps().get(1).getApproachTip())
+                .createdBy(currentUserId)
+                .createdAt(OffsetDateTime.now())
+                .build();
+        messageList.add(systemMessage2);
+
+        // 2-2. 유저 메시지2
+        Message userMessage2 = Message.builder()
+                .conversationId(conversationId)
+                .type(MessageType.USER)
+                .content(request.getCloseness())
+                .createdBy(currentUserId)
+                .createdAt(OffsetDateTime.now())
+                .build();
+        messageList.add(userMessage2);
+
+        // 3-1. 시스템 메시지3
+        Message systemMessage3 = Message.builder()
+                .conversationId(conversationId)
+                .type(MessageType.SYSTEM)
+                .content(ConversationType.ASK.getAskSteps().getLast().getContent())
+                .askApproachTip(ConversationType.ASK.getAskSteps().getLast().getApproachTip())
+                .createdBy(currentUserId)
+                .createdAt(OffsetDateTime.now())
+                .build();
+        messageList.add(systemMessage3);
+
+        // 3-2. 유저 메시지3
+        Message userMessage3 = Message.builder()
+                .conversationId(conversationId)
+                .type(MessageType.SYSTEM)
+                .content(request.getSituation())
+                .createdBy(currentUserId)
+                .createdAt(OffsetDateTime.now())
+                .build();
+        messageList.add(systemMessage3);
+
+        // 4. 일괄 저장
+        messageRepository.saveAll(messageList);
     }
 }
