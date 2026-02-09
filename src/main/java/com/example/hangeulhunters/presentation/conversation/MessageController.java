@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -37,15 +38,6 @@ public class MessageController extends ControllerSupport {
                 PageResponse<MessageDto> messages = messageService.getMessagesByConversationId(getCurrentUserId(),
                                 conversationId, page, size);
                 return ResponseEntity.ok(messages);
-        }
-
-        @PostMapping
-        @Operation(summary = "메시지 전송", description = "대화에 메시지를 전송합니다. 사용자가 보낸 메시지와 시스템이 생성한 응답 메시지를 모두 반환합니다", security = @SecurityRequirement(name = "bearerAuth"))
-        public ResponseEntity<MessageSendResponse> sendMessage(@Valid @RequestBody MessageRequest request) {
-                MessageDto userMessage = messageService.sendMessage(getCurrentUserId(), request);
-                MessageSendResponse aiProcessedResponse = messageService.processChatWithAi(getCurrentUserId(),
-                                request.getConversationId(), userMessage.getMessageId());
-                return ResponseEntity.ok(aiProcessedResponse);
         }
 
         @PutMapping("{messageId}/translate")
@@ -74,8 +66,12 @@ public class MessageController extends ControllerSupport {
         @PostMapping("/roleplay")
         @Operation(summary = "롤플레이 메시지 전송", description = "롤플레이 대화에 메시지를 전송합니다. 사용자가 보낸 메시지와 AI 응답 메시지를 모두 반환합니다.", security = @SecurityRequirement(name = "bearerAuth"))
         public ResponseEntity<List<MessageDto>> sendRolePlayMessage(@Valid @RequestBody MessageRequest request) {
+                // 응답 메시지 리스트
+                List<MessageDto> responseMessageList = new ArrayList<>();
+
                 // 1. 사용자 메시지 저장
                 MessageDto userMessage = messageService.sendMessage(getCurrentUserId(), request);
+                responseMessageList.add(userMessage);
 
                 // 2. AI 처리 및 응답
                 List<MessageDto> aiResponse = messageService.processRolePlayWithAi(
@@ -83,7 +79,8 @@ public class MessageController extends ControllerSupport {
                                 request.getConversationId(),
                                 userMessage.getMessageId(),
                                 request.getContent());
+                responseMessageList.addAll(aiResponse);
 
-                return ResponseEntity.ok(aiResponse);
+                return ResponseEntity.ok(responseMessageList);
         }
 }

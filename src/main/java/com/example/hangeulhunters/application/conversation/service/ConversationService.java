@@ -114,11 +114,6 @@ public class ConversationService {
                         throw new ForbiddenException("User does not own this conversation");
                 }
 
-                // 모든 과제 완료 여부 확인
-                if (Boolean.FALSE.equals(conversation.getTaskAllCompleted())) {
-                        throw new ConflictException("Cannot end conversation: all tasks must be completed first");
-                }
-
                 // 대화 종료 처리
                 conversation.endConversation();
                 conversationRepository.save(conversation);

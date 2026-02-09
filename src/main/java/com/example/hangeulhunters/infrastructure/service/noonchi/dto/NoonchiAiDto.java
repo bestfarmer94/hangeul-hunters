@@ -316,25 +316,19 @@ public class NoonchiAiDto {
         @JsonProperty("conversation_id")
         private Long conversationId;
 
+        private String coaching;
+
         @JsonProperty("ai_message")
         private String aiMessage;
 
-        @JsonProperty("korean_phrase")
-        private String koreanPhrase;
-
-        @JsonProperty("english_meaning")
-        private String englishMeaning;
-
-        @JsonProperty("formality_level")
-        private String formalityLevel;
+        @JsonProperty("ai_message_en")
+        private String aiMessageEn;
 
         @JsonProperty("approach_tip")
         private String approachTip;
 
         @JsonProperty("cultural_insight")
         private String culturalInsight;
-
-        private List<AlternativePhrase> alternatives;
     }
 
     /**
