@@ -83,4 +83,24 @@ public class MessageController extends ControllerSupport {
 
                 return ResponseEntity.ok(responseMessageList);
         }
+
+        @PostMapping("/ask")
+        @Operation(summary = "ASK 후속 메시지 전송", description = "ASK 대화에 후속 메시지를 전송합니다. 사용자가 보낸 메시지와 AI 응답 메시지를 모두 반환합니다. (임시로 JSON 응답)", security = @SecurityRequirement(name = "bearerAuth"))
+        public ResponseEntity<List<MessageDto>> sendAskMessage(@Valid @RequestBody MessageRequest request) {
+                // 응답 메시지 리스트
+                List<MessageDto> responseMessageList = new ArrayList<>();
+
+                // 1. 사용자 메시지 저장
+                MessageDto userMessage = messageService.sendMessage(getCurrentUserId(), request);
+                responseMessageList.add(userMessage);
+
+                // 2. AI 처리 및 응답
+                MessageDto aiResponse = messageService.processAskChatWithAi(
+                                getCurrentUserId(),
+                                request.getConversationId(),
+                                request.getContent());
+                responseMessageList.add(aiResponse);
+
+                return ResponseEntity.ok(responseMessageList);
+        }
 }

@@ -380,6 +380,42 @@ public class NoonchiAiService {
     }
 
     /**
+     * Ask 후속 메시지 전송 (SSE 스트림)
+     *
+     * @param conversationId 대화방 ID
+     * @param userMessage    사용자 메시지
+     * @return SSE 스트림
+     */
+    public Flux<String> sendAskChatStream(Long conversationId, String userMessage) {
+        log.info("Sending Ask chat message - conversationId: {}", conversationId);
+
+        AskChatRequest request = AskChatRequest.builder()
+                .userMessage(userMessage)
+                .build();
+
+        try {
+            String uri = (properties.getBaseUrl() + properties.getEndpoints().getAskChat())
+                    .replace("{conversationId}", conversationId.toString());
+
+            return webClient.post()
+                    .uri(uri)
+                    .header("x-api-key", properties.getApiKey())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(request)
+                    .retrieve()
+                    .bodyToFlux(String.class)
+                    .doOnNext(chunk -> log.debug("Received ASK chat SSE chunk: {}", chunk))
+                    .doOnComplete(() -> log.info("Ask chat stream completed - conversationId: {}", conversationId))
+                    .doOnError(
+                            error -> log.error("Error in Ask chat stream - conversationId: {}", conversationId, error));
+
+        } catch (Exception e) {
+            log.error("Unexpected error sending Ask chat message - conversationId: {}", conversationId, e);
+            return Flux.error(new RuntimeException("Failed to send Ask chat message", e));
+        }
+    }
+
+    /**
      * RolePlaying 메시지 전송 (SSE 스트림)
      *
      * @param conversationId 대화방 ID
