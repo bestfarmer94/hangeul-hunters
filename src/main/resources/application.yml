@@ -92,7 +92,7 @@ cloud:
       scenario-generate-context: /roleplay/scenarios/{scenario_id}/generate-context
       role-playing-start: /roleplay/conversations
       role-playing-chat: /roleplay/conversations/{conversationId}/messages
-      role-playing-hint: /roleplay/conversations/{conversationId}/hints
+      role-playing-help: /roleplay/conversations/{conversationId}/help
       role-playing-report: /roleplay/conversations/{conversationId}/report
       interview-start: /interview/start
       interview-chat: /interview

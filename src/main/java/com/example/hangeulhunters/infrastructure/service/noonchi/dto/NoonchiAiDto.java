@@ -256,19 +256,24 @@ public class NoonchiAiDto {
         private List<ImprovementItem> improvements;
     }
 
-    // ==================== Hint DTOs ====================
+    // ==================== Help DTOs ====================
 
     /**
-     * 힌트 생성 응답
+     * 도움 응답 조회 (What should I say?)
      */
     @Data
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class HintResponse {
-        private List<String> hints;
+    public static class HelpAiResponse {
+        private List<String> suggestions;
 
         private List<String> explanations;
+
+        private List<String> translations;
+
+        @JsonProperty("wrong_index")
+        private Integer wrongIndex;
     }
 
     // ==================== Ask DTOs ====================

@@ -8,11 +8,10 @@ import com.example.hangeulhunters.infrastructure.service.naver.NaverApiService;
 import com.example.hangeulhunters.infrastructure.service.naver.dto.ClovaSpeechSTTResponse;
 import com.example.hangeulhunters.infrastructure.service.naver.dto.HonorificVariationsResponse;
 import com.example.hangeulhunters.infrastructure.service.noonchi.NoonchiAiService;
+import com.example.hangeulhunters.infrastructure.service.noonchi.dto.NoonchiAiDto.HelpAiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -64,14 +63,14 @@ public class LanguageService {
     }
 
     /**
-     * 롤플레잉 힌트 생성
+     * 롤플레잌 도움 응답 조회 (What should I say?)
      *
      * @param conversationId 대화방 ID
-     * @return 힌트 응답
+     * @return 도움 응답 (suggestions, explanations, translations, wrongIndex)
      */
     @Transactional(readOnly = true)
-    public List<String> generateRolePlayingHint(Long conversationId) {
-        return noonchiAiService.generateRolePlayingHint(conversationId).getHints();
+    public HelpAiResponse generateRolePlayingHelp(Long conversationId) {
+        return noonchiAiService.generateRolePlayingHelp(conversationId);
     }
 
     /**
