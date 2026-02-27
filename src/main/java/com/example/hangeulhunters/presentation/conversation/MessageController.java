@@ -4,7 +4,6 @@ import com.example.hangeulhunters.application.common.dto.PageResponse;
 import com.example.hangeulhunters.application.conversation.dto.MessageDto;
 import com.example.hangeulhunters.application.conversation.dto.MessageFeedbackDto;
 import com.example.hangeulhunters.application.conversation.dto.MessageRequest;
-import com.example.hangeulhunters.application.conversation.dto.MessageSendResponse;
 import com.example.hangeulhunters.application.conversation.service.FeedbackService;
 import com.example.hangeulhunters.application.conversation.service.MessageService;
 import com.example.hangeulhunters.presentation.common.ControllerSupport;
@@ -14,8 +13,11 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -102,5 +104,32 @@ public class MessageController extends ControllerSupport {
                 responseMessageList.add(aiResponse);
 
                 return ResponseEntity.ok(responseMessageList);
+        }
+
+        @PostMapping(value = "/roleplay/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+        @Operation(summary = "롤플레이 메시지 전송 (SSE 스트리밍)", description = "롤플레이 대화에 메시지를 전송하고, AI 응답 텍스트를 SSE로 실시간 스트리밍합니다. 스트림 종료 시 done 이벤트를 전송하며 DB 저장이 완료됩니다.", security = @SecurityRequirement(name = "bearerAuth"))
+        public Flux<ServerSentEvent<String>> sendRolePlayMessageStream(@Valid @RequestBody MessageRequest request) {
+                // 1. 사용자 메시지 저장
+                MessageDto userMessage = messageService.sendMessage(getCurrentUserId(), request);
+
+                // 2. AI 응답을 SSE 스트림으로 반환
+                return messageService.processRolePlayWithAiStream(
+                                getCurrentUserId(),
+                                request.getConversationId(),
+                                userMessage.getMessageId(),
+                                request.getContent());
+        }
+
+        @PostMapping(value = "/ask/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+        @Operation(summary = "ASK 후속 메시지 전송 (SSE 스트리밍)", description = "ASK 대화에 후속 메시지를 전송하고, AI 응답 텍스트를 SSE로 실시간 스트리밍합니다. 스트림 종료 시 done 이벤트를 전송하며 DB 저장이 완료됩니다.", security = @SecurityRequirement(name = "bearerAuth"))
+        public Flux<ServerSentEvent<String>> sendAskMessageStream(@Valid @RequestBody MessageRequest request) {
+                // 1. 사용자 메시지 저장
+                messageService.sendMessage(getCurrentUserId(), request);
+
+                // 2. AI 응답을 SSE 스트림으로 반환
+                return messageService.processAskChatWithAiStream(
+                                getCurrentUserId(),
+                                request.getConversationId(),
+                                request.getContent());
         }
 }
