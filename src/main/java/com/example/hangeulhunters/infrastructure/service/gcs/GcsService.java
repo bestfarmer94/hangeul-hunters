@@ -118,26 +118,26 @@ public class GcsService {
      * (버킷이 공개 설정되어 있어야 합니다)
      */
     private String buildPublicUrl(String key) {
-        return String.format("https://storage.cloud.google.com/%s/%s", bucketName, key);
+        return String.format("https://storage.googleapis.com/%s/%s", bucketName, key);
     }
 
     /**
      * URL 에서 GCS 객체 키 추출
      *
-     * @param url GCS 객체 URL (https://storage.cloud.google.com/{bucket}/{key})
+     * @param url GCS 객체 URL (https://storage.googleapis.com/{bucket}/{key})
      * @return 객체 키
      */
     private String extractKeyFromUrl(String url) {
-        // https://storage.cloud.google.com/{bucketName}/{key}
-        String prefix = "https://storage.cloud.google.com/" + bucketName + "/";
+        // https://storage.googleapis.com/{bucketName}/{key}
+        String prefix = "https://storage.googleapis.com/" + bucketName + "/";
         if (url.startsWith(prefix)) {
             return url.substring(prefix.length());
         }
 
-        // Signed URL 형식: https://storage.cloud.google.com/{bucket}/{key}?X-Goog-...
-        if (url.contains("storage.cloud.google.com/" + bucketName + "/")) {
-            int start = url.indexOf("storage.cloud.google.com/" + bucketName + "/")
-                    + ("storage.cloud.google.com/" + bucketName + "/").length();
+        // Signed URL 형식: https://storage.googleapis.com/{bucket}/{key}?X-Goog-...
+        if (url.contains("storage.googleapis.com/" + bucketName + "/")) {
+            int start = url.indexOf("storage.googleapis.com/" + bucketName + "/")
+                    + ("storage.googleapis.com/" + bucketName + "/").length();
             int end = url.contains("?") ? url.indexOf("?") : url.length();
             return url.substring(start, end);
         }
