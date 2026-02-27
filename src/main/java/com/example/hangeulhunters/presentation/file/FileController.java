@@ -2,7 +2,7 @@ package com.example.hangeulhunters.presentation.file;
 
 import com.example.hangeulhunters.application.file.dto.PresignedUrlRequest;
 import com.example.hangeulhunters.application.file.service.FileService;
-import com.example.hangeulhunters.infrastructure.service.aws.dto.PresignedUrlDto;
+import com.example.hangeulhunters.infrastructure.service.gcs.dto.PresignedUrlDto;
 import com.example.hangeulhunters.presentation.common.ControllerSupport;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -34,11 +34,7 @@ public class FileController extends ControllerSupport {
      * @return Presigned URL 정보
      */
     @PostMapping("/presigned-url")
-    @Operation(
-        summary = "Presigned URL 생성",
-        description = "S3 업로드를 위한 Presigned URL을 생성합니다",
-        security = @SecurityRequirement(name = "bearerAuth")
-    )
+    @Operation(summary = "Presigned URL 생성", description = "GCS 업로드를 위한 Signed URL을 생성합니다", security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<PresignedUrlDto> generatePresignedUrl(@Valid @RequestBody PresignedUrlRequest request) {
         PresignedUrlDto presignedUrl = fileService.generatePresignedUrl(request);
         return ResponseEntity.ok(presignedUrl);
