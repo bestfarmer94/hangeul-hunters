@@ -34,7 +34,7 @@ public class FileController extends ControllerSupport {
      * @return Presigned URL 정보
      */
     @PostMapping("/presigned-url")
-    @Operation(summary = "Presigned URL 생성", description = "GCS 업로드를 위한 Signed URL을 생성합니다", security = @SecurityRequirement(name = "bearerAuth"))
+    @Operation(summary = "Presigned URL 생성", description = "GCS 업로드를 위한 Signed URL을 생성합니다")
     public ResponseEntity<PresignedUrlDto> generatePresignedUrl(@Valid @RequestBody PresignedUrlRequest request) {
         PresignedUrlDto presignedUrl = fileService.generatePresignedUrl(request);
         return ResponseEntity.ok(presignedUrl);
