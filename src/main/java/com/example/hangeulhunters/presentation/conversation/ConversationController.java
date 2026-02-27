@@ -97,6 +97,27 @@ public class ConversationController extends ControllerSupport {
         return ResponseEntity.ok(message);
     }
 
+    @PostMapping(value = "/ask/stream", produces = org.springframework.http.MediaType.TEXT_EVENT_STREAM_VALUE)
+    @Operation(summary = "ASK 타입 대화 생성 (SSE 스트리밍)", description = "페르소나 없이 질문을 위한 대화를 생성하고, AI 첫 응답 텍스트를 SSE로 실시간 스트리밍합니다. 스트림 종료 시 done 이벤트를 전송하며 DB 저장이 완료됩니다.", security = @SecurityRequirement(name = "bearerAuth"))
+    public Flux<ServerSentEvent<String>> createAskStream(@Valid @RequestBody AskRequest request) {
+        // 1. 대화 생성
+        ConversationDto conversation = conversationService.createAsk(getCurrentUserId(), request);
+
+        // 2. 초기 메시지 저장 (시스템/유저 메시지)
+        messageService.createAskInitialMessages(
+                getCurrentUserId(),
+                conversation.getConversationId(),
+                request);
+
+        // 3. AI 첫 응답을 SSE 스트림으로 반환
+        return messageService.createAskFirstMessageStream(
+                getCurrentUserId(),
+                conversation,
+                request.getAskTarget(),
+                request.getCloseness(),
+                request.getSituation());
+    }
+
     @PutMapping("/{conversationId}/end")
     @Operation(summary = "대화 종료", description = "진행 중인 대화를 종료합니다", security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<Void> endConversation(@PathVariable Long conversationId) {

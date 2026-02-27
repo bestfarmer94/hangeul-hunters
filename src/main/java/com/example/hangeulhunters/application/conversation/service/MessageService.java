@@ -8,18 +8,11 @@ import com.example.hangeulhunters.application.language.service.LanguageService;
 import com.example.hangeulhunters.application.persona.dto.AIPersonaDto;
 import com.example.hangeulhunters.application.persona.service.AIPersonaService;
 import com.example.hangeulhunters.application.topic.service.TopicService;
-import com.example.hangeulhunters.application.user.service.UserService;
 import com.example.hangeulhunters.domain.common.constant.AudioType;
-import com.example.hangeulhunters.domain.conversation.constant.ConversationTopicExample;
 import com.example.hangeulhunters.domain.conversation.constant.ConversationType;
 import com.example.hangeulhunters.domain.conversation.constant.MessageType;
-import com.example.hangeulhunters.domain.conversation.constant.SituationExample;
-import com.example.hangeulhunters.domain.conversation.entity.Conversation;
 import com.example.hangeulhunters.domain.conversation.entity.Message;
-import com.example.hangeulhunters.domain.conversation.entity.MessageFeedback;
-import com.example.hangeulhunters.domain.conversation.repository.ConversationRepository;
 import com.example.hangeulhunters.domain.conversation.repository.MessageRepository;
-import com.example.hangeulhunters.domain.conversation.repository.MessageFeedbackRepository;
 import com.example.hangeulhunters.domain.persona.constant.Relationship;
 import com.example.hangeulhunters.infrastructure.exception.ConflictException;
 import com.example.hangeulhunters.infrastructure.exception.ForbiddenException;
@@ -29,7 +22,6 @@ import com.example.hangeulhunters.infrastructure.service.naver.dto.ClovaSpeechST
 import com.example.hangeulhunters.infrastructure.service.naver.dto.HonorificVariationsResponse;
 import com.example.hangeulhunters.infrastructure.service.noonchi.NoonchiAiService;
 import com.example.hangeulhunters.infrastructure.service.noonchi.dto.NoonchiAiDto;
-import com.example.hangeulhunters.infrastructure.service.noonchi.dto.NoonchiAiDto.ChatResponse;
 import com.example.hangeulhunters.infrastructure.service.noonchi.dto.NoonchiAiDto.ChatStartResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
@@ -60,7 +52,6 @@ import java.util.stream.Collectors;
 public class MessageService {
 
     private final MessageRepository messageRepository;
-    private final MessageFeedbackRepository messageFeedbackRepository;
     private final AIPersonaService aiPersonaService;
     private final NaverApiService naverApiService;
     private final ConversationService conversationService;
@@ -746,6 +737,222 @@ public class MessageService {
 
         // 6. 저장된 AI 메시지 반환
         return MessageDto.fromEntity(aiMsg);
+    }
+
+    /**
+     * RolePlaying 메시지 AI 응답을 SSE 스트리밍으로 반환
+     *
+     * @param userId             사용자 ID
+     * @param conversationId     대화방 ID
+     * @param userMessageId      사용자 메시지 ID (피드백 연결용)
+     * @param userMessageContent 사용자 메시지 내용
+     * @return SSE 스트림 (ai_chunk → done 순서로 전달)
+     */
+    public Flux<ServerSentEvent<String>> processRolePlayWithAiStream(
+            Long userId, Long conversationId, Long userMessageId, String userMessageContent) {
+        log.info("Processing RolePlaying AI stream - conversationId: {}, userMessageId: {}",
+                conversationId, userMessageId);
+
+        Flux<String> aiStream = noonchiAiService.sendRolePlayMessageStream(conversationId, userMessageContent);
+        final AtomicReference<NoonchiAiDto.RolePlayDoneEventData> doneDataRef = new AtomicReference<>();
+
+        return aiStream
+                .mapNotNull(chunk -> {
+                    try {
+                        ObjectMapper mapper = new ObjectMapper();
+                        NoonchiAiDto.RolePlayStreamEvent event = mapper.readValue(chunk,
+                                NoonchiAiDto.RolePlayStreamEvent.class);
+
+                        if ("done".equals(event.getType()) && event.getData() != null) {
+                            doneDataRef.set(event.getData());
+                            log.info("Received done event for RolePlaying - conversationId: {}", conversationId);
+                        }
+
+                        // ai_chunk 이벤트: content 전달
+                        if (event.getContent() != null && !event.getContent().isEmpty()) {
+                            return ServerSentEvent.<String>builder()
+                                    .data(event.getContent())
+                                    .build();
+                        }
+                    } catch (Exception e) {
+                        log.warn("Failed to parse RolePlaying chunk as JSON: {}", e.getMessage());
+                        return ServerSentEvent.<String>builder()
+                                .data(chunk)
+                                .build();
+                    }
+                    return null;
+                })
+                .filter(Objects::nonNull)
+                .concatWith(Flux.defer(() -> {
+                    log.info("RolePlaying stream completed, saving messages to database - conversationId: {}",
+                            conversationId);
+                    try {
+                        NoonchiAiDto.RolePlayDoneEventData doneData = doneDataRef.get();
+                        if (doneData == null) {
+                            log.error("No done event data received - conversationId: {}", conversationId);
+                            return Flux.just(ServerSentEvent.<String>builder()
+                                    .event("error")
+                                    .data("{\"error\": \"No done event data received\"}")
+                                    .build());
+                        }
+
+                        // System 메시지 저장
+                        if (doneData.getSituationDescription() != null
+                                && !doneData.getSituationDescription().isBlank()) {
+                            Message systemMessage = Message.builder()
+                                    .conversationId(conversationId)
+                                    .type(MessageType.SYSTEM)
+                                    .content(doneData.getSituationDescription())
+                                    .situationContext(doneData.getSituationDescription())
+                                    .createdBy(userId)
+                                    .build();
+                            messageRepository.save(systemMessage);
+                        }
+
+                        // AI 메시지 저장
+                        Message aiMsg = Message.builder()
+                                .conversationId(conversationId)
+                                .type(MessageType.AI)
+                                .content(doneData.getAiMessage())
+                                .translatedContent(doneData.getAiMessageEn())
+                                .hiddenMeaning(doneData.getAiHiddenMeaning())
+                                .visualAction(doneData.getVisualAction())
+                                .situationDescription(doneData.getSituationDescription())
+                                .createdBy(userId)
+                                .build();
+                        messageRepository.save(aiMsg);
+
+                        // 피드백 저장
+                        if (doneData.getFeedback() != null) {
+                            feedbackService.saveMessageFeedback(userId, userMessageId, doneData.getFeedback());
+                            log.info("Saved RolePlaying feedback for message: {}", userMessageId);
+                        }
+
+                        // 대화 상태 업데이트
+                        if (doneData.getCanGetReport() != null && doneData.getCanGetReport()) {
+                            conversationService.updateCanGetReport(conversationId);
+                        }
+                        if (Boolean.TRUE.equals(doneData.getIsConversationEnding())) {
+                            conversationService.endConversation(userId, conversationId);
+                        }
+                        conversationService.updateConversationLastActivity(conversationId);
+
+                        log.info("Saved RolePlaying messages - conversationId: {}, aiMessageId: {}",
+                                conversationId, aiMsg.getId());
+
+                        return Flux.just(ServerSentEvent.<String>builder()
+                                .event("done")
+                                .data("{\"status\": \"completed\", \"ai_message_id\": " + aiMsg.getId() + "}")
+                                .build());
+                    } catch (Exception e) {
+                        log.error("Failed to save RolePlaying messages after stream completion", e);
+                        return Flux.just(ServerSentEvent.<String>builder()
+                                .event("error")
+                                .data("{\"error\": \"Failed to save message: " + e.getMessage() + "\"}")
+                                .build());
+                    }
+                }))
+                .onErrorResume(error -> {
+                    log.error("Error in RolePlaying stream - conversationId: {}", conversationId, error);
+                    return Flux.just(ServerSentEvent.<String>builder()
+                            .event("error")
+                            .data("{\"error\": \"" + error.getMessage() + "\"}")
+                            .build());
+                });
+    }
+
+    /**
+     * ASK 후속 메시지 AI 응답을 SSE 스트리밍으로 반환
+     *
+     * @param userId             사용자 ID
+     * @param conversationId     대화방 ID
+     * @param userMessageContent 사용자 메시지 내용
+     * @return SSE 스트림 (chunk → done 순서로 전달)
+     */
+    public Flux<ServerSentEvent<String>> processAskChatWithAiStream(
+            Long userId, Long conversationId, String userMessageContent) {
+        log.info("Processing ASK chat AI stream - conversationId: {}", conversationId);
+
+        Flux<String> aiStream = noonchiAiService.sendAskChatStream(conversationId, userMessageContent);
+        final AtomicReference<NoonchiAiDto.DoneEventData> doneDataRef = new AtomicReference<>();
+
+        return aiStream
+                .mapNotNull(chunk -> {
+                    try {
+                        ObjectMapper mapper = new ObjectMapper();
+                        NoonchiAiDto.AskStreamEvent event = mapper.readValue(chunk,
+                                NoonchiAiDto.AskStreamEvent.class);
+
+                        if ("done".equals(event.getType()) && event.getData() != null) {
+                            doneDataRef.set(event.getData());
+                            log.info("Received done event for ASK chat - conversationId: {}", conversationId);
+                        }
+
+                        if (event.getContent() != null && !event.getContent().isEmpty()) {
+                            return ServerSentEvent.<String>builder()
+                                    .data(event.getContent())
+                                    .build();
+                        }
+                    } catch (Exception e) {
+                        log.warn("Failed to parse ASK chat chunk as JSON: {}", e.getMessage());
+                        return ServerSentEvent.<String>builder()
+                                .data(chunk)
+                                .build();
+                    }
+                    return null;
+                })
+                .filter(Objects::nonNull)
+                .concatWith(Flux.defer(() -> {
+                    log.info("ASK chat stream completed, saving message to database - conversationId: {}",
+                            conversationId);
+                    try {
+                        NoonchiAiDto.DoneEventData doneData = doneDataRef.get();
+                        if (doneData == null) {
+                            log.error("No done event data received for ASK chat - conversationId: {}",
+                                    conversationId);
+                            return Flux.just(ServerSentEvent.<String>builder()
+                                    .event("error")
+                                    .data("{\"error\": \"No done event data received\"}")
+                                    .build());
+                        }
+
+                        // AI 메시지 저장
+                        Message aiMsg = Message.builder()
+                                .conversationId(conversationId)
+                                .type(MessageType.AI)
+                                .content(doneData.getAiMessage())
+                                .translatedContent(doneData.getAiMessageEn())
+                                .askApproachTip(doneData.getApproachTip())
+                                .askCulturalInsight(doneData.getCulturalInsight())
+                                .createdBy(userId)
+                                .build();
+                        messageRepository.save(aiMsg);
+
+                        // 대화 마지막 활동 시간 업데이트
+                        conversationService.updateConversationLastActivity(conversationId);
+
+                        log.info("Saved ASK chat AI message - conversationId: {}, aiMessageId: {}",
+                                conversationId, aiMsg.getId());
+
+                        return Flux.just(ServerSentEvent.<String>builder()
+                                .event("done")
+                                .data("{\"status\": \"completed\", \"ai_message_id\": " + aiMsg.getId() + "}")
+                                .build());
+                    } catch (Exception e) {
+                        log.error("Failed to save ASK chat message after stream completion", e);
+                        return Flux.just(ServerSentEvent.<String>builder()
+                                .event("error")
+                                .data("{\"error\": \"Failed to save message: " + e.getMessage() + "\"}")
+                                .build());
+                    }
+                }))
+                .onErrorResume(error -> {
+                    log.error("Error in ASK chat stream - conversationId: {}", conversationId, error);
+                    return Flux.just(ServerSentEvent.<String>builder()
+                            .event("error")
+                            .data("{\"error\": \"" + error.getMessage() + "\"}")
+                            .build());
+                });
     }
 
     /**
