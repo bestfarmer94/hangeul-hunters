@@ -20,6 +20,6 @@ public class MessageRequest {
     @Schema(description = "메시지")
     private String content;
 
-    @Schema(description = "음성 파일의 Presigned URL (STT용)", example = "https://hangeulhunters.s3.ap-northeast-2.amazonaws.com/temp/audio.wav?...")
+    @Schema(description = "음성 파일의 Signed URL (STT용)", example = "https://storage.googleapis.com/noonchi-bucket/temp/audio.wav")
     private String audioUrl;
 }

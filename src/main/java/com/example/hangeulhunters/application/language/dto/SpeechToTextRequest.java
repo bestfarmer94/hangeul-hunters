@@ -12,6 +12,6 @@ import lombok.Setter;
 @Schema(description = "STT 변환 요청")
 public class SpeechToTextRequest {
     @NotBlank
-    @Schema(description = "음성 파일의 Presigned URL", example = "https://hangeulhunters.s3.ap-northeast-2.amazonaws.com/temp/audio.wav?...")
+    @Schema(description = "음성 파일의 Signed URL", example = "https://storage.googleapis.com/noonchi-bucket/temp/audio.wav")
     private String audioUrl;
 }

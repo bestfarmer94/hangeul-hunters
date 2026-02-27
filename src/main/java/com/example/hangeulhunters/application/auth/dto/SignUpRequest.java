@@ -16,17 +16,17 @@ import java.time.LocalDate;
 @Builder
 @Schema(description = "회원가입 요청 DTO")
 public class SignUpRequest {
-    
+
     @NotBlank(message = "Email is required")
     @Email(message = "Email should be valid")
     @Schema(description = "이메일", example = "user@example.com")
     private String email;
-    
+
     @NotBlank(message = "Password is required")
     @Size(min = 8, message = "Password must be at least 8 characters")
     @Schema(description = "비밀번호 (8자 이상)", example = "password123")
     private String password;
-    
+
     @NotBlank(message = "Nickname is required")
     @Schema(description = "닉네임", example = "홍길동")
     private String nickname;
@@ -39,7 +39,7 @@ public class SignUpRequest {
     @Past(message = "Birth date must be in the past")
     @Schema(description = "생년월일", example = "1990-01-01", format = "date")
     private LocalDate birthDate;
-    
-    @Schema(description = "프로필 이미지 URL", example = "https://noonchi-bucket.s3.ap-northeast-2.amazonaws.com/123e4567-e89b-12d3-a456-426614174000.jpg")
+
+    @Schema(description = "프로필 이미지 URL", example = "https://storage.googleapis.com/noonchi-bucket/profiles/123e4567-e89b-12d3-a456-426614174000.jpg")
     private String profileImageUrl;
 }
