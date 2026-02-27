@@ -19,7 +19,7 @@ public class NoonchiAiProperties {
         private String scenarioGenerateContext;
         private String rolePlayingStart;
         private String rolePlayingChat;
-        private String rolePlayingHint;
+        private String rolePlayingHelp;
         private String rolePlayingReport;
         private String interviewStart;
         private String interviewChat;

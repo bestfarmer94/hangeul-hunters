@@ -259,38 +259,38 @@ public class NoonchiAiService {
         }
     }
 
-    // ==================== Hint API ====================
+    // ==================== Help API ====================
 
     /**
-     * 롤플레잉 힌트 생성
+     * 롤플레잌 도움 응답 조회 (What should I say?)
      *
      * @param conversationId 대화방 ID
-     * @return 힌트 응답
+     * @return 도움 응답
      */
-    public HintResponse generateRolePlayingHint(Long conversationId) {
-        log.info("Generating role-playing hint - conversationId: {}", conversationId);
+    public HelpAiResponse generateRolePlayingHelp(Long conversationId) {
+        log.info("Generating role-playing help - conversationId: {}", conversationId);
 
         try {
-            String uri = (properties.getBaseUrl() + properties.getEndpoints().getRolePlayingHint())
+            String uri = (properties.getBaseUrl() + properties.getEndpoints().getRolePlayingHelp())
                     .replace("{conversationId}", conversationId.toString());
 
-            HintResponse response = webClient.get()
+            HelpAiResponse response = webClient.get()
                     .uri(uri)
                     .header("x-api-key", properties.getApiKey())
                     .retrieve()
-                    .bodyToMono(HintResponse.class)
+                    .bodyToMono(HelpAiResponse.class)
                     .block();
 
-            log.info("Role-playing hint generated successfully - conversationId: {}", conversationId);
+            log.info("Role-playing help generated successfully - conversationId: {}", conversationId);
             return response;
 
         } catch (WebClientResponseException e) {
-            log.error("Failed to generate role-playing hint - conversationId: {}, status: {}, body: {}",
+            log.error("Failed to generate role-playing help - conversationId: {}, status: {}, body: {}",
                     conversationId, e.getStatusCode(), e.getResponseBodyAsString());
-            throw new RuntimeException("Failed to generate role-playing hint: " + e.getMessage(), e);
+            throw new RuntimeException("Failed to generate role-playing help: " + e.getMessage(), e);
         } catch (Exception e) {
-            log.error("Unexpected error generating role-playing hint - conversationId: {}", conversationId, e);
-            throw new RuntimeException("Unexpected error generating role-playing hint", e);
+            log.error("Unexpected error generating role-playing help - conversationId: {}", conversationId, e);
+            throw new RuntimeException("Unexpected error generating role-playing help", e);
         }
     }
 
