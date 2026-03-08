@@ -1,6 +1,6 @@
 package com.example.hangeulhunters.presentation.admin;
 
-import com.example.hangeulhunters.domain.user.repository.UserStatRow;
+import com.example.hangeulhunters.domain.user.entity.UserStatRow;
 import com.example.hangeulhunters.domain.user.repository.UserStatsRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;

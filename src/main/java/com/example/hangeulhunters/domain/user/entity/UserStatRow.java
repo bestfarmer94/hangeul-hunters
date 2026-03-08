@@ -1,4 +1,4 @@
-package com.example.hangeulhunters.domain.user.repository;
+package com.example.hangeulhunters.domain.user.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
