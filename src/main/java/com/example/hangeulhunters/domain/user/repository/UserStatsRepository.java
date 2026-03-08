@@ -1,5 +1,6 @@
 package com.example.hangeulhunters.domain.user.repository;
 
+import com.example.hangeulhunters.domain.user.entity.UserStatRow;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
