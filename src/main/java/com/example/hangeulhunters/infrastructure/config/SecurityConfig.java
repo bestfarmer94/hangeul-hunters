@@ -65,6 +65,7 @@ public class SecurityConfig {
                         .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers("/error").permitAll() // Allow error page for async dispatch
                         .requestMatchers("/api/health").permitAll() // Allow health check
+                        .requestMatchers("/admin/**").permitAll() // Allow admin stats page
                         .anyRequest().authenticated())
                 .authorizeHttpRequests(auth -> auth.shouldFilterAllDispatcherTypes(false)) // Allow async/error
                                                                                            // dispatchers
