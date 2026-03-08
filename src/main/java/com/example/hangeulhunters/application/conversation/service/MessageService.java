@@ -401,37 +401,27 @@ public class MessageService {
         final AtomicReference<NoonchiAiDto.DoneEventData> doneDataRef = new AtomicReference<>();
 
         return aiStream
-                .mapNotNull(chunk -> {
-                    // 각 청크를 파싱하여 done 이벤트인지 확인
+                .map(chunk -> {
+                    // done 이벤트 파싱 (DB 저장용) - raw chunk는 그대로 전달
                     try {
                         ObjectMapper mapper = new ObjectMapper();
                         NoonchiAiDto.AskStreamEvent event = mapper.readValue(chunk, NoonchiAiDto.AskStreamEvent.class);
 
-                        // done 이벤트인 경우 데이터 저장
+                        // done 이벤트인 경우 데이터 저장 (DB 저장에 활용)
                         if ("done".equals(event.getType()) && event.getData() != null) {
                             doneDataRef.set(event.getData());
                             log.info("Received done event with data for conversation: {}",
                                     conversation.getConversationId());
                         }
-
-                        // content가 있으면 반환 (chunk 이벤트)
-                        if (event.getContent() != null && !event.getContent().isEmpty()) {
-                            return ServerSentEvent.<String>builder()
-                                    .data(event.getContent())
-                                    .build();
-                        }
                     } catch (Exception e) {
-                        log.warn("Failed to parse chunk as JSON, treating as plain text: {}", e.getMessage());
-                        // JSON 파싱 실패 시 그대로 전달
-                        return ServerSentEvent.<String>builder()
-                                .data(chunk)
-                                .build();
+                        log.warn("Failed to parse chunk as JSON: {}", e.getMessage());
                     }
 
-                    // content가 없으면 null 반환 (필터링됨)
-                    return null;
+                    // raw chunk를 그대로 클라이언트로 전달
+                    return ServerSentEvent.<String>builder()
+                            .data(chunk)
+                            .build();
                 })
-                .filter(Objects::nonNull) // null 제거
                 .concatWith(Flux.defer(() -> {
                     // 스트림 완료 후 DB 저장 및 done 이벤트 전송
                     log.info("Ask stream completed, saving message to database");
