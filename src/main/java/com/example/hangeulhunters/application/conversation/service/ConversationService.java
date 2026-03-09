@@ -84,10 +84,11 @@ public class ConversationService {
                                 conversations.stream()
                                                 .map(conversation -> ConversationDto.of(
                                                                 conversation,
-                                                                aIPersonaService.getPersonaByIdIncludeDeleted(conversation.getPersonaId()),
-                                                                topicService.getTopicByName(conversation.getConversationTopic()).getCategory()
-                                                        )
-                                                )
+                                                                aIPersonaService.getPersonaByIdIncludeDeleted(
+                                                                                conversation.getPersonaId()),
+                                                                topicService.getTopicByName(
+                                                                                conversation.getConversationTopic())
+                                                                                .getCategory()))
                                                 .toList());
         }
 
@@ -101,7 +102,7 @@ public class ConversationService {
                 String track = topicService.getTopicByName(conversation.getConversationTopic()).getCategory();
 
                 return ConversationDto.of(conversation, persona, track,
-                        fileService.getFiles(FileObjectType.CONVERSATION, conversationId));
+                                fileService.getFiles(FileObjectType.CONVERSATION, conversationId));
         }
 
         @Transactional
@@ -293,5 +294,35 @@ public class ConversationService {
                 conversationRepository.save(conversation);
 
                 log.info("Updated canGetReport for conversation: {}", conversationId);
+        }
+
+        /**
+         * 키워드로 대화 목록 검색 (conversation_topic, ai_role, user_role, message 내용 대상)
+         *
+         * @param userId  사용자 ID
+         * @param keyword 검색 키워드
+         * @param page    페이지 번호 (1부터 시작)
+         * @param size    페이지 크기
+         * @return 페이징된 대화 목록
+         */
+        @Transactional(readOnly = true)
+        public PageResponse<ConversationDto> searchConversations(Long userId, String keyword, int page, int size) {
+
+                Pageable pageable = PageRequest.of(page - 1, size);
+
+                Page<Conversation> conversations = conversationRepository.searchConversationsByKeyword(
+                                userId, keyword, pageable);
+
+                return PageResponse.of(
+                                conversations,
+                                conversations.stream()
+                                                .map(conversation -> ConversationDto.of(
+                                                                conversation,
+                                                                aIPersonaService.getPersonaByIdIncludeDeleted(
+                                                                                conversation.getPersonaId()),
+                                                                topicService.getTopicByName(
+                                                                                conversation.getConversationTopic())
+                                                                                .getCategory()))
+                                                .toList());
         }
 }
