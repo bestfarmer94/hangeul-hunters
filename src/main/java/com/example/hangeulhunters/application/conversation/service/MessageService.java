@@ -786,7 +786,7 @@ public class MessageService {
                                     .conversationId(conversationId)
                                     .type(MessageType.SYSTEM)
                                     .content(doneData.getSituationDescription())
-                                    .situationContext(doneData.getSituationDescription())
+                                    .situationDescription(doneData.getSituationDescription())
                                     .createdBy(userId)
                                     .build();
                             messageRepository.save(systemMessage);
