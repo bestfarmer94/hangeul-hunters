@@ -38,7 +38,7 @@ public class UserStatsRepository {
                        AND c.deleted_at IS NULL
                     ) AS ask_count
                 FROM users u
-                ORDER BY role_play_count DESC
+                ORDER BY u.id DESC
                 """;
 
         return jdbcTemplate.query(sql, (rs, rowNum) -> new UserStatRow(
