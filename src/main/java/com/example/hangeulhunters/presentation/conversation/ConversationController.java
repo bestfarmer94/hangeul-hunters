@@ -61,6 +61,18 @@ public class ConversationController extends ControllerSupport {
         return ResponseEntity.ok(conversations);
     }
 
+    @GetMapping("/search")
+    @Operation(summary = "대화 키워드 검색", description = "키워드로 대화 목록을 검색합니다. conversation_topic, AI 페르소나의 ai_role/user_role, 대화 내용(message content)에서 검색합니다.", security = @SecurityRequirement(name = "bearerAuth"))
+    public ResponseEntity<PageResponse<ConversationDto>> searchConversations(
+            @Parameter(description = "검색 키워드", required = true) @RequestParam String keyword,
+            @Parameter(description = "페이지 번호") @RequestParam(defaultValue = "1") Integer page,
+            @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "10") Integer size) {
+
+        PageResponse<ConversationDto> conversations = conversationService.searchConversations(
+                getCurrentUserId(), keyword, page, size);
+        return ResponseEntity.ok(conversations);
+    }
+
     @PostMapping("/role-playing")
     @Operation(summary = "새 롤플레잉 대화 생성", description = "AI 페르소나와의 새로운 롤플레잉 대화를 시작합니다", security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<ConversationDto> createConversation(@Valid @RequestBody ConversationRequest request) {
