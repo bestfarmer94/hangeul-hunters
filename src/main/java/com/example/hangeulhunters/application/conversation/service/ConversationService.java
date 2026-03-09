@@ -24,10 +24,7 @@ import com.example.hangeulhunters.domain.persona.constant.Relationship;
 import com.example.hangeulhunters.domain.persona.entity.AIPersona;
 import com.example.hangeulhunters.domain.persona.repository.AIPersonaRepository;
 import com.example.hangeulhunters.domain.topic.entity.ConversationTopic;
-import com.example.hangeulhunters.domain.topic.entity.ConversationTopicTask;
 import com.example.hangeulhunters.domain.topic.repository.ConversationTopicRepository;
-import com.example.hangeulhunters.domain.topic.repository.ConversationTopicTaskRepository;
-import com.example.hangeulhunters.infrastructure.exception.ConflictException;
 import com.example.hangeulhunters.infrastructure.exception.ForbiddenException;
 import com.example.hangeulhunters.infrastructure.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -39,7 +36,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 import static com.example.hangeulhunters.domain.conversation.constant.ConversationType.ASK;
@@ -54,7 +50,6 @@ public class ConversationService {
         private final ConversationRepository conversationRepository;
         private final AIPersonaRepository aiPersonaRepository;
         private final ConversationTopicRepository conversationTopicRepository;
-        private final ConversationTopicTaskRepository conversationTopicTaskRepository;
         private final AIPersonaService aIPersonaService;
         private final FileService fileService;
         private final TopicService topicService;

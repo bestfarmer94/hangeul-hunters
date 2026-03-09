@@ -9,7 +9,6 @@ import com.example.hangeulhunters.domain.conversation.entity.MessageFeedback;
 import com.example.hangeulhunters.domain.conversation.repository.ConversationFeedbackRepository;
 import com.example.hangeulhunters.domain.conversation.repository.MessageFeedbackRepository;
 import com.example.hangeulhunters.domain.conversation.vo.ImprovementItem;
-import com.example.hangeulhunters.domain.conversation.vo.KeyExpression;
 import com.example.hangeulhunters.infrastructure.exception.ConflictException;
 import com.example.hangeulhunters.infrastructure.exception.ResourceNotFoundException;
 import com.example.hangeulhunters.infrastructure.service.noonchi.NoonchiAiService;

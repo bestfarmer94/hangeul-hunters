@@ -40,7 +40,6 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -747,7 +746,8 @@ public class MessageService {
         final AtomicReference<NoonchiAiDto.RolePlayDoneEventData> doneDataRef = new AtomicReference<>();
 
         return aiStream
-                .mapNotNull(chunk -> {
+                .map(chunk -> {
+                    // done 이벤트 파싱 (DB 저장용) - raw chunk는 그대로 전달
                     try {
                         ObjectMapper mapper = new ObjectMapper();
                         NoonchiAiDto.RolePlayStreamEvent event = mapper.readValue(chunk,
@@ -757,22 +757,15 @@ public class MessageService {
                             doneDataRef.set(event.getData());
                             log.info("Received done event for RolePlaying - conversationId: {}", conversationId);
                         }
-
-                        // ai_chunk 이벤트: content 전달
-                        if (event.getContent() != null && !event.getContent().isEmpty()) {
-                            return ServerSentEvent.<String>builder()
-                                    .data(event.getContent())
-                                    .build();
-                        }
                     } catch (Exception e) {
                         log.warn("Failed to parse RolePlaying chunk as JSON: {}", e.getMessage());
-                        return ServerSentEvent.<String>builder()
-                                .data(chunk)
-                                .build();
                     }
-                    return null;
+
+                    // raw chunk를 그대로 클라이언트로 전달
+                    return ServerSentEvent.<String>builder()
+                            .data(chunk)
+                            .build();
                 })
-                .filter(Objects::nonNull)
                 .concatWith(Flux.defer(() -> {
                     log.info("RolePlaying stream completed, saving messages to database - conversationId: {}",
                             conversationId);
