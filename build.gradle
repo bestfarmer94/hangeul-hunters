@@ -47,7 +47,6 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
     // Google Cloud Platform
-    implementation 'com.google.cloud:google-cloud-texttospeech:2.35.0'
     implementation 'com.google.cloud:google-cloud-storage:2.36.0'
     
     // JWT
