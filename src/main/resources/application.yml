@@ -50,6 +50,9 @@ spring:
     baseline-on-migrate: true
     table: flyway_schema_history
 
+  codec:
+    max-in-memory-size: 10MB
+
 springdoc:
   api-docs:
     path: /api-docs
