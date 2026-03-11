@@ -8,6 +8,7 @@ import com.example.hangeulhunters.application.conversation.service.FeedbackServi
 import com.example.hangeulhunters.application.conversation.service.MessageService;
 import com.example.hangeulhunters.domain.conversation.constant.ConversationSortBy;
 import com.example.hangeulhunters.domain.conversation.constant.ConversationStatus;
+import com.example.hangeulhunters.domain.conversation.constant.ConversationType;
 import com.example.hangeulhunters.presentation.common.ControllerSupport;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -45,6 +46,7 @@ public class ConversationController extends ControllerSupport {
     public ResponseEntity<PageResponse<ConversationDto>> getUserConversations(
             @Parameter(description = "대화 상태") @RequestParam(required = false) ConversationStatus status,
             @Parameter(description = "AI 페르소나 ID") @RequestParam(required = false) Long personaId,
+            @Parameter(description = "대화 타입") @RequestParam(required = false) ConversationType conversationType,
             @Parameter(description = "정렬 기준") @RequestParam(defaultValue = "LAST_ACTIVITY_DESC") ConversationSortBy sortBy,
             @Parameter(description = "페이지 번호") @RequestParam(defaultValue = "1") Integer page,
             @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "10") Integer size) {
@@ -54,6 +56,7 @@ public class ConversationController extends ControllerSupport {
                 ConversationFilterRequest.builder()
                         .status(status)
                         .personaId(personaId)
+                        .type(conversationType)
                         .sortBy(sortBy)
                         .page(page)
                         .size(size)
