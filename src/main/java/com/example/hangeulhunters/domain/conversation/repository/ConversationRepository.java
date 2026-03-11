@@ -33,6 +33,7 @@ public interface ConversationRepository extends JpaRepository<Conversation, Long
                         "   c.user_id = :userId " +
                         "   AND (:status IS NULL OR c.status = :status) " +
                         "   AND (:personaId IS NULL OR c.persona_id = :personaId) " +
+                        "   AND (:type IS NULL OR c.conversation_type = :type) " +
                         "   AND c.deleted_at IS NULL " +
                         "ORDER BY " +
                         "   CASE WHEN :sortBy = 'PERSONA_NAME_ASC' THEN p.name END ASC, " +
@@ -41,6 +42,7 @@ public interface ConversationRepository extends JpaRepository<Conversation, Long
                         @Param("userId") Long userId,
                         @Param("status") String status,
                         @Param("personaId") Long personaId,
+                        @Param("type") String type,
                         @Param("sortBy") String sortBy,
                         Pageable pageable);
 

@@ -16,6 +16,7 @@ import com.example.hangeulhunters.domain.common.constant.Closeness;
 import com.example.hangeulhunters.domain.common.constant.FileObjectType;
 import com.example.hangeulhunters.domain.common.constant.Gender;
 import com.example.hangeulhunters.domain.conversation.constant.ConversationStatus;
+import com.example.hangeulhunters.domain.conversation.constant.ConversationType;
 import com.example.hangeulhunters.domain.conversation.constant.InterviewStyle;
 import com.example.hangeulhunters.domain.conversation.entity.Conversation;
 import com.example.hangeulhunters.domain.conversation.repository.ConversationRepository;
@@ -71,6 +72,7 @@ public class ConversationService {
                                 userId,
                                 Optional.ofNullable(filter.getStatus()).map(ConversationStatus::name).orElse(null),
                                 filter.getPersonaId(),
+                                Optional.ofNullable(filter.getType()).map(ConversationType::name).orElse(null),
                                 filter.getSortBy().name(),
                                 pageable);
 
