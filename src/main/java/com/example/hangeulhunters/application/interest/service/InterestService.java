@@ -1,10 +1,8 @@
 package com.example.hangeulhunters.application.interest.service;
 
 import com.example.hangeulhunters.application.interest.dto.InterestDto;
-import com.example.hangeulhunters.domain.common.constant.SubjectCategory;
 import com.example.hangeulhunters.domain.interest.entity.Interest;
 import com.example.hangeulhunters.domain.interest.repository.InterestRepository;
-import com.example.hangeulhunters.infrastructure.exception.BadRequestException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,15 +41,6 @@ public class InterestService {
      */
     @Transactional
     public void updateUserInterests(Long userId, List<String> interestNames) {
-        // 관심사 체크
-         Set<String> subjects = Arrays.stream(SubjectCategory.values())
-                .map(SubjectCategory::name)
-                .collect(Collectors.toSet());
-
-         if(interestNames.stream().anyMatch(interest -> !subjects.contains(interest))) {
-             throw new BadRequestException("Invalid interest name in the request");
-         }
-
         // 기존 관심사 조회
         List<Interest> existingInterests = interestRepository.findAllByUserIdAndDeletedAtNull(userId);
         
